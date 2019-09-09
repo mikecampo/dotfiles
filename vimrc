@@ -241,8 +241,9 @@ set list listchars=tab:»·,trail:· " Show trailing whitespace.
 
 set timeoutlen=300 ttimeoutlen=0  " Adding this since the esc remap on the 'i' key had a long delay when pressed.
 
-" @new might be broken:
-" set updatetime=100              " I lowered this to make git-gutter updates faster.
+" @fixme might be broken if lowered to 100 from original value of 4000. Will
+" first try 500 and tweak from there.
+set updatetime=250                " I lowered this to make git-gutter updates faster.
 
 set undolevels=1000               " Allow undo when going back into a closed file
 set undoreload=10000
