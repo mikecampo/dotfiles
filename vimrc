@@ -98,11 +98,11 @@ if IsWindows()
 else
     " Fuzzy search
     " @incomplete Test out ctrlp for non-Windows setup.
-    Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
-    Plug 'junegunn/fzf.vim'
+    " Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+    " Plug 'junegunn/fzf.vim'
 
     " @fixme Doesn't do anything under Windows...
-    Plug 'ervandew/supertab'          " Improved autocompletion.
+    " Plug 'ervandew/supertab'          " Improved autocompletion.
 endif
 
 "///////////////////
@@ -895,19 +895,52 @@ nnoremap <C-p> :cp<CR>
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" SEARCHING
+" SEARCH
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-" Search using ripgrep (first install with Rust: cargo install ripgrep)
-" Ignores vendor folder.
 if !IsWindows()
   command! -bang -nargs=* Find call fzf#vim#grep('rg --column --line-number --no-heading --fixed-strings --ignore-case --no-ignore --hidden --follow --glob "!vendor/*" --pretty "always" '.shellescape(<q-args>), 1, <bang>0)
 endif
 
-" TODO: Not sure if I still need this
-map <leader>gs :let @/ = ""<CR>
+" Search using ripgrep (first install with Rust: cargo install ripgrep)
+" Ignores vendor folder.
+function! Search(case_sensitive)
+  let helper = "[" . (a:case_sensitive ? "case-sensitive" : "case-insensitive") . "] search: "
+  let term = input(helper)
+  if empty(term)
+    return
+  endif
 
-" Replace the selected text in all files within the repo
+  "@note --pretty (i.e. colors) is not enabled in vim-ripgrep because the
+  "quickfix window doesn't seem to parse the ansi color codes.
+  let rg_args = "--trim -g \"!vendor/*\""
+
+  if !a:case_sensitive
+    let rg_args .= " --ignore-case"
+  endif
+
+  if IsWindows()
+    exec 'Rg ' . rg_args . ' "' . term . '"'
+  else
+    " @incomplete Test out ripgrep on non-Windows OS
+    echo "Not implemented"
+  endif
+endfunction
+map <leader>s :call Search(0)<cr>
+map <leader>ss :call Search(1)<cr>
+
+" Navigation for the vim-ripgrep search results.
+" Hit o on a result line to open the file at that line.
+" Hit p on a result line to open the file at that line and return to the results pane.
+nnoremap <expr> o (&buftype is# "quickfix" ? "<CR>\|:lopen<CR>" : "o")
+nnoremap <expr> p (&buftype is# "quickfix" ? "<CR>\|:copen<CR>" : "p")
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" SEARCH & REPLACE
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" Replace the selected text in all files within the repo.
 function! GlobalReplaceIt(confirm_replacement)
   if exists(':Ggrep')
     call inputsave()
@@ -939,36 +972,6 @@ endfunction
 map <leader>gg :call GlobalReplaceIt(0)<cr>
 map <leader>gr :call GlobalReplaceIt(1)<cr>
 
-function! Search(case_sensitive)
-  let helper = "[" . (a:case_sensitive ? "case-sensitive" : "case-insensitive") . "] search: "
-  let term = input(helper)
-  if empty(term)
-    return
-  endif
-
-  "@note --pretty (i.e. colors) is not enabled in vim-ripgrep because the
-  "quickfix window doesn't seem to parse the ansi color codes.
-  let rg_args = "--trim -g \"!vendor/*\""
-
-  if !a:case_sensitive
-    let rg_args .= " --ignore-case"
-  endif
-
-  if IsWindows()
-    exec 'Rg ' . rg_args . ' "' . term . '"'
-  else
-    " @incomplete Test out ripgrep on non-Windows OS
-    echo "Not implemented"
-  endif
-endfunction
-map <leader>s :call Search(0)<cr>
-map <leader>ss :call Search(1)<cr>
-
-" Navigation for the vim-ripgrep search results.
-" Hit o on a result line to open the file at that line.
-" Hit p on a result line to open the file at that line and return to the results pane.
-nnoremap <expr> o (&buftype is# "quickfix" ? "<CR>\|:lopen<CR>" : "o")
-nnoremap <expr> p (&buftype is# "quickfix" ? "<CR>\|:copen<CR>" : "p")
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " RENAME CURRENT FILE
