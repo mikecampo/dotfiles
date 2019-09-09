@@ -116,7 +116,7 @@ endif
 " COLORS
 "////////////////////////////////////////////////////////////////
 
-Plug 'sir-pinecone/rainbow'           " Rainbow parens.
+Plug 'luochen1990/rainbow', { 'commit': '1c45e0f' } " Rainbow parens. Locked to an older commit that still works fine on my PC.
 Plug 'godlygeek/csapprox'             " Try to make gvim themes look decent in Windows
 "Plug 'flazz/vim-colorschemes'        " @warning: Has a lot of themes, but they break the other themes listed below
 Plug 'elixir-lang/vim-elixir'
@@ -619,9 +619,6 @@ let g:clojure_fuzzy_indent_blacklist = ['-fn$', '\v^with-%(meta|out-str|loading-
 " RAINBOW
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 let g:rainbow_active = 1 " Always on
-"let g:rainbow_conf = {
-"\}
-
 let s:light_rainbow = ['red', 'green', 'magenta', 'cyan', 'yellow', 'white', 'gray', 'blue']
 let s:dark_rainbow = ['darkblue', 'red', 'black', 'darkgreen', 'darkyellow', 'darkred', 'darkgray']
 
@@ -639,13 +636,13 @@ call UpdateRainbowConf()
 
 function! ReloadRainbow()
   if g:campo_theme_use_rainbow_parens
-    if exists('g:rainbow_loaded')
+    if exists(':RainbowToggle')
       call UpdateRainbowConf()
       call rainbow#clear() | call rainbow#hook()
     endif
   else
     let g:rainbow_active = 0
-    if exists('g:rainbow_loaded')
+    if exists(':RainbowToggle')
       call UpdateRainbowConf()
       call rainbow#clear()
     endif
