@@ -6,6 +6,7 @@ case "${uname_s}" in
     Darwin*)  platform="MACOS"  platform_os="MACOS";;
     CYGWIN*)  platform="CYGWIN" platform_os="WINDOWS";;
     MINGW*)   platform="MINGW"  platform_os="WINDOWS";;
+    MSYS*)    platform="MINGW"  platform_os="WINDOWS";;
     *)        platform="UNKNOWN:${uname_s} platform_os="UNKNOWN_OS""
 esac
 

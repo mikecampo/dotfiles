@@ -37,7 +37,7 @@ let s:uname = system("echo -n \"$(uname)\"")
 let s:vim_dir = $HOME . "/.vim"
 
 function! IsWindows()
-    if s:uname =~ "mingw"
+    if s:uname =~ "mingw" || s:uname =~ "msys"
         return 1
     endif
     return 0
