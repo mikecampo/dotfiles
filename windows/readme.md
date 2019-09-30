@@ -5,7 +5,13 @@
 
 * Install Windows Defender
 
-* Enable clear text
+* Disable the WinSAT task which is used to figure out your Windows performance score. It eats up
+processor time and is generally useless.
+    * Open task scheduler.
+        * **note** If you see an error about a selected task {0} no longer existing then you'll need
+          to repair the task scheduler. See
+          https://www.thewindowsclub.com/the-selected-task-0-no-longer-exists-error-in-task-scheduler
+    * Go to `Local` -> `Microsoft` -> `Maintenance` and disable the WinSAT task.
 
 * Setup a symbol server:
     * Right-click My Computer -> Properties -> Advanced Tab -> Environment Variables
@@ -15,22 +21,24 @@
 
 * Configure crash dump storage location for projects via the registry.
 
-## Enable security updates
+* Enable security updates
+    *this may no longer be an issue*
+    * If you don't have an antivirus program, or you do but it's not verified by Microsoft, then you
+      will not receive security updates unless you set a key in the registry. Note that Windows
+      Defender counts as a valid antivirus program.
+    * Add the following registry key:
 
-If you don't have an antivirus program, or you do but it's not verified by Microsoft, then you will
-not receive security updates unless you set a key in the registry. Note that Windows Defender counts
-as a valid antivirus program.
+        Key="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\QualityCompat"
+        Value="cadca5fe-87d3-4b96-b7fb-a231484277cc" Type="REG_DWORD”
+        Data="0x00000000”
 
-Add the following registry key:
-Key="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\QualityCompat"
-Value="cadca5fe-87d3-4b96-b7fb-a231484277cc" Type="REG_DWORD”
-Data="0x00000000”
+## Windows 7 Stuff
 
-## Disable Win 7 Fault Tolerant Heap
-*Might be in Win 10+ too?*
-* I don't see why you want to spend large amounts of CPU time to hide application instability.
-* https://docs.microsoft.com/en-us/windows/desktop/Win7AppQual/fault-tolerant-heap
-  * Disable on system via regedit: set the REG_DWORD value **HKLM\\Software\\Microsoft\\FTH\\Enabled** to **0**.
+* Enable clear text
+* Disable Win 7 Fault Tolerant Heap
+    * I don't see why you want to spend large amounts of CPU time to hide application instability.
+    * https://docs.microsoft.com/en-us/windows/desktop/Win7AppQual/fault-tolerant-heap
+      * Disable on system via regedit: set the REG_DWORD value **HKLM\\Software\\Microsoft\\FTH\\Enabled** to **0**.
 
 ## Setup up Unix-like Shell
 * Install [MSYS2 w/ MinGW-w64](http://www.msys2.org/) to `C:\msys64`
