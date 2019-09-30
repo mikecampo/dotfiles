@@ -10,3 +10,5 @@ Abolish indentit{y,ies} identit{y,ies}
 Abolish indetit{y,ies} identit{y,ies}
 Abolish constnat constant
 Abolish darw draw
+Abolish transfered transferred
+Abolish transfering transferring
