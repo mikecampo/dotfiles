@@ -28,8 +28,8 @@ elif [[ "${platform,,}" == *'ming'* ]]; then # convert to lowercase then compare
 
   alias l='ls -ahg --color'
   alias ls='ls -ahg --color'
-  alias rm='echo "use trash command instead!"'
-  alias rmr='echo "use trash command instead!"'
+  #alias rm='echo "use trash command instead!"'
+  #alias rmr='echo "use trash command instead!"'
   alias trash='remove_windows_file'
   alias tt='remove_windows_file'
   alias cgrep='cgrep.exe'
@@ -149,34 +149,75 @@ alias weather='curl wttr.in/toronto'
 function dl_youtube_vid {
     local format="$1"
     local url="$2"
-    regexp="[[:blank:]]+"
+    local name_format="%(upload_date)s%(title)s-youtube-%(id)s.%(ext)s"
     if [[ $format == "" ]]; then
         echo "Downloading default format"
-        youtube-dl.exe -o "%(upload_date)s-%(title)s-youtube-%(id)s.%(ext)s" $url
+        youtube-dl.exe -o "$name_format" $url
     else
-        youtube-dl.exe -f "$format" -o "%(upload_date)s-%(title)s-youtube-%(id)s.%(ext)s" $url
+        youtube-dl.exe -f "$format" -o "$name_format" $url
+    fi
+}
+function dl_youtube_playlist {
+    local format="$1"
+    local url="$2"
+    local name_format="%(playlist_index)s - %(title)s-youtube-%(id)s.%(ext)s"
+    if [[ $format == "" ]]; then
+        echo "Downloading default format"
+        youtube-dl.exe -o "$name_format" $url
+    else
+        youtube-dl.exe -f "$format" -o "$name_format" $url
     fi
 }
 alias yt-download='dl_youtube_vid ""'
 alias yt-download-1080='dl_youtube_vid "137+140"'
 alias yt-download-720='dl_youtube_vid "136+140"'
+alias yt-download-playlist='dl_youtube_playlist ""'
+alias yt-download-playlist-1080='dl_youtube_playlist "137+140"'
+alias yt-download-playlist-720='dl_youtube_playlist "136+140"'
+alias yt-download-audio='youtube-dl.exe -f "140"'
 
 # Download Twitch videos
 function dl_twitch_vid {
     local format="$1"
     local url="$2"
-    local dir=$(date '+%Y-%m-%d-%H-%M-%S')
-    mkdir -p $dir
-    cd $dir
-    rechat.exe -D $url
-    tt *.json
-    youtube-dl.exe -f "$format" -o "%(upload_date)s-%(title)s-twitch-%(id)s.%(ext)s" $url
+    # @note If the filename contains symbols that are incompatible with
+    # Windows' directory names then add --restrict-filenames to the command.
+    local dir=$(youtube-dl.exe --get-filename -o "%(upload_date)s - %(title)s" $url)
+    if [[ $dir == "" ]]; then
+        return
+    fi
+    dir="${dir:0:4}-${dir:4:2}-${dir:6}"
+    echo "Creating directory '$dir'"
+    mkdir "$dir"
+    cd "$dir"
+    error=$?
+    if [[ ! $error -eq 0 ]]; then
+        echo "Failed to download '$url'"
+        return
+    fi
+    local name_format="%(upload_date)s-%(title)s-twitch-%(id)s"
+    local video_file=$(youtube-dl.exe --get-filename -o "$name_format.%(ext)s" $url)
+    youtube-dl.exe -f "$format" -o "$video_file" $url
+    error=$?
+    if [[ $error -eq 0 ]]; then
+        mv "$video_file" "${video_file:0:4}-${video_file:4:2}-${video_file:6}"
+        # Download Twitch chat transcript
+        local chat_file=$(youtube-dl.exe --get-filename -o "$name_format" $url)
+        rechat.exe -d $url "$chat_file.json"
+        rechat.exe -p "$chat_file.json" "$chat_file.txt" -b -o
+        mv "$chat_file.txt" "${chat_file:0:4}-${chat_file:4:2}-${chat_file:6}.txt"
+        tt "$chat_file.json"
+    else
+        echo "Failed to download '$url'"
+    fi
     cd ..
 }
-alias tw-dl='youtube-dl.exe -f "1080p" -o "%(upload_date)s-%(title)s-twitch-%(id)s.%(ext)s"'
-alias tw-download='dl_twitch_vid "1080p"'
+alias tw-dl='youtube-dl.exe -f "1080" -o "%(upload_date)s-%(title)s-twitch-%(id)s.%(ext)s"'
+alias tw-dl2='youtube-dl.exe -o "%(upload_date)s-%(title)s-twitch-%(id)s.%(ext)s"'
+alias tw-download='dl_twitch_vid "1080"'
 alias tw-download-60='dl_twitch_vid "1080p60"'
-alias tw-download-720='dl_twitch_vid "720p-1"'
+alias tw-download-720='dl_twitch_vid "720p"'
+alias tw-download-720-60='dl_twitch_vid "720p60"'
 alias tw-download-4k='dl_twitch_vid "2160p"'
 
 # Git
@@ -202,9 +243,8 @@ alias ams='git commit -S --amend' # signed
 alias ammend='echo "use am instead"'
 alias amend='echo "use am instead"'
 alias g='gitCmdWrapper'
-alias ga='git add -A :/'
-alias gaa='git add -A'
-alias gaap='git add -Ap'
+alias ga='git add -A'
+alias gap='git add -Ap'
 alias gau='git add --update'
 alias gb='git branch -v'
 alias gbd='git branch -D'
@@ -250,6 +290,7 @@ alias gl='git lg -30'
 alias gll='git lg'
 alias gli='git show --pretty="format:" --name-only'
 alias glog='git log'
+alias glom='gl origin/master'
 alias gm='git merge'
 alias gmnff='git merge --no-ff'
 alias gmff='git merge --ff-only'
@@ -298,6 +339,7 @@ alias gsh='git show'
 alias gshh='git show -w'
 alias gs='git stash'
 alias gsk='git stash -k -u'
+alias gssk='git stash save -k -u'
 alias gss='git stash save'
 alias gsd='git stash drop'
 alias gsdl='git stash drop stash@{0}'
@@ -317,6 +359,7 @@ alias gtd='git tag -d'
 alias gtl='git tag -l'
 alias gx='git reset --hard'
 alias gxx='git reset --hard HEAD~1'
+alias gxom='git reset --hard origin/master'
 alias gstats='echo "Total commits: $(git rev-list HEAD --count)"; echo "\nAuthor breakdown:"; git shortlog | grep -E "^[^ ]"'
 alias gwip="git add . && git commit -m \"WIP\""
 
