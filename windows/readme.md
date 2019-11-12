@@ -32,6 +32,12 @@ processor time and is generally useless.
         Value="cadca5fe-87d3-4b96-b7fb-a231484277cc" Type="REG_DWORD”
         Data="0x00000000”
 
+* Increase TDR setting for GPU Driver
+    * TDR determines the length of time that a GPU can hang on a computation until the OS restarts
+      the driver. By default this is set to a few seconds so you can experience app crashes when
+      using GPU intensive software, like 3D modeling or texturing. To increase the duration, follow
+      this guide: https://web.archive.org/web/20191107173337/https://docs.substance3d.com/spdoc/gpu-drivers-crash-with-long-computations-128745489.html
+
 ## Windows 7 Stuff
 
 * Enable clear text
@@ -109,6 +115,7 @@ processor time and is generally useless.
         * Copy the patch to `MSYS2-packages/vim` and use the same name as the original patch that failed.
         * Regen the pkg checksums and add them to `PKGBUILD`.
         * Run `makepkg` again.
+
 * Once built, install it with `pacman -U ${package-name}*.pkg.tar.xz`
 
 ### Configuring
@@ -155,14 +162,19 @@ processor time and is generally useless.
 ## Turn off various startup processes
 * cmd-r -> msconfig.exe -> startup tab
 
+## Setting up Wacom tablet
+
+* Install the shitty Wacom driver.
+* Preemptively deal with future issues by following this guide: [Fixing All Issues with Your Wacom Tablet and Photoshop](https://www.youtube.com/watch?v=sGi47EWEkuY)
+
 ## Software
 
 * Install `tree`: `pacman -S tree`
 
-* Install Desktop Restore (http://www.midiox.com/index.htm?http://midiox.com/desktoprestore.htm)
+* Install [Desktop Restore](http://www.midiox.com/index.htm?http://midiox.com/desktoprestore.htm)
 
 * Install Android platform tools to get adb.exe:
-  * Download Android commandline tools https://developer.android.com/studio/#downloads
+  * Download [Android commandline tools](https://developer.android.com/studio/#downloads)
   * Unzip to some location.
   * Inside the sdk dir, run `$ tools/bin/sdkmanager.bat platform-tools`.
   * You can now add the platform-tools dir to your path if you want, or just symlink `adb` to `~/bin`.
