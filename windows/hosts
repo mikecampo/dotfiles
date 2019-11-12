@@ -35,6 +35,12 @@
 127.0.0.1 beta.spotify.map.fastly.net
 127.0.0.1 prod.spotify.map.fastlylb.net
 
+# Block Maya crap
+127.0.0.1 api.genuine.autodesk.com #[Autodesk Genuine Service]
+127.0.0.1 ase.autodesk.com #[ADPClientService AND DADispatcherService]
+127.0.0.1 mpa.autodesk.com #[Autodesk Analytics Client Service]
+127.0.0.1 sv.symcd.com #[Autodesk Download Manager]
+
 #
 # Very invasive info tracker
 127.0.0.1 static.audienceinsights.net
