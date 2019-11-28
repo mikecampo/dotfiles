@@ -6,30 +6,65 @@
 " See https://github.com/chriskempson/vim-tomorrow-theme.git for it.
 " Hex color conversion functions borrowed from the theme "Desert256".
 
-let g:campo_theme_use_rainbow_parens = 1
+if has('termguicolors')
+  " Supports 24-bit color range
+  set termguicolors
+  let g:campo_theme_use_rainbow_parens = 0
 
-" Default GUI colors
-let s:foreground = "cfd8dc"
-let s:background = "333333"
-let s:selection = "546e7a"
-let s:line = "444444"
-let s:comment = "78909c"
-let s:red = "ee877d"
-let s:orange = "ffb74d"
-let s:yellow = "fff176"
-let s:green = "88b888"
-let s:aqua = "00b8d4"
-let s:blue = "6699cc"
-let s:purple = "ce93d8"
-let s:window = "37474f"
-let s:grey = "b0bec5"
+  let s:blue = "3699cc"
+  let s:purple = "ce93d8"
+  let s:grey = "b0bec5"
+  let s:orange = "ffb74d"
+  let s:yellow = "fff176"
+  let s:green = "88b888"
+  let s:red = "ef2929"
+
+  let s:text = "ffffff"
+
+  let s:foreground = s:text
+  let s:background = "282d37"
+  let s:selection = "546e7a"
+  let s:window = "394051"
+  let s:line = "333946"
+  let s:bad_spelling = "ee877d"
+  let s:todo = "b8fbb0"
+  let s:bugs = "b8fbb0"
+  let s:error_msg_background = s:background
+  let s:error_msg_foreground = "e40e0e"
+
+  let s:function_name = s:text
+  let s:pre_processor = s:text
+  let s:define = s:text
+  let s:struct = s:text
+  " things like 'return'
+  let s:statement = s:text
+  let s:number = s:text
+  " this like 'inline'
+  let s:type = s:text
+  " #include
+  let s:include = s:text
+  let s:string = s:text
+  let s:comment = "aaaaaa"
+  let s:constant = s:text
+
+  let s:c_type = s:pre_processor
+  let s:c_storage_class = s:text
+  let s:c_conditional = "ffffff"
+  let s:c_loops = "ffffff"
+
+  let s:vim_command = "ffffff"
+
+else
+  echoerr "This theme requires 'termguicolors' support!"
+endif
 
 set background=dark
 hi clear
 if exists("syntax_on")
     syntax reset
 endif
-let g:colors_name = "campo-dark"
+
+let g:colors_name = "campo-dark-greyscale"
 
 if has("gui_running") || &t_Co == 88 || &t_Co == 256
     " Returns an approximate grey index for the given grey level
@@ -274,38 +309,39 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
     call <SID>X("Title", s:comment, "", "")
     call <SID>X("Cursor", "", s:foreground, "")
     call <SID>X("Identifier", s:grey, "", "none")
-    call <SID>X("Statement", s:yellow, "", "")
+    call <SID>X("Statement", s:statement, "", "")
     call <SID>X("Conditional", s:foreground, "", "")
     call <SID>X("Repeat", s:yellow, "", "")
-    call <SID>X("Structure", s:purple, "", "")
-    call <SID>X("Function", s:aqua, "", "")
-    call <SID>X("Constant", s:foreground, "", "")
-    call <SID>X("String", s:green, "", "")
+    call <SID>X("Structure", s:struct, "", "")
+    call <SID>X("Function", s:function_name, "", "")
+    call <SID>X("Constant", s:constant, "", "")
+    call <SID>X("String", s:string, "", "")
     call <SID>X("Special", s:foreground, "", "")
-    call <SID>X("PreProc", s:aqua, "", "")
+    call <SID>X("PreProc", s:pre_processor, "", "")
     call <SID>X("Operator", s:foreground, "", "none")
-    call <SID>X("Type", s:blue, "", "")
-    call <SID>X("Define", s:purple, "", "none")
-    call <SID>X("Include", s:blue, "", "")
-    call <SID>X("Number", s:orange, "", "")
-    call <SID>X("SpellBad", s:red, s:background, "underline,bold")
+    call <SID>X("Type", s:type, "", "")
+    call <SID>X("Define", s:define, "", "none")
+    call <SID>X("Include", s:include, "", "")
+    call <SID>X("Number", s:number, "", "")
+    call <SID>X("SpellBad", s:bad_spelling, s:background, "underline,bold")
 
     " Custom TODO/NOTE colors
-    call <SID>X("Todo", s:red, s:background, "underline")
-    call <SID>X("Bugs", s:red, s:background, "standout")
+    call <SID>X("Todo", s:todo, s:background, "underline")
+    call <SID>X("Bugs", s:bugs, s:background, "standout")
     call <SID>X("Notes","ffffff",s:background,"standout")
     call <SID>X("Notices","dcd53e",s:background,"bold")
+    call <SID>X("ErrorMsg", s:error_msg_foreground, s:error_msg_background, "bold")
 
     "call <SID>X("Ignore", "666666", "", "")
 
     " Vim Highlighting
-    call <SID>X("vimCommand", s:blue, "", "")
+    call <SID>X("vimCommand", s:vim_command, "", "")
 
     " C Highlighting
-    call <SID>X("cType", s:blue, "", "")
-    call <SID>X("cStorageClass", s:blue, "", "")
-    call <SID>X("cConditional", s:red, "", "")
-    call <SID>X("cRepeat", s:red, "", "")
+    call <SID>X("cType", s:c_type, "", "")
+    call <SID>X("cStorageClass", s:c_storage_class, "", "")
+    call <SID>X("cConditional", s:c_conditional, "", "")
+    call <SID>X("cRepeat", s:c_loops, "", "")
 
     " PHP Highlighting
     call <SID>X("phpVarSelector", s:red, "", "")
@@ -316,7 +352,7 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
     call <SID>X("phpType", s:purple, "", "")
     call <SID>X("phpRepeat", s:red, "", "")
     call <SID>X("phpDefine", s:purple, "", "")
-    call <SID>X("phpDocTags", s:aqua, "", "")
+    call <SID>X("phpDocTags", s:function_name, "", "")
     call <SID>X("phpDocParam", s:green, "", "")
     call <SID>X("phpFunction", s:blue, "", "")
     call <SID>X("phpFunctions", s:blue, "", "")
@@ -343,11 +379,11 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
     call <SID>X("pythonConditional", s:purple, "", "")
     call <SID>X("pythonRepeat", s:purple, "", "")
     call <SID>X("pythonException", s:purple, "", "")
-    call <SID>X("pythonFunction", s:aqua, "", "")
+    call <SID>X("pythonFunction", s:function_name, "", "")
     call <SID>X("pythonSelf", s:grey, "", "")
     call <SID>X("pythonOperator", s:purple, "", "")
     call <SID>X("pythonExtraOperator", s:purple, "", "")
-    call <SID>X("pythonClass", s:aqua, "", "")
+    call <SID>X("pythonClass", s:function_name, "", "")
     call <SID>X("pythonDecorator", s:orange, "", "")
     call <SID>X("pythonDocstring", s:comment, "", "")
     call <SID>X("pythonBuiltinObj", s:yellow, "", "")
@@ -373,7 +409,7 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
     call <SID>X("coffeeArrow", s:purple, "", "")
     call <SID>X("coffeeBoolean", s:foreground, "", "")
     call <SID>X("coffeeGlobal", s:foreground, "", "")
-    call <SID>X("coffeeModuleKeyword", s:aqua, "", "")
+    call <SID>X("coffeeModuleKeyword", s:function_name, "", "")
     call <SID>X("coffeeFuncCall", s:blue, "", "")
 
     " JavaScript Highlighting
@@ -411,7 +447,7 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
     call <SID>X("VimwikiHeader1", s:red, "", "")
     call <SID>X("VimwikiHeader2", s:green, "", "")
     call <SID>X("VimwikiHeader3", s:blue, "", "")
-    call <SID>X("VimwikiHeader4", s:aqua, "", "")
+    call <SID>X("VimwikiHeader4", s:function_name, "", "")
     call <SID>X("VimwikiHeader5", s:orange, "", "")
     call <SID>X("VimwikiHeader6", s:yellow, "", "")
 

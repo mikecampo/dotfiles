@@ -13,19 +13,18 @@ if has('termguicolors')
 
   let s:blue = "3699cc"
   let s:purple = "ce93d8"
-  let s:window = "37474f"
   let s:grey = "b0bec5"
   let s:orange = "ffb74d"
   let s:yellow = "fff176"
   let s:green = "88b888"
   let s:red = "ef2929"
 
-  let s:text = "cbc5b0"
+  let s:text = "e9e9e9"
 
   let s:foreground = s:text
-  "let s:background = "132f32"
-  let s:background = "05353d"
+  let s:background = "08363c"
   let s:selection = "546e7a"
+  let s:window = "37474f"
   let s:line = "034a4a"
   let s:bad_spelling = "ee877d"
   let s:todo = "b8fbb0"
@@ -33,10 +32,10 @@ if has('termguicolors')
   let s:error_msg_background = s:background
   let s:error_msg_foreground = "e40e0e"
 
-  let s:function_name = "2ebda9"
-  let s:pre_processor = "97debf"
+  let s:function_name = "0effdb"
+  let s:pre_processor = "a6f0e9"
   let s:define = "a5bce4"
-  let s:struct = "ce93d8"
+  let s:struct = "de90ea"
   " things like 'return'
   let s:statement = "ffffff"
   let s:number = "ffffff"
@@ -45,8 +44,8 @@ if has('termguicolors')
   " #include
   let s:include = s:text
   let s:string = s:text
-  let s:comment = "71d87d"
-  let s:constant = "a0dbdf"
+  let s:comment = "6df97e"
+  let s:constant = "90f0f7"
 
   let s:c_type = s:pre_processor
   let s:c_storage_class = s:text
@@ -64,7 +63,8 @@ hi clear
 if exists("syntax_on")
     syntax reset
 endif
-let g:colors_name = "campo-dark"
+
+let g:colors_name = "campo-dark-blue"
 
 if has("gui_running") || &t_Co == 88 || &t_Co == 256
     " Returns an approximate grey index for the given grey level
