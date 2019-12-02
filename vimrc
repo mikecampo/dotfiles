@@ -719,8 +719,9 @@ set statusline=%<%f\ (%{&ft})\ %-4(%m%)%=%-19(%3l,%02c%03V%)
 
 let g:campo_theme_use_rainbow_parens = 1
 "let s:dark_theme = 'campo-dark-blue'
-let s:dark_theme = 'campo-dark-greyscale'
 "let s:dark_theme = 'campo-dark-grey-blue'
+"let s:dark_theme = 'campo-dark-greyscale'
+let s:dark_theme = 'campo-simple-dark'
 let s:light_theme = 'campo-light'
 
 execute "autocmd ColorScheme " . s:dark_theme . " call ReloadRainbow()"

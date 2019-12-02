@@ -1,9 +1,7 @@
-" A simple dark vim colorscheme.
+" A simple dark greyscale colorscheme.
 " Maintainer: Michael Campagnaro <mikecampo@gmail.com>
 " Version: 1.0
 "
-" The theme file original copied from the Tomorrow theme.
-" See https://github.com/chriskempson/vim-tomorrow-theme.git for it.
 " Hex color conversion functions borrowed from the theme "Desert256".
 
 if has('termguicolors')
@@ -22,10 +20,15 @@ if has('termguicolors')
   let s:text = "ffffff"
 
   let s:foreground = s:text
-  let s:background = "282d37"
+  let s:background = "1f2431"
   let s:selection = "546e7a"
   let s:window = "394051"
   let s:line = "333946"
+  let s:active_tab_bg = s:background
+  let s:active_tab_fg = s:text
+  let s:inactive_tab_bg = s:line
+  let s:inactive_tab_fg = "dddddd"
+  let s:tab_line_bg = s:inactive_tab_bg
   let s:bad_spelling = "ee877d"
   let s:todo = "b8fbb0"
   let s:bugs = "b8fbb0"
@@ -36,13 +39,10 @@ if has('termguicolors')
   let s:pre_processor = s:text
   let s:define = s:text
   let s:struct = s:text
-  " things like 'return'
-  let s:statement = s:text
+  let s:statement = s:text                   " Things like 'return'
   let s:number = s:text
-  " this like 'inline'
-  let s:type = s:text
-  " #include
-  let s:include = s:text
+  let s:type = s:text                        " Things like 'inline'
+  let s:include = s:text                     " #include
   let s:string = s:text
   let s:comment = "aaaaaa"
   let s:constant = s:text
@@ -53,7 +53,6 @@ if has('termguicolors')
   let s:c_loops = "ffffff"
 
   let s:vim_command = "ffffff"
-
 else
   echoerr "This theme requires 'termguicolors' support!"
 endif
@@ -280,7 +279,9 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
     call <SID>X("NonText", s:foreground, "", "")
     call <SID>X("SpecialKey", s:blue, "", "")
     call <SID>X("Search", s:foreground, s:selection, "")
-    call <SID>X("TabLine", s:foreground, s:background, "reverse")
+    call <SID>X("TabLineSel", s:active_tab_fg, s:active_tab_bg, "bold")
+    call <SID>X("TabLine", s:inactive_tab_fg, s:inactive_tab_bg, "none")
+    call <SID>X("TabLineFill", "", s:tab_line_bg, "none")
     call <SID>X("StatusLine", s:window, s:foreground, "reverse")
     call <SID>X("StatusLineNC", s:window, s:comment, "reverse")
     call <SID>X("VertSplit", s:window, s:window, "none")

@@ -6,6 +6,9 @@
 " See https://github.com/chriskempson/vim-tomorrow-theme.git for it.
 " Hex color conversion functions borrowed from the theme "Desert256".
 
+" @TODO port these colors over to a copy of campo-dark-greyscale so that I
+" have better control over the C syntax highlighting.
+
 
 if has('termguicolors')
   " Supports 24-bit color range
@@ -18,6 +21,11 @@ if has('termguicolors')
   let s:background = "1f2431"
   let s:selection = "546e7a"
   let s:window = "394051"
+  let s:active_tab_bg = s:background
+  let s:active_tab_fg = "ffffff"
+  let s:inactive_tab_bg = "2a3142"
+  let s:inactive_tab_fg = "dddddd"
+  let s:tab_line_bg = s:inactive_tab_bg
   let s:line = "323643"
   let s:comment = "96a2c1"
   let s:red = "f27c71"
@@ -254,7 +262,9 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
     call <SID>X("NonText", s:foreground, "", "")
     call <SID>X("SpecialKey", s:blue, "", "")
     call <SID>X("Search", s:foreground, s:selection, "")
-    call <SID>X("TabLine", s:foreground, s:background, "reverse")
+    call <SID>X("TabLineSel", s:active_tab_fg, s:active_tab_bg, "bold")
+    call <SID>X("TabLine", s:inactive_tab_fg, s:inactive_tab_bg, "none")
+    call <SID>X("TabLineFill", "", s:tab_line_bg, "none")
     call <SID>X("StatusLine", s:window, s:foreground, "reverse")
     call <SID>X("StatusLineNC", s:window, s:comment, "reverse")
     call <SID>X("VertSplit", s:window, s:window, "none")

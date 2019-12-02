@@ -212,6 +212,33 @@ function dl_twitch_vid {
     fi
     cd ..
 }
+function dl_twitch_chat {
+    local url="$1"
+    # @note If the filename contains symbols that are incompatible with
+    # Windows' directory names then add --restrict-filenames to the command.
+    local dir=$(youtube-dl.exe --get-filename -o "%(upload_date)s - %(title)s" $url)
+    if [[ $dir == "" ]]; then
+        return
+    fi
+    dir="${dir:0:4}-${dir:4:2}-${dir:6}"
+    echo "Creating directory '$dir'"
+    mkdir "$dir"
+    cd "$dir"
+    error=$?
+    if [[ ! $error -eq 0 ]]; then
+        echo "Failed to download chat for '$url'"
+        return
+    fi
+    # Download Twitch chat transcript
+    local name_format="%(upload_date)s-%(title)s-twitch-%(id)s"
+    local chat_file=$(youtube-dl.exe --get-filename -o "$name_format" $url)
+    rechat.exe -d $url "$chat_file.json"
+    rechat.exe -p "$chat_file.json" "$chat_file.txt" -b -o
+    mv "$chat_file.txt" "${chat_file:0:4}-${chat_file:4:2}-${chat_file:6}.txt"
+    tt "$chat_file.json"
+    cd ..
+}
+alias tw-download-chat='dl_twitch_chat'
 alias tw-dl='youtube-dl.exe -f "1080" -o "%(upload_date)s-%(title)s-twitch-%(id)s.%(ext)s"'
 alias tw-dl2='youtube-dl.exe -o "%(upload_date)s-%(title)s-twitch-%(id)s.%(ext)s"'
 alias tw-download='dl_twitch_vid "1080"'

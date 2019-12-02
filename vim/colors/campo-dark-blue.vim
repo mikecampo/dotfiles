@@ -26,6 +26,11 @@ if has('termguicolors')
   let s:selection = "546e7a"
   let s:window = "37474f"
   let s:line = "034a4a"
+  let s:active_tab_bg = s:background
+  let s:active_tab_fg = s:text
+  let s:inactive_tab_bg = s:line
+  let s:inactive_tab_fg = "dddddd"
+  let s:tab_line_bg = s:inactive_tab_bg
   let s:bad_spelling = "ee877d"
   let s:todo = "b8fbb0"
   let s:bugs = "b8fbb0"
@@ -280,7 +285,9 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
     call <SID>X("NonText", s:foreground, "", "")
     call <SID>X("SpecialKey", s:blue, "", "")
     call <SID>X("Search", s:foreground, s:selection, "")
-    call <SID>X("TabLine", s:foreground, s:background, "reverse")
+    call <SID>X("TabLineSel", s:active_tab_fg, s:active_tab_bg, "bold")
+    call <SID>X("TabLine", s:inactive_tab_fg, s:inactive_tab_bg, "none")
+    call <SID>X("TabLineFill", "", s:tab_line_bg, "none")
     call <SID>X("StatusLine", s:window, s:foreground, "reverse")
     call <SID>X("StatusLineNC", s:window, s:comment, "reverse")
     call <SID>X("VertSplit", s:window, s:window, "none")
