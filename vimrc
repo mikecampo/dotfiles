@@ -218,8 +218,8 @@ set cursorcolumn
 " Store temporary files in a central spot. Make sure these directories exist on disk.
 set backup
 set backupcopy=yes
-set directory=X://tmp//vim//      " For swap files.
-set backupdir=X://tmp//vim//
+set directory=X://cache//vim//      " For swap files.
+set backupdir=X://cache//vim//
 :au BufWritePre * let &bex = '.' . strftime("%Y-%m-%d-%T") . '.bak'
 set writebackup
 
@@ -296,10 +296,6 @@ augroup campoCmds
 
   " Jump to last cursor position unless it's invalid or in an event handler.
   autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g`\"" | endif
-
-  " Language identation.
-  autocmd FileType ruby,haml,eruby,yaml,html,javascript,rust,go set ai sw=2 sts=2 et
-  autocmd FileType python,qml set sw=4 sts=4 et
 
   " Indent HTML <p> tags.
   autocmd FileType html,eruby if g:html_indent_tags !~ '\\|p\>' | let g:html_indent_tags .= '\|p\|li\|dt\|dd' | endif
@@ -722,7 +718,9 @@ let g:campo_theme_use_rainbow_parens = 1
 "let s:dark_theme = 'campo-dark-grey-blue'
 "let s:dark_theme = 'campo-dark-greyscale'
 let s:dark_theme = 'campo-simple-dark'
-let s:light_theme = 'campo-light'
+
+"let s:light_theme = 'campo-light'
+let s:light_theme = 'campo-simple-light'
 
 execute "autocmd ColorScheme " . s:dark_theme . " call ReloadRainbow()"
 execute "autocmd ColorScheme " . s:light_theme . " call ReloadRainbow()"
