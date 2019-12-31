@@ -1,7 +1,28 @@
+﻿" @fixme i'm now experiencing end of file history more often after the big
+" changes to this file. Coincidence?
+"
+" Check out https://stackoverflow.com/a/34253629 to change the cursor to a
+    " @incomplete check for mappings in terminus to verify they don't override anything I used.
+" block or whatever depending on the mode.
 " @incomplete Move all leader definitions to the bottom, so that it's easier to see them.
 " @incomplete Add setup steps (plugins, cache setup, search tool, etc).
 
-"Remove Menubar and Toolbar from gvim
+"###################################################################################################
+"
+" The config is chopped up into sections. These are the headings, which you
+" can use to quickly jump to a particular section:
+
+" #0. GLOBALS
+" #1. PLUGINS
+" #2. BASE CONFIG
+" #3. PLUGIN CONFIGS
+" #4. VISUALS
+" #5. HELPER FUNCTIONS
+" #6. PERSONAL
+"
+"###################################################################################################
+
+" Remove Menubar and Toolbar from gvim
 "set guioptions -=m
 "set guioptions -=T
 
@@ -16,10 +37,10 @@ let s:uname = system("echo -n \"$(uname)\"")
 let s:vim_dir = $HOME . "/.vim"
 
 function! IsWindows()
-  if s:uname =~ "mingw"
-    return 1
-  endif
-  return 0
+    if s:uname =~ "mingw"
+        return 1
+    endif
+    return 0
 endfunction
 
 let mapleader=","
@@ -27,7 +48,7 @@ let mapleader=","
 "################################################################
 "################################################################
 "################################################################
-" 0. GLOBALS
+"#0. GLOBALS
 "################################################################
 "################################################################
 "################################################################
@@ -37,13 +58,12 @@ let s:default_bg = 'dark'
 let s:rainbow_theme = s:default_bg
 let g:quickfix_window_height  = 16 " in rows
 
-"-----------------------------------------------------------------------------------------
+"---------------------------------------------------------------------------------------------------
 
-
 "################################################################
 "################################################################
 "################################################################
-" 1. PLUGINS
+"#1. PLUGINS
 "################################################################
 "################################################################
 "################################################################
@@ -54,140 +74,102 @@ call plug#begin('~/.vim/plugged')
 " MISC
 "////////////////////////////////////////////////////////////////
 
-Plug 'bling/vim-airline'
-Plug 'vim-scripts/AnsiEsc.vim'
-Plug 'embear/vim-localvimrc'    " Add a .lvimrc to a folder to override .vimrc config.
-Plug 'tpope/vim-obsession'      " Continuously updated session files
-Plug 'tpope/vim-fugitive'       " Git wrapper
-Plug 'junegunn/goyo.vim'        " Distraction-free mode with centered buffer
-Plug 'sir-pinecone/vim-ripgrep' " Wrapper around ripgrep (must intall ripgrep first; use Rust: cargo install ripgrep)
-Plug 'itchyny/vim-cursorword'   " Underlines the word under the cursor
-Plug 'airblade/vim-gitgutter'   " See git diff in the gutter and stage/unstage hunks.
-Plug 'ctrlpvim/ctrlp.vim'       " Fuzzy file, buffer, mru, tag, etc finder
+Plug 'bling/vim-airline'              " Enhanced status/tabline.
+Plug 'embear/vim-localvimrc'          " Add a .lvimrc to a folder to override .vimrc config.
+Plug 'tpope/vim-obsession'            " Continuously updated session files (tracks window positions, open folds, etc).
+Plug 'tpope/vim-fugitive'             " Git wrapper (I particularly like :Gblame, which I've wrapped as :Blame)
+Plug 'junegunn/goyo.vim'              " Distraction-free mode with centered buffer.
+Plug 'sir-pinecone/vim-ripgrep'       " Fast grep-like search. Requires ripgrep; install Rust package: `cargo install ripgrep`.
+Plug 'itchyny/vim-cursorword'         " Underlines all instances of the symbol under the cursor.
+Plug 'airblade/vim-gitgutter'         " Displays a git diff in the vim gutter and allows staging/unstaging of hunks.
+Plug 'ctrlpvim/ctrlp.vim'             " Fuzzy file, buffer, mru, tag, etc finder.
+Plug 'majutsushi/tagbar'              " Display ctags in a window, ordered by scope.
+Plug 'tommcdo/vim-lion'               " For text alignment, use gl= and gL=
+Plug 'tpope/tpope-vim-abolish'        " Easily search for, substitute, and abbreviate multiple variants of a word. Add them to `vim/after/plugin/abolish.vim`
+Plug 'vim-scripts/AnsiEsc.vim'        " Ansi escape sequences concealed, but highlighted as specified.
+Plug 'tommcdo/vim-kangaroo'           " Maintain a manually-defined jump stack. Set with zp or <leader>a and pop with zP or <leader>aa.
+Plug 'mh21/errormarker.vim'           " Build error highlighting (requires skywind3000/asyncrun.vim).
+Plug 'skywind3000/asyncrun.vim'       " Async commands.
+Plug 'nelstrom/vim-qargs'             " For the GlobalReplaceIt function (i.e. search and replace).
+" @fixme Disable the file reloading. Plug 'wincent/terminus'               " Enhanced terminal integration for Vim (namely iTerm). Changes the cursor depending on the mode; enhanced pasting; file reloading on external changes.
 
 if IsWindows()
-  Plug 'suxpert/vimcaps' " Disable capslock (useful if the OS isn't configured to do so)
+    Plug 'suxpert/vimcaps'            " Disable capslock (useful if the OS isn't configured to do so).
 else
-  Plug 'Shougo/vimproc.vim', {'do' : 'make'}
-  Plug 'itchyny/dictionary.vim' " A way to query dictionary.com with :Dictionary
+    " Fuzzy search
+    " @incomplete Test out ctrlp for non-Windows setup.
+    Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+    Plug 'junegunn/fzf.vim'
 
-  " Fuzzy search
-  Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
-  Plug 'junegunn/fzf.vim'
+    " @fixme Doesn't do anything under Windows...
+    Plug 'ervandew/supertab'          " Improved autocompletion.
 endif
-
-Plug 'majutsushi/tagbar'
-Plug 'jeetsukumaran/vim-filesearch'
-Plug 'rking/ag.vim'
-Plug 'nelstrom/vim-qargs' " For search and replace
-Plug 'tommcdo/vim-lion' " For text alignment, use gl= and gL=
-
-" Easily search for, substitute, and abbreviate multiple variants of a word
-Plug 'tpope/tpope-vim-abolish'
-
-" Maintain a manually-defined jump stack. Set with zp and pop with zP
-Plug 'tommcdo/vim-kangaroo'
-
-" Async commands + build error highlighting
-Plug 'skywind3000/asyncrun.vim'
-Plug 'mh21/errormarker.vim'
 
 "///////////////////
 " MAYBE SOME DAY
 "///////////////////
-"Plug 'shougo/unite.vim'         " Create user interfaces. Not currently needed.
-"Plug 'itchyny/vim-winfix'       " Fix the focus and the size of windows in Vim
-"Plug 'scrooloose/nerdcommenter' " Better commenting
-
-"///////////////////
-" DISABLED
-"///////////////////
-" I don't think I need this anymore...
-"Plug 'craigemery/vim-autotag' " Automatically discover and 'properly' update ctags files on save
-
-" Doesn't do anything on my Windows desktop...
-"Plug 'ervandew/supertab' " For autocompletion
+"Plug 'shougo/unite.vim'              " Create user interfaces. Not currently needed.
+"Plug 'itchyny/vim-winfix'            " Fix the focus and the size of windows in Vim.
+"Plug 'scrooloose/nerdcommenter'      " Better commenting.
 
 "////////////////////////////////////////////////////////////////
 " COLORS
 "////////////////////////////////////////////////////////////////
 
-Plug 'godlygeek/csapprox' " Try to make gvim themes look decent in Windows
-
-Plug 'sir-pinecone/rainbow'
-
-" WARNING: Has a lot of themes, but they break the other themes listed below
-"Plug 'flazz/vim-colorschemes'
+Plug 'sir-pinecone/rainbow'           " Rainbow parens.
+Plug 'godlygeek/csapprox'             " Try to make gvim themes look decent in Windows
+"Plug 'flazz/vim-colorschemes'        " @warning: Has a lot of themes, but they break the other themes listed below
 Plug 'elixir-lang/vim-elixir'
 Plug 'vim-airline/vim-airline-themes'
 
 " Light Themes
-Plug 'raggi/vim-color-raggi' " No Win support, unless using gvim
-Plug 'LanFly/vim-colors'     " No Win support, unless using gvim
+Plug 'raggi/vim-color-raggi'          " @note No Win support, unless using gvim.
+Plug 'LanFly/vim-colors'              " @note No Win support, unless using gvim.
 
 " Dark Themes
-Plug 'rhysd/vim-color-spring-night' " No Win support, unless using gvim
+Plug 'rhysd/vim-color-spring-night'   " @note No Win support, unless using gvim.
 Plug 'nanotech/jellybeans.vim'
 Plug 'zcodes/vim-colors-basic'
 
 " Hybrid Themes
 Plug 'sickill/vim-monokai'
 Plug 'chmllr/elrodeo-vim-colorscheme' " A little dark on Windows, term
-Plug 'reedes/vim-colors-pencil' " High-contrast
+Plug 'reedes/vim-colors-pencil'       " High-contrast
 " Seabird themes
   " High contrast: seagull  (light),  petrel      (dark)
   " Low contrast:  greygull (light),  stormpetrel (dark)
-Plug 'nightsense/seabird' " No Win support, unless using gvim
+Plug 'nightsense/seabird'             " @note No Win support, unless using gvim.
 
+"//////////////////////////////
+" SYNTAX HIGHLIGHTING
+"//////////////////////////////
 
-"////////////////////////////////////////////////////////////////
-" CLOJURE
-"////////////////////////////////////////////////////////////////
-" Temporarily disabled since I'm not doing any Clojure work atm.
+Plug 'tpope/vim-markdown'               " Markdown
+Plug 'octol/vim-cpp-enhanced-highlight' " C/C++
+Plug 'vim-ruby/vim-ruby'                " Ruby
+Plug 'fatih/vim-go'                     " Go
+Plug 'rust-lang/rust.vim'               " Rust
+Plug 'peterhoeg/vim-qml'                " QML
+Plug 'jdonaldson/vaxe'                  " Haxe
+
+" Clojure -- Disabled since I'm not doing any Clojure work atm.
 "Plug 'tpope/vim-classpath' " For Java
 "Plug 'guns/vim-clojure-highlight'
 "Plug 'guns/vim-clojure-static'
 "Plug 'tpope/vim-fireplace', { 'for': 'clojure' }
 
-
-"////////////////////////////////////////////////////////////////
-" OTHER LANGUAGES
-"////////////////////////////////////////////////////////////////
-
-" Rust
-Plug 'rust-lang/rust.vim'
-
-" Ruby
-Plug 'vim-ruby/vim-ruby'
-
-" Go
-Plug 'fatih/vim-go'
-
-" QML
-Plug 'peterhoeg/vim-qml'
-
-" Markdown
-Plug 'tpope/vim-markdown'
-"Plug 'vim-pandoc/vim-pandoc-syntax'
-
-" C++
-Plug 'octol/vim-cpp-enhanced-highlight'
-
-" Haxe
-Plug 'jdonaldson/vaxe'
+"//////////////////////////////
 
 call plug#end()
-
 filetype plugin indent on
 
-
-"-----------------------------------------------------------------------------------------
+"---------------------------------------------------------------------------------------------------
 
 
 "################################################################
 "################################################################
 "################################################################
-" 2. BASE CONFIG
+"#2. BASE CONFIG
 "################################################################
 "################################################################
 "################################################################
@@ -196,7 +178,6 @@ filetype plugin indent on
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " BASIC EDITING CONFIGURATION
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" allow unsaved background buffers and remember marks/undo for them
 set hidden
 set history=10000
 set expandtab
@@ -205,24 +186,23 @@ set shiftwidth=4
 set softtabstop=4
 set autoindent
 set laststatus=2
-set showcmd " display incomplete commands
+set showcmd                       " Display incomplete commands.
 set showmatch
-set incsearch " Highlight matches as you type
-set hlsearch " Highlight matches
+set incsearch                     " Highlight matches as you type.
+set hlsearch                      " Highlight matches.
 set dictionary+=/usr/share/dict/words
-"set clipboard=unnamed " yank and paste with the system clipboard
+"set clipboard=unnamed            " Yank and paste with the system clipboard.
 set number
-" make searches case-sensitive only if they contain upper-case characters
-set ignorecase smartcase
-set visualbell " No bell sounds
+set ignorecase smartcase          " Make searches case-sensitive only if they contain upper-case characters.
+set visualbell                    " No bell sounds.
 set ttyfast
-" highlight current line
 set cmdheight=2
 set switchbuf=useopen,split
 set numberwidth=5
 set showtabline=2
 set winwidth=79
 
+" @warning: This must come AFTER `set ignorecase smartcase` otherwise vim spews out a ton of errors. No idea why!
 if IsWindows()
   " Just assume we don't have a zsh shell
   set shell=bash
@@ -230,62 +210,47 @@ else
   set shell=zsh
 endif
 
-" Prevent Vim from clobbering the scrollback buffer. See
-" http://www.shallowsky.com/linux/noaltscreen.html
-set t_ti= t_te=
-" keep more context when scrolling off the end of a buffer
-set scrolloff=3
-
+set t_ti= t_te=                   " Prevent Vim from clobbering the scrollback buffer. See http://www.shallowsky.com/linux/noaltscreen.html
+set scrolloff=3                   " keep more context when scrolling off the end of a buffer
 set cursorline
 set cursorcolumn
 
-" Store temporary files in a central spot
+" Store temporary files in a central spot. Make sure these directories exist on disk.
 set backup
 set backupcopy=yes
-set directory=X://tmp//vim// " For swap files
+set directory=X://tmp//vim//      " For swap files.
 set backupdir=X://tmp//vim//
 :au BufWritePre * let &bex = '.' . strftime("%Y-%m-%d-%T") . '.bak'
 set writebackup
 
-" allow backspacing over everything in insert mode
-set backspace=indent,eol,start
+set backspace=indent,eol,start    " Allow backspacing over everything in insert mode.
 
-set complete+=kspell  " Spell checking autocomplete.
-set complete-=i       " Don't scan all included files since it's really slow.
+set complete+=kspell              " Spell checking autocomplete.
+set complete-=i                   " Don't scan all included files since it's really slow.
 
-" Enable highlighting for syntax
-syntax on
-" Enable file type detection.
-" Use the default filetype settings, so that mail gets 'tw' set to 72,
-" 'cindent' is on in C files, etc.
-" Also load indent files, to automatically do language-dependent indenting.
-" use emacs-style tab completion when selecting files, etc
+syntax on                         " Enable highlighting for syntax
+
 set wildmenu
 set wildmode=longest,list,full
 set wildignore+=*/log/*,*.so,*.swp,*.zip,*/rdoc/*
 let &colorcolumn=s:max_line_length
 
-" Requires ripgrep to be installed.
-set grepprg=rg\ --vimgrep
+set grepprg=rg\ --vimgrep         " Requires ripgrep to be installed.
 
-" Show trailing whitespace.
-set list listchars=tab:»·,trail:·
+set list listchars=tab:»·,trail:· " Show trailing whitespace.
 
-" Adding this since the esc remap on the 'i' key had a long delay when pressed.
-set timeoutlen=300 ttimeoutlen=0
+set timeoutlen=300 ttimeoutlen=0  " Adding this since the esc remap on the 'i' key had a long delay when pressed.
 
-" Allow undo when doing back into a closed file
-set undolevels=1000
+" @new might be broken:
+" set updatetime=100              " I lowered this to make git-gutter updates faster.
+
+set undolevels=1000               " Allow undo when going back into a closed file
 set undoreload=10000
-" Keep undo history across sessions by storing it in a file
+" Keep undo history across sessions by storing it in a file.
 if has('persistent_undo')
     let undo_dir = expand(s:vim_dir . '/undo')
-    " Create dirs
-    if IsWindows()
-      let mkdir = 'mkdir '
-    else
-      let mkdir = 'mkdir -p '
-    endif
+    " Create directory.
+    let mkdir = 'mkdir -p '
     :silent call system(mkdir . s:vim_dir)
     :silent call system(mkdir . undo_dir)
     let &undodir = undo_dir
@@ -295,13 +260,13 @@ endif
 
 " Fix vim's background colour erase - http://snk.tuxfamily.org/log/vim-256color-bce.html
 if &term =~ '256color'
-  " Disable Background Color Erase (BCE) so that color schemes
-  " work properly when Vim is used inside tmux and GNU screen.
-  " See also http://snk.tuxfamily.org/log/vim-256color-bce.html
-  set t_ut=
+    " Disable Background Color Erase (BCE) so that color schemes
+    " work properly when Vim is used inside tmux and GNU screen.
+    " See also http://snk.tuxfamily.org/log/vim-256color-bce.html
+    set t_ut=
 endif
 
-" Disable arrow keys
+" Disable arrow keys.
 map <up> <nop>
 map <down> <nop>
 map <left> <nop>
@@ -311,42 +276,41 @@ imap <down> <nop>
 imap <left> <nop>
 imap <right> <nop>
 
-
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " CUSTOM AUTOCMDS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 augroup campoCmds
-  " Clear all autocmds in the group
+  " Clear all autocmds in the group.
   autocmd!
 
-  " Automatically wrap at N characters
+  " Automatically wrap at N characters.
   autocmd FileType gitcommit setlocal colorcolumn=72
   autocmd BufRead,BufNewFile *.{md,txt,plan} execute "setlocal textwidth=" .s:max_line_length
 
-  " Spell checking
+  " Spell checking.
   autocmd FileType gitcommit,markdown,text setlocal spell
 
-  " Jump to last cursor position unless it's invalid or in an event handler
+  " Jump to last cursor position unless it's invalid or in an event handler.
   autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g`\"" | endif
 
-  " Language identation
+  " Language identation.
   autocmd FileType ruby,haml,eruby,yaml,html,javascript,rust,go set ai sw=2 sts=2 et
   autocmd FileType python,qml set sw=4 sts=4 et
 
-  " Indent p tags
+  " Indent HTML <p> tags.
   autocmd FileType html,eruby if g:html_indent_tags !~ '\\|p\>' | let g:html_indent_tags .= '\|p\|li\|dt\|dd' | endif
 
-  " Properly indent schemes (scheme, racket, etc)
+  " Properly indent schemes (scheme, racket, etc).
   autocmd bufread,bufnewfile *.{lisp,scm,rkt} setlocal equalprg=scmindent.rkt
 
-  " Auto reload VIM when settings changed
+  " Auto reload VIM when settings changed.
   autocmd BufWritePost .vimrc so $MYVIMRC
   autocmd BufWritePost *.vim so $MYVIMRC
   autocmd BufWritePost vimrc.symlink so $MYVIMRC
 
-  " Generate ctags
-  " Include local variables for c languages.
+  " Generate ctags on save.
+  " Also Include local variables for C-like languages.
   au BufWritePost *.py,*.c,*.cpp,*.h silent! !eval 'ctags --c-types=+l --c++-types=+l --exclude=vendor -R -o newtags; mv newtags tags' &
 
   " Remove trailing whitespace on save all files.
@@ -362,11 +326,11 @@ augroup campoCmds
   " FILE TEMPLATES
   "////////////////////////////////////////////////////////////////
 
-  " Shell script template
+  " Shell script template.
   autocmd BufNewFile *.sh 0r ~/.vim/templates/skeleton.sh
   autocmd BufNewFile *.plan 0r ~/.vim/templates/skeleton.plan
 
-  " C/C++ template
+  " C/C++ template.
   autocmd bufnewfile *.{c,cc,cpp,h,hpp} 0r ~/.vim/templates/c_header_notice
   autocmd bufnewfile *.{c,cc,cpp,h,hpp} exe "2," . 6 . "g/File:.*/s//File: " .expand("%")
   autocmd bufnewfile *.{c,cc,cpp,h,hpp} exe "2," . 6 . "g/Creation Date:.*/s//Creation Date: " .strftime("%Y-%m-%d")
@@ -386,21 +350,23 @@ augroup END
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " MISC KEY MAPS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Mapping ESC in insert mode and command mode to double i
+" Mapping ESC in insert mode and command mode to double i.
 imap jj <Esc>
 "cmap ii <Esc>
 
-" suspend process
+" Suspend vim process and return to the shell. Can return to vim with `fg`.
 nmap <leader>z <c-z>
 
-" Quickly edit/reload the vimrc file
+" Open the vimrc file for editing / reload vimrc file.
 nmap <silent> <leader>ev :vsp $MYVIMRC<cr>
 nmap <silent> <leader>rv :so $MYVIMRC<cr>
 
-" Easy way to open a file in the directory of the current file
+" Type %/ in the command bar to have it replaced with the current buffer's
+" path if the file is on disk. One thing I noticed is that you have to type
+" the full %/ quickly otherwise it won't replace it.
 :cmap %/ %:p:h/
 
-" remap saving and quiting
+" Remap saving and quiting.
 nmap <leader>w :w!<cr>
 nmap <leader>q :q<cr>
 nmap <leader>qq :q!<cr>
@@ -412,17 +378,17 @@ nmap <leader>x :x<cr>
 :ca W w!
 :ca Q q
 
-" lowercase the e (have a habit of making it uppercase)
+" Lowercase the e (have a habit of making it uppercase).
 :ca E e
 
 command! Q q " Bind :Q to :q
 command! Qall qall
 command! Qa qall
-" Disable Ex mode
+" Disable Ex mode.
 map Q <Nop>
 
+" Open a terminal within vim. Use `exit` to close it.
 if exists(':terminal')
-  " Terminal mapping
   map <leader>t :terminal<cr>
   tnoremap <leader>e <C-\><C-n>
   tnoremap <A-h> <C-\><C-n><C-w>h
@@ -435,14 +401,14 @@ if exists(':terminal')
   nnoremap <A-l> <C-w>l
 endif
 
-" Map ctrl-movement keys to window switching
+" Jump to other buffers.
 map <c-k> <c-w><Up>
 map <c-j> <c-w><Down>
 map <c-l> <c-w><Right>
 map <c-h> <c-w><Left>
 
 " Make it easier to jump around the command line. The default behaviour is
-" using the arrow keys with or without shift
+" using the arrow keys with or without shift.
 :cnoremap <C-J> <S-Left>
 :cnoremap <C-K> <S-Right>
 
@@ -451,33 +417,33 @@ map <c-h> <c-w><Left>
 map <leader>m :vsplit<cr>
 map <leader>mm :split<cr>
 
-" Delete a word forward and backward
-map <leader>a daw
+" Forward delete and replace a word.
 map <leader>d ciw
 
-" Map paste and nonumber
+" Map paste and nonumber.
 map <leader>p :set paste! paste?<cr>
 map <leader>o :set number! number?<cr>
 
-" Spell checking
+" Show spell checking.
+" @note: you can add new entries to the dict by moving the cursor over the
+" word and pressing `zg`.
 map <leader>j :exec &spell==&spell? "se spell! spelllang=en_us" : "se spell!"<cr>
 map <leader>= z=
-" NOTE: you can add a new word to the dict with `zg`
 
-" Clear the search buffer (highlighting) when hitting return
+" Clear the search buffer (highlighting) when hitting return.
 function! MapCR()
   nnoremap <cr> :nohlsearch<cr>
 endfunction
 call MapCR()
 nnoremap <leader><leader> <c-^>
 
-" Replace currently selected text with default register without yanking it
+" Replace currently selected text with default register without yanking it.
 vnoremap p "_dP
 
-" Use Marked.app to preview Markdown files...
+" Use Marked.app to preview Markdown files.
 nnoremap <leader>pp :silent !open -a Marked.app '%:p'<cr>
 
-" Switch between C++ source and header files
+" Switch between C++ source and header files.
 map <leader>v :e %:p:s,.h$,.X123X,:s,.cpp$,.h,:s,.X123X$,.cpp,<CR>
 "map <leader>vv :e %:p:s,.h$,.X123X,:s,.c$,.h,:s,.X123X$,.c,<CR>
 "map <leader>vvv :e %:p:s,.h$,.X123X,:s,.cc$,.h,:s,.X123X$,.cc,<CR>
@@ -524,13 +490,13 @@ inoremap <tab> <c-r>=InsertTabWrapper()<cr>
 inoremap <s-tab> <c-n>
 
 
-"-----------------------------------------------------------------------------------------
+"---------------------------------------------------------------------------------------------------
 
 
 "################################################################
 "################################################################
 "################################################################
-" 3. PLUGIN CONFIGS
+"#3. PLUGIN CONFIGS
 "################################################################
 "################################################################
 "################################################################
@@ -548,16 +514,21 @@ let g:localvimrc_ask = 0
 noremap <F12> :TagbarToggle<cr>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" KANGAROO
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+nmap <leader>a zp
+nmap <leader>aa zP
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " GITGUTTER
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-let g:gitgutter_enabled = 0
-let g:gitgutter_highlight_lines = 1
+let g:gitgutter_enabled = 1
+let g:gitgutter_highlight_lines = 0
 nmap <leader>ha <Plug>GitGutterStageHunk
-nmap <leader>hh :GitGutterToggle
+nmap <leader>hh :GitGutterToggle<cr>
 nmap [h <Plug>GitGutterNextHunk
 nmap ]h <Plug>GitGutterPrevHunk
-" Run on file save. Realtime update is disabled in after/plugins/gitgutter.vim
-autocmd BufWritePost * GitGutter
+autocmd BufWritePost * GitGutter " Update marks on save
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " SYNTASTIC
@@ -686,13 +657,20 @@ endfunction
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 set tags+=tags;$HOME
 
-"-----------------------------------------------------------------------------------------
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" TERMINUS
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+let g:TerminusMouse=0 " Disable mouse stuff.
+let g:TerminusFocusReporting=0 " Disable auto file reloading on external changes.
 
 
+"---------------------------------------------------------------------------------------------------
+
 "################################################################
 "################################################################
 "################################################################
-" 4. VISUALS
+"#4. VISUALS
 "################################################################
 "################################################################
 "################################################################
@@ -825,12 +803,12 @@ augroup vimrc_annotated_notes
           \ containedin=.*Comment,vimCommentTitle
 augroup END
 
-"-----------------------------------------------------------------------------------------
+"---------------------------------------------------------------------------------------------------
 
 "################################################################
 "################################################################
 "################################################################
-" 5. HELPER FUNCTIONS
+"#5. HELPER FUNCTIONS
 "################################################################
 "################################################################
 "################################################################
@@ -977,14 +955,10 @@ function! Search(case_sensitive)
   endif
 
   if IsWindows()
-    "@deprecated: Fsgrep is slow...."
-    "exec 'Fsgrep "' . term . '"'
     exec 'Rg ' . rg_args . ' "' . term . '"'
   else
-    "@deprecated: ripgrep is faster than Ag.
-    "exec 'Ag "' . term . '"'
-    " @incomplete pass case sensitivity toggle to Find.
-    execute 'Find ' . term
+    " @incomplete Test out ripgrep on non-Windows OS
+    echo "Not implemented"
   endif
 endfunction
 map <leader>s :call Search(0)<cr>
@@ -995,44 +969,6 @@ map <leader>ss :call Search(1)<cr>
 " Hit p on a result line to open the file at that line and return to the results pane.
 nnoremap <expr> o (&buftype is# "quickfix" ? "<CR>\|:lopen<CR>" : "o")
 nnoremap <expr> p (&buftype is# "quickfix" ? "<CR>\|:copen<CR>" : "p")
-
-"////////////////////////////////////////////////////////////////
-" FILESEARCH PLUGIN
-"////////////////////////////////////////////////////////////////
- let g:filesearch_viewport_split_policy = "B"
- let g:filesearch_split_size = 10
- let g:filesearch_autodismiss_on_select = 0
-
-
-"////////////////////////////////////////////////////////////////
-" SELECTA -- find files with fuzzy-search
-"////////////////////////////////////////////////////////////////
-
-" Run a given vim command on the results of fuzzy selecting from a given shell
-" command. See usage below.
-function! SelectaCommand(choice_command, selecta_args, vim_command)
-  if IsWindows()
-    let l:term = input('File name: ')
-    exec 'Fsfind "' . l:term . '"'
-  else
-    try
-      let l:selection = system(a:choice_command . " | selecta " . a:selecta_args)
-    catch /Vim:Interrupt/
-      " Swallow the ^C so that the redraw below happens; otherwise there will be
-      " leftovers from selecta on the screen
-      redraw!
-      return
-    endtry
-    redraw!
-    exec a:vim_command . " " . l:selection
-  endif
-endfunction
-
-" Find all files in all non-dot directories starting in the working directory.
-" Fuzzy select one of those. Open the selected file with :e.
-" DISABLED (2019-03) because I'm now using ctrl-p for fuzzy searching.
-" nnoremap <leader>f :call SelectaCommand("find * -type f ! -path 'resources/public/js/*' ! -path 'resources/.sass-cache/*' ! -path 'target/*'", "", ":e")<cr>
-
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " RENAME CURRENT FILE
@@ -1049,13 +985,13 @@ endfunction
 map <leader>n :call RenameFile()<cr>
 
 
-"-----------------------------------------------------------------------------------------
+"---------------------------------------------------------------------------------------------------
 
 
 "################################################################
 "################################################################
 "################################################################
-" 6. PERSONAL
+"#6. PERSONAL
 "################################################################
 "################################################################
 "################################################################
@@ -1064,6 +1000,6 @@ map <leader>n :call RenameFile()<cr>
 " FILE MAPPINGS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Notes and other helpers
-map <leader>pn :sp ~/.dev-scratchpad<cr>
+map <leader>pn :sp ~/.dev-scratchpad.md<cr>
 
 "let g:autotagStopAt = "$HOME"

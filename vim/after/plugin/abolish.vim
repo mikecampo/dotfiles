@@ -9,3 +9,4 @@ Abolish kewyord keyword
 Abolish indentit{y,ies} identit{y,ies}
 Abolish indetit{y,ies} identit{y,ies}
 Abolish constnat constant
+Abolish darw draw

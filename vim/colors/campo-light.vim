@@ -21,6 +21,7 @@ let s:green = "409b1c"
 let s:aqua = "00897b"
 let s:blue = "3b5bb5"
 let s:purple = "673ab7"
+let s:black = "000000"
 let s:window = "cfd8dc"
 
 let s:error_msg_background = s:background
@@ -290,7 +291,7 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
     call <SID>X("Type", s:blue, "", "none")
     call <SID>X("Define", s:purple, "", "none")
     call <SID>X("Include", s:blue, "", "")
-    call <SID>X("Number", s:orange, "", "")
+    call <SID>X("Number", s:black, "", "")
     "call <SID>X("Ignore", "666666", "", "")
 
     " Custom TODO/NOTE colors
@@ -345,7 +346,7 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
     call <SID>X("pythonDocstring", s:comment, "", "")
     call <SID>X("pythonBuiltinObj", s:red, "", "")
     call <SID>X("pythonBuiltinType", s:orange, "", "")
-    call <SID>X("pythonNumber", s:orange, "", "")
+    call <SID>X("pythonNumber", s:black, "", "")
 
 
     " Go Highlighting
@@ -366,7 +367,7 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
     call <SID>X("javaScriptFunction", s:purple, "", "")
     call <SID>X("javaScriptConditional", s:purple, "", "")
     call <SID>X("javaScriptRepeat", s:purple, "", "")
-    call <SID>X("javaScriptNumber", s:orange, "", "")
+    call <SID>X("javaScriptNumber", s:black, "", "")
     call <SID>X("javaScriptMember", s:orange, "", "")
 
     " HTML Highlighting
