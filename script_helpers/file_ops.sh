@@ -1,41 +1,16 @@
 #!/bin/bash
 
-if which tput >/dev/null 2>&1; then
-  ncolors=$(tput colors)
-fi
-if [ -t 1 ] && [ -n "$ncolors" ] && [ "$ncolors" -ge 8 ]; then
-  RED="$(tput setaf 1)"
-  GREEN="$(tput setaf 2)"
-  YELLOW="$(tput setaf 3)"
-  BLUE="$(tput setaf 4)"
-  BOLD="$(tput bold)"
-  NORMAL="$(tput sgr0)"
-else
-  RED=""
-  GREEN=""
-  YELLOW=""
-  BLUE=""
-  BOLD=""
-  NORMAL=""
-fi
-
-error() {
-  printf "${BOLD}${RED}$1${NORMAL}"
-}
-
-log() {
-  msg="$1"
-  value="$2"
-  printf "@log ${BOLD}${YELLOW}$msg${GREEN}$value${NORMAL}\n"
-}
+# Requires the printing.sh helper to be sourced.
+# Requires the platform.sh helper to be sourced.
 
 #---------------------------------------------------------------------------------------------------
 # API
 #---------------------------------------------------------------------------------------------------
 
+
+# Will return a symlink path in its expanded form.  If the path's root is the
+# home directory symbol "~" then it'll be replaced by the full home path.
 expand_path() {
-  # Expands a symlink path. If the root folder is the home directory symbol "~" then it'll be
-  # replaced by the full home path.
   local ret="$1"
 
   IFS="/" read -ra parts <<< "$ret"
@@ -51,17 +26,19 @@ expand_path() {
   echo $ret
 }
 
-windows_path() {
-  ret=$1
-
-  if [[ $(is_absolute_unix_path $ret) -eq 1 ]]; then
-    ret="${ret/\//}"
-    # Fix the drive name, e.g. c\foo becomes c:\foo
-    ret=$(sed 's,\([a-zA-Z]*\),\1:,' <<< "$ret")
-  fi
-
-  ret="${ret////\\}" # replace unix path with windows path
-  echo $ret
+unix_to_windows_path() {
+    ret=$1
+    if [[ $(is_windows_path $ret) -eq 1 ]]; then
+        echo $ret
+    else
+        if [[ $(is_absolute_unix_path $ret) -eq 1 ]]; then
+            ret="${ret/\//}"
+            # Fix the drive name, e.g. c\foo becomes c:\foo
+            ret=$(sed 's,\([a-zA-Z]*\),\1:,' <<< "$ret")
+        fi
+        ret="${ret////\\}" # replace unix path with windows path
+        echo $ret
+    fi
 }
 
 windows_to_unix_path() {
@@ -135,12 +112,108 @@ is_sym_file() {
   if [[ $1 =~ ^\.{1} ]]; then echo 1; else echo 0; fi
 }
 
-# Will return false if the path has no slashes.
 is_windows_path() {
   if [[ ! $1 =~ \/+ ]]; then echo 1; else echo 0; fi
 }
 
-# Will return false if the path has no slashes.
 is_unix_path() {
   echo $(! is_windows_path "$1")
 }
+
+path_has_a_space() {
+    regexp="[[:blank:]]+"
+    if [[ $1 =~ $regexp ]]; then echo 1; else echo 0; fi
+}
+
+# Expands a path when it's not a symbolic link or an absolute drive path.
+_clean_link_file_path() {
+    path=$1
+    if [[ $(is_absolute_unix_path "$path") -eq 0 && $(is_sym_file "$path") -eq 0 ]]; then
+        path=$(expand_path "$path")
+    fi
+    echo $path
+}
+
+# Creates a symlink.
+# Requires an admin shell when running under Windows.
+link_file() {
+    source_path=$1
+    dest_path=$2
+    require_confirmation=$3
+    expand_symlinks=$4
+
+    os_is_windows is_windows
+    os_is_unix is_unix
+
+    # @INSTEAD ESCAPE THE SPACES IN THE FINAL WINDOWS PATH
+    # @INSTEAD ESCAPE THE SPACES IN THE FINAL WINDOWS PATH
+    # @INSTEAD ESCAPE THE SPACES IN THE FINAL WINDOWS PATH
+    # @INSTEAD ESCAPE THE SPACES IN THE FINAL WINDOWS PATH
+    # @INSTEAD ESCAPE THE SPACES IN THE FINAL WINDOWS PATH
+    # @INSTEAD ESCAPE THE SPACES IN THE FINAL WINDOWS PATH
+    #https://stackoverflow.com/questions/1473981/how-to-check-if-a-string-has-spaces-in-bash-shell
+    #https://stackoverflow.com/questions/28256178/how-can-i-match-spaces-with-a-regexp-in-bash
+
+    source_has_space=$(path_has_a_space "$source_path")
+    dest_has_space=$(path_has_a_space "$dest_path")
+
+    debug=1
+    if [[ $debug -eq 1 ]]; then
+        echo source path: $source_path
+        echo dest path: $dest_path
+        echo source has space: $source_has_space
+        echo dest has space: $dest_has_space
+        echo abs unix source: $(is_absolute_unix_path "$source_path")
+        echo abs unix dest: $(is_absolute_unix_path "$dest_path")
+        echo "require_confirmation? $require_confirmation"
+        echo "expand_symlinks? $expand_symlinks"
+    fi
+
+    if [[ $expand_symlinks -eq 1 ]]; then
+        source_path=$(expand_path "$source_path")
+        dest_path=$(expand_path "$dest_path")
+    else
+        source_path=$(_clean_link_file_path "$source_path")
+        dest_path=$(_clean_link_file_path "$dest_path")
+    fi
+
+    if [[ $debug -eq 1 ]]; then
+        echo "after source: $source_path"
+        echo "after dest: $dest_path"
+    fi
+
+    # Verify that the source path exists.
+    ! test -d "$source_path" && ! test -e "$source_path" && error "Source path '$source_path' doesn't exist!" && abort
+
+    # Verify that the dest path doesn't already exist.
+    test -d "$dest_path" && error "Dest folder '$dest_path' already exists!" && abort
+    test -e "$dest_path" && error "Dest file '$dest_path' already exists!" && abort
+
+    if [[ $is_windows -eq 1 ]]; then
+        source_path=$(unix_to_windows_path "$source_path")
+        dest_path=$(unix_to_windows_path "$dest_path")
+        if [[ $source_has_space -eq 1 ]]; then source_path="\"$source_path\""; fi
+        if [[ $dest_has_space -eq 1 ]];   then dest_path="\"$dest_path\""; fi
+        link_cmd="cmd //c 'mklink $dest_path $source_path'"
+    else
+        if [[ $source_has_space -eq 1 ]]; then source_path="\"$source_path\""; fi
+        if [[ $dest_has_space -eq 1 ]];   then dest_path="\"$dest_path\""; fi
+        link_cmd="ln -sf $source_path $dest_path"
+    fi
+
+    if [[ $require_confirmation -eq 1 ]]; then
+        echo "${BOLD}${BLUE}Will attempt to link ${GREEN}$source_path${BLUE} to ${GREEN}$dest_path${BLUE}"
+        printf "${BOLD}Enter 1 to proceed\n${YELLOW}> ${NORMAL}"
+        read confirm
+        if [[ $confirm != 1 ]]; then abort; fi
+    fi
+
+    if [[ $debug -eq 1 ]]; then
+        echo Final source: $source_path
+        echo Final dest: $dest_path
+        echo Link cmd:: $link_cmd
+    fi
+
+    eval $link_cmd
+}
+

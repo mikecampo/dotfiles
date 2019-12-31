@@ -45,13 +45,15 @@ Data="0x00000000”
     and verify that `which envsubst` reports back `/usr/bin/envsubst`.
   * Bug report is at https://github.com/Alexpux/MSYS2-packages/issues/735
 * Map caps to left-ctrl using https://sharpkeys.codeplex.com/
+* Setup git completions for bash:
+  * `curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash -o ~/.git-completion.bash`
 
 * Use symlink command `cmd //c 'mklink .name-of-dotfile drive:\path\to\file'`.
 * Symlink `~/.private-files` to the root directory containing `dev/`.
 * Symlink `~/.dev` to `~/.private-files/path/to/dev`.
 * Symlink `~/.dotfiles` to `~/.dev/path/to/dotfiles`.
 * Create `~/bin`.
-* Symlink `$HOME/bin/sym` to `$HOME/.dotfiles/windows/symbolic-link.sh`. You can now use this to
+* Symlink `$HOME/bin/sym` to `$HOME/.dotfiles/bin/symbolic-link`. You can now use this to
   do symlinks.
 * Symlink files in the dotfiles windows folder.
 * Symlink appropriate files in the root dotfiles directory.
@@ -74,10 +76,10 @@ Data="0x00000000”
 
 ## Setting up Visual Studio
 
-* Use the backed up VS2015 ISO.
+* Use the backed up VS2015 ISO or download it from https://go.microsoft.com/fwlink/?LinkId=615448&clcid=0x409
 * Pick a custom install directory, e.g. `/x/programs/Visual Studio 15`
-* Make sure to not do a default install. You must select the C++ language support.
-* Edit visual studio options. Open Debugging -> Symbols and add the path to your cached symbols.
+* Select a custom install and check off the C++ language support.
+* Once installed, open Visual Studio and go to `Tools` -> `Options`. Open `Debugging` -> `Symbols` and add the path to the cached symbols directory that you set up above under `Setup a symbol server`.
 
 ## Setting up Vim
 
@@ -147,7 +149,10 @@ Data="0x00000000”
 
 ## Software
 
+* Install `tree`: `pacman -S tree`
+
 * Install Desktop Restore (http://www.midiox.com/index.htm?http://midiox.com/desktoprestore.htm)
+
 * Install Android platform tools to get adb.exe:
   * Download Android commandline tools https://developer.android.com/studio/#downloads
   * Unzip to some location.

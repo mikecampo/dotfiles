@@ -5,3 +5,4 @@ vim/undo
 vim/undo/*
 config/openbox/lxde-rc.xml
 *.pyc
+!bin

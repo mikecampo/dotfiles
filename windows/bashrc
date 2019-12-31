@@ -22,10 +22,14 @@ export TEMP=/tmp
 export TMPDIR=/tmp
 
 # Customize the shell prompt
+in_git_work_tree() {
+    git rev-parse --is-inside-work-tree &> /dev/null
+}
+
 parse_git_branch() {
-  if [[ "$PWD" != "$HOME" ]]; then
-    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
-  fi
+    if in_git_work_tree; then
+        git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
+    fi
 }
 export PS1='\[\033[0;32m\]\[\033[0m\033[0;32m\]\u\[\033[0;36m\] @ \w\[\033[33m\]\n$(parse_git_branch)\[\033[0;32m\]\[\033[0m\033[0;32m\] \$\[\033[0m\033[0;32m\]\[\033[0m\] '
 

@@ -28,11 +28,22 @@ elif [[ "${platform,,}" == *'ming'* ]]; then # convert to lowercase then compare
 
   alias l='ls -ahg --color'
   alias ls='ls -ahg --color'
-  #alias rm='echo "use trash command instead!"'
+  alias rm='echo "use trash command instead!"'
   alias rmr='echo "use trash command instead!"'
-  alias trash='recycle-bin.exe '
-  alias tt='trash '
+  alias trash='remove_windows_file'
+  alias tt='remove_windows_file'
+  alias cgrep='cgrep.exe'
 fi
+
+remove_windows_file() {
+    if [ -f "$1" ]; then
+        recycle-bin.exe "$1"
+    elif [ -d "$1" ]; then
+        recycle-bin.exe "$1"
+    else
+        echo "'$1' does not exist!"
+    fi
+}
 
 alias c='cd'
 alias c-='cd -'
@@ -145,14 +156,39 @@ alias vs='vagrant ssh'
 alias vu='vagrant up'
 alias vimrc='vim ~/.vimrc'
 alias weather='curl wttr.in/toronto'
-alias yt-download='youtube-dl.exe -o "%(upload_date)s-%(title)s-youtube-%(id)s.%(ext)s"'
-alias yt8='youtube-dl.exe -f "137+140" -o "%(upload_date)s-%(title)s-youtube-%(id)s.%(ext)s" '
-alias yt-download-1080='youtube-dl.exe -f "137+140" -o "%(upload_date)s-%(title)s-youtube-%(id)s.%(ext)s" '
-alias yt-download-720='youtube-dl.exe -f "136+140" -o "%(upload_date)s-%(title)s-youtube-%(id)s.%(ext)s" '
-alias tw-download-60='youtube-dl.exe -f "1080p60" -o "%(upload_date)s-%(title)s-twitch-%(id)s.%(ext)s" '
-alias tw-download-720='youtube-dl.exe -f "720p-1" -o "%(upload_date)s-%(title)s-twitch-%(id)s.%(ext)s" '
-alias tw-download-4k='youtube-dl.exe -f "2160p" -o "%(upload_date)s-%(title)s-twitch-%(id)s.%(ext)s" '
-alias tw-download='youtube-dl.exe -f "1080p" -o "%(upload_date)s-%(title)s-twitch-%(id)s.%(ext)s" '
+
+# Download YouTube videos
+function dl_youtube_vid {
+    local format="$1"
+    local url="$2"
+    regexp="[[:blank:]]+"
+    if [[ $format == "" ]]; then
+        echo "Downloading default format"
+        youtube-dl.exe -o "%(upload_date)s-%(title)s-youtube-%(id)s.%(ext)s" $url
+    else
+        youtube-dl.exe -f "$format" -o "%(upload_date)s-%(title)s-youtube-%(id)s.%(ext)s" $url
+    fi
+}
+alias yt-download='dl_youtube_vid ""'
+alias yt-download-1080='dl_youtube_vid "137+140"'
+alias yt-download-720='dl_youtube_vid "136+140"'
+
+# Download Twitch videos
+function dl_twitch_vid {
+    local format="$1"
+    local url="$2"
+    local dir=$(date '+%Y-%m-%d-%H-%M-%S')
+    mkdir -p $dir
+    cd $dir
+    rechat.exe -D $url
+    rm *.json
+    youtube-dl.exe -f "$format" -o "%(upload_date)s-%(title)s-twitch-%(id)s.%(ext)s" $url
+    cd ..
+}
+alias tw-download='dl_twitch_vid "1080p"'
+alias tw-download-60='dl_twitch_vid "1080p60"'
+alias tw-download-720='dl_twitch_vid "720p-1"'
+alias tw-download-4k='dl_twitch_vid "2160p"'
 
 # Git
 

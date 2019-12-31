@@ -1,13 +1,15 @@
 [include]
   path = ~/.gitconfig.platform
 [user]
-  name = Michael Campagnaro
-  email = mikecampo@gmail.com
+	name = Michael Campagnaro
+	email = mikecampo@gmail.com
 [merge]
   summary = true
   tool = vimdiff
 [core]
   excludesfile = ~/.gitignore
+  preloadindex = true
+  fscache = true
 [push]
   default = upstream
 [diff]
@@ -29,11 +31,14 @@
   old  = red
   new  = green
 [filter "lfs"]
-  clean = git-lfs clean %f
-  smudge = git-lfs smudge %f
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
   required = true
+	process = git-lfs filter-process
 [alias]
   lg = log --graph --pretty=format:'%Cred%h%Creset %C(yellow)%an [%cn]%d%Creset %s %Cgreen(%cr)%Creset' --date=relative
-  start = !git init && git commit --allow-empty -m \"Initial commit, mofuck\"
+  start = !git init && git commit --allow-empty -m \"Initial commit\"
 [rerere]
   enabled = true
+[gc]
+	auto = 0

@@ -1,0 +1,28 @@
+#!/bin/bash
+
+source "$HOME/.dotfiles/script_helpers/all.sh"
+
+cwd=$PWD
+source_path=""
+dest_path=""
+
+#echo "got $1 and $2 and $3"
+
+if [[ $1 ]]; then
+  source_path=$1
+else
+  printf "${BOLD}${YELLOW}Enter full path to source file/dir:\n${NORMAL}"
+  read -e source_path
+fi
+
+if [[ $2 ]]; then
+  dest_path=$2
+else
+  printf "${BOLD}${YELLOW}Enter full path to symlink destination:\n${NORMAL}"
+  read -e dest_path
+fi
+
+if [[ $3 ]]; then expand_symlinks=$3; else expand_symlinks=0; fi
+
+confirm_link=1
+link_file "$source_path" "$dest_path" $confirm_link $expand_symlinks
