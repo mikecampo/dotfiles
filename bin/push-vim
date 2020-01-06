@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Copies vim data from the dotfiles repo to the home directory.
+
+set -e
+
+src="$HOME/.dotfiles/vim"
+dest="$HOME/.vim/"
+
+if [ -d $src ]; then
+    [ -d "$src/spell" ]     && echo "Syncing user dictionary" && cp -r "$src/spell"     $dest
+    [ -d "$src/colors" ]    && echo "Syncing user colors"     && cp -r "$src/colors"    $dest
+    [ -d "$src/after" ]     && echo "Syncing after directory" && cp -r "$src/after"     $dest
+    [ -d "$src/templates" ] && echo "Syncing templates"       && cp -r "$src/templates" $dest
+    [ -d "$src/ftdetect" ]  && echo "Syncing ftdetect"        && cp -r "$src/ftdetect"  $dest
+fi
