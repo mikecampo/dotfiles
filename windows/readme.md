@@ -51,7 +51,7 @@ processor time and is generally useless.
   * Open `C:\msys64\mingw64.exe`
   * Run `pacman -Syu`, then restart the terminal and run `pacman -Su`.
   * Run `pacman -S base-devel mingw-w64-x86_64-toolchain git bc`
-  * Use `C:\Users\<user>` as the terminal $HOME by editting `C:\msys64\etc\nsswitch.conf` and
+  * Use `C:\Users\<user>` as the terminal $HOME by editing `C:\msys64\etc\nsswitch.conf` and
     changing the `db_home` value to `windows`.
 * You may need to work around an issue with envsubst.exe - you'll know there's a bug if git
   displays `not a valid identifier line 89: export: dashless` or rebase complains about `new_count`.
@@ -61,6 +61,7 @@ processor time and is generally useless.
 * Map caps to left-ctrl using https://sharpkeys.codeplex.com/
 * Setup git completions for bash:
   * `curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash -o ~/.git-completion.bash`
+* In the editor options under the Looks tab, set the cursor to the block type.
 
 * Use symlink command `cmd //c 'mklink .name-of-dotfile drive:\path\to\file'`.
 * Symlink `~/.private-files` to the root directory containing `dev/`.
@@ -121,7 +122,9 @@ processor time and is generally useless.
 ### Configuring
 
 1. Open Vim and run `:PlugInstall` to fetch all plugins.
-2. Create tmp folder for swap files. See `set directory` and `set backupdir` paths in `vimrc`.
+2. Create a tmp folder for swap files (i.e. `set directory` and `set backupdir`). Place these
+   at `~/.vimrc.private` so that the main vimrc file can source it. We do it this way so that you
+   can have a tmp folder path that is specific to your setup.
 
 ### Setting up Custom Search
 
@@ -180,7 +183,6 @@ processor time and is generally useless.
   * You can now add the platform-tools dir to your path if you want, or just symlink `adb` to `~/bin`.
 
 ### Youtube-DL
-
 * In order to combine audio and video files you need ffmpeg. Download from https://ffmpeg.zeranoe.com/builds/
 and place the exe's in `~/bin`.
 
@@ -188,4 +190,11 @@ and place the exe's in `~/bin`.
 * If you see jaggy fonts then about `about:config` and check the value of
   `gfx.font_rendering.cleartype_params.rendering_mode`. Mine was -1 by default. Setting it to 5
   removed the bad font rendering.
+
+### Spotify
+* Spotify caches song data in `C:\Users\<user>\AppData\Local\Spotify/Data` and this path cannot be
+  modified within the app settings. This is an issue if your main drive is an SSD, as you want to
+  limit the amount of writes to it and you may not have a lot of free space. The simplest way I
+  found to stop this is to change the `Data` folder's permissions (under the Security tab) and deny
+  all properties for the user account.
 

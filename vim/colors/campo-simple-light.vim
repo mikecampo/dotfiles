@@ -43,7 +43,7 @@ if has("gui_running") || &t_Co == 256
     hi PmenuSel cterm=bold ctermfg=255 ctermbg=240 gui=NONE guifg=#eeeeee guibg=#454545 " autocomplete menu selection
     hi PmenuThumb cterm=NONE ctermfg=232 ctermbg=240 gui=NONE guifg=NONE guibg=#cccccc  " autocomplete scroller bar
     hi PmenuSbar cterm=NONE ctermfg=232 ctermbg=240 gui=NONE guifg=NONE guibg=#454545   " autocomplete scroller background
-    hi SpecialKey cterm=NONE ctermfg=16 ctermbg=255 gui=NONE guifg=#eeeeee guibg=#fbfbfb
+    hi SpecialKey cterm=NONE ctermfg=16 ctermbg=255 gui=NONE guifg=#ff00ff guibg=#fbfbfb
     hi MatchParen cterm=bold ctermfg=white ctermbg=black gui=NONE guifg=#000000 guibg=#dddddd
     hi CursorLine cterm=NONE ctermfg=NONE ctermbg=233 gui=NONE guifg=NONE guibg=#dddddd
     hi CursorColumn cterm=NONE ctermfg=NONE ctermbg=233 gui=NONE guifg=NONE guibg=#dddddd

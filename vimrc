@@ -1,10 +1,4 @@
-﻿" @fixme i'm now experiencing end of file history more often after the big
-" changes to this file. Coincidence?
-"
-" Check out https://stackoverflow.com/a/34253629 to change the cursor to a
-    " @incomplete check for mappings in terminus to verify they don't override anything I used.
-" block or whatever depending on the mode.
-" @incomplete Move all leader definitions to the bottom, so that it's easier to see them.
+﻿" @incomplete Move all leader definitions to the bottom, so that it's easier to see them.
 " @incomplete Add setup steps (plugins, cache setup, search tool, etc).
 
 "###################################################################################################
@@ -45,6 +39,8 @@ endfunction
 
 let mapleader=","
 
+source ~/.vimrc.private
+
 "################################################################
 "################################################################
 "################################################################
@@ -54,9 +50,11 @@ let mapleader=","
 "################################################################
 
 let s:max_line_length = 100
+let g:quickfix_window_height  = 16 " in rows
+" Start vim with the dark theme. Set to 'light' for the light theme.
+" To change the themes see `s:dark_theme` and `s:light_theme`.
 let s:default_bg = 'dark'
 let s:rainbow_theme = s:default_bg
-let g:quickfix_window_height  = 16 " in rows
 
 "---------------------------------------------------------------------------------------------------
 
@@ -91,7 +89,6 @@ Plug 'tommcdo/vim-kangaroo'           " Maintain a manually-defined jump stack. 
 Plug 'mh21/errormarker.vim'           " Build error highlighting (requires skywind3000/asyncrun.vim).
 Plug 'skywind3000/asyncrun.vim'       " Async commands.
 Plug 'nelstrom/vim-qargs'             " For the GlobalReplaceIt function (i.e. search and replace).
-" @fixme Disable the file reloading. Plug 'wincent/terminus'               " Enhanced terminal integration for Vim (namely iTerm). Changes the cursor depending on the mode; enhanced pasting; file reloading on external changes.
 
 if IsWindows()
     Plug 'suxpert/vimcaps'            " Disable capslock (useful if the OS isn't configured to do so).
@@ -215,13 +212,21 @@ set scrolloff=3                   " keep more context when scrolling off the end
 set cursorline
 set cursorcolumn
 
-" Store temporary files in a central spot. Make sure these directories exist on disk.
+" Store temporary files in a central spot. The location of the cache is
+" set in the vimrc.private file that is sourced near the top of this file.
 set backup
 set backupcopy=yes
-set directory=X://cache//vim//      " For swap files.
-set backupdir=X://cache//vim//
 :au BufWritePre * let &bex = '.' . strftime("%Y-%m-%d-%T") . '.bak'
-set writebackup
+set writebackup                   " Make buckup before overwriting the current buffer.
+
+" Keep undo history across sessions by storing it in a file.  The undo save
+" location is set in the vimrc.private file that is sourced near the top of
+" this file. Alternatively, you can set it here with `set undodir=<path>`
+set undolevels=1000               " Allow undo when going back into a closed file
+set undoreload=10000
+if has('persistent_undo')
+    set undofile
+endif
 
 set backspace=indent,eol,start    " Allow backspacing over everything in insert mode.
 
@@ -246,20 +251,6 @@ set timeoutlen=300 ttimeoutlen=0  " Adding this since the esc remap on the 'i' k
 " UPDATE: I lowered this to 250 and eventually started seeing some plugin
 " errors related to paren formatting. I think 800 might be the sweet spot.
 set updatetime=800                " I lowered this to make git-gutter updates faster.
-
-set undolevels=1000               " Allow undo when going back into a closed file
-set undoreload=10000
-" Keep undo history across sessions by storing it in a file.
-if has('persistent_undo')
-    let undo_dir = expand(s:vim_dir . '/undo')
-    " Create directory.
-    let mkdir = 'mkdir -p '
-    :silent call system(mkdir . s:vim_dir)
-    :silent call system(mkdir . undo_dir)
-    let &undodir = undo_dir
-    " Persist undo
-    set undofile
-endif
 
 " Fix vim's background colour erase - http://snk.tuxfamily.org/log/vim-256color-bce.html
 if &term =~ '256color'
@@ -653,14 +644,6 @@ endfunction
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 set tags+=tags;$HOME
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" TERMINUS
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-let g:TerminusMouse=0 " Disable mouse stuff.
-let g:TerminusFocusReporting=0 " Disable auto file reloading on external changes.
-
-
 "---------------------------------------------------------------------------------------------------
 
 "################################################################
@@ -725,7 +708,7 @@ let s:light_theme = 'campo-simple-light'
 execute "autocmd ColorScheme " . s:dark_theme . " call ReloadRainbow()"
 execute "autocmd ColorScheme " . s:light_theme . " call ReloadRainbow()"
 
-" Switch between light and dark
+" Switch between light and dark themes.
 map <leader>l :call ChangeBgTheme('light', 0)<cr>
 map <leader>ll :call ChangeBgTheme('dark', 0)<cr>
 

@@ -1,8 +1,10 @@
 platform=`uname -s`
 kernel_release=`uname -r`
 
+test -f ~/.aliases.private && . ~/.aliases.private
+# Common env must come first.
+test -f ~/.private-dotfiles.common/env && . ~/.private-dotfiles.common/env
 test -f ~/.private-dotfiles/env && . ~/.private-dotfiles/env
-test -f ~/.env.platform && . ~/.env.platform
 
 # Unbreak broken, non-colored terminal
 export TERM=xterm-256color
