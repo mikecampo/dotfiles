@@ -35,7 +35,11 @@
   required = true
   process = git-lfs filter-process
 [alias]
-  lg = log --graph --pretty=format:'%Cred%h%Creset %C(yellow)%an [%cn]%d%Creset %s %Cgreen(%cr)%Creset' --date=relative
+  # Note: I'm using %ad in the pretty log to see the author's timestamp, as
+  # opposed to %cr which is the commiter's timestamp. I prefer the former
+  # because I sometimes edit an earlier commit message while rebasing and I
+  # want to continue to see the original date.
+  lg = log --graph --pretty=format:'%Cred%h%Creset %C(yellow)%an [%cn]%d%Creset %s %Cgreen(%ad)%Creset' --date=relative
   start = !git init && git commit --allow-empty -m \"Initial commit\"
 [rerere]
   enabled = true
