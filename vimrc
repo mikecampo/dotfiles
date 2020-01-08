@@ -56,7 +56,29 @@ let g:quickfix_window_height  = 16 " in rows
 let s:default_bg = 'dark'
 let s:rainbow_theme = s:default_bg
 
-"---------------------------------------------------------------------------------------------------
+" ---------------------------------------------------------------------------
+" @note The following globals can be used to customize various functions in
+" this file. The easiest way to set them is in an .lvimrc file in the root
+" folder that you want it applied to.
+
+" Set this to 0 if you want to stop the removal of trailing whitespaces.
+let g:campo_strip_trailing_whitespace = 1
+
+" This is included in the ripgrep args. You can use this to do things like
+" ignore folders in your project or limit the search to specific file types.
+" For example, if you want to ignore the 3rd_party dir and only search C files
+" (remove the backslash from the first quote as that's just here to escape it
+" in this comment string)
+" let g:campo_custom_search_args = \"-g \"!3rd_party/*\" -tc"
+let g:campo_custom_search_args = ""
+
+" This is included in the ctags autocmd args. You can use this to customize
+" how ctags are built. For example, if you want to ignore the 3rd_party dir
+" (remove the backslash from the first quote as that's just here to escape it
+" in this comment string)
+" let g:campo_custom_ctags_args = \"--exclude=3rd_party"
+let g:campo_custom_ctags_args = ""
+" ---------------------------------------------------------------------------
 
 "################################################################
 "################################################################
@@ -299,16 +321,25 @@ augroup campoCmds
   autocmd BufWritePost *.vim so $MYVIMRC
   autocmd BufWritePost vimrc.symlink so $MYVIMRC
 
+  function! s:RunCtags()
+    " The ampersand at the end is to make this run in the background. I had to
+    " group the commands in parens to make the chained commands run in the
+    " background.
+    let l:ctags_cmd = "!(ctags --c-types=+l --c++-types=+l --exclude=*.md --exclude=*.txt --exclude=*.config --exclude=*.css --exclude=*.html --exclude=*.htm --exclude=*.json " . g:campo_custom_ctags_args . " -R -o newtags; mv newtags tags) &"
+    exec l:ctags_cmd | redraw!
+  endfun
   " Generate ctags on save.
   " Also Include local variables for C-like languages.
-  au BufWritePost *.py,*.c,*.cpp,*.h silent! !eval 'ctags --c-types=+l --c++-types=+l --exclude=vendor -R -o newtags; mv newtags tags' &
+  autocmd BufWritePost *.cs,*.js,*.py,*.c,*.cpp,*.h silent! :call <SID>RunCtags()
 
-  " Remove trailing whitespace on save all files.
-  function! <SID>StripTrailingWhitespaces()
-    let l = line(".")
-    let c = col(".")
-    %s/\s\+$//e
-    call cursor(l, c)
+  " Remove trailing whitespace when saving any file.
+  function! s:StripTrailingWhitespaces()
+    if g:campo_strip_trailing_whitespace
+        let l = line(".")
+        let c = col(".")
+        %s/\s\+$//e
+        call cursor(l, c)
+    endif
   endfun
   autocmd BufWritePre * :call <SID>StripTrailingWhitespaces()
 
@@ -880,12 +911,14 @@ nnoremap <C-p> :cp<CR>
 " SEARCH
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
+" @incomplete
 if !IsWindows()
-  command! -bang -nargs=* Find call fzf#vim#grep('rg --column --line-number --no-heading --fixed-strings --ignore-case --no-ignore --hidden --follow --glob "!vendor/*" --pretty "always" '.shellescape(<q-args>), 1, <bang>0)
+  let rg_args = "--column --line-number --no-heading --fixed-strings --ignore-case --no-ignore --hidden --follow --pretty \"always\" " . g:campo_custom_search_args
+  let cmd = "command! -bang -nargs=* Find call fzf#vim#grep('rg " . rg_args .  "'.shellescape(<q-args>), 1, <bang>0)"
+  exec cmd
 endif
 
-" Search using ripgrep (first install with Rust: cargo install ripgrep)
-" Ignores vendor folder.
+" Search using ripgrep (first install with Rust: cargo install ripgrep).
 function! Search(case_sensitive)
   let helper = "[" . (a:case_sensitive ? "case-sensitive" : "case-insensitive") . "] search: "
   let term = input(helper)
@@ -895,7 +928,7 @@ function! Search(case_sensitive)
 
   "@note --pretty (i.e. colors) is not enabled in vim-ripgrep because the
   "quickfix window doesn't seem to parse the ansi color codes.
-  let rg_args = "--trim -g \"!vendor/*\""
+  let rg_args = "--trim -g \"!tags\" " . g:campo_custom_search_args
 
   if !a:case_sensitive
     let rg_args .= " --ignore-case"
