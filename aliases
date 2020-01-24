@@ -91,6 +91,7 @@ alias cbr='cargo build --release'
 alias clrtmp='trash ~/tmp/*.bak && trash ~/tmp/*.swp'
 alias clrtemp='clrtmp'
 alias clipboard='xclip -selection c'
+# Cloc alias may be overridden by a private alias
 alias cloc='cloc --no3 --by-file-by-lang --skip-win-hidden'
 alias cls=clear
 alias code='cd ~/code'
@@ -149,23 +150,29 @@ alias weather='curl wttr.in/toronto'
 function dl_youtube_vid {
     local format="$1"
     local url="$2"
+    shift 2
+    local opts="$@"
+    opts+=" --all-subs --embed-subs"
     local name_format="%(upload_date)s%(title)s-youtube-%(id)s.%(ext)s"
     if [[ $format == "" ]]; then
         echo "Downloading default format"
-        youtube-dl.exe -o "$name_format" $url
+        youtube-dl.exe -o $name_format $opts $url
     else
-        youtube-dl.exe -f "$format" -o "$name_format" $url
+        youtube-dl.exe -f $format -o $name_format $opts $url
     fi
 }
 function dl_youtube_playlist {
     local format="$1"
     local url="$2"
+    shift 2
+    local opts="$@"
+    opts+=" --all-subs --embed-subs"
     local name_format="%(playlist_index)s - %(title)s-youtube-%(id)s.%(ext)s"
     if [[ $format == "" ]]; then
         echo "Downloading default format"
-        youtube-dl.exe -o "$name_format" $url
+        youtube-dl.exe -o $name_format $opts $url
     else
-        youtube-dl.exe -f "$format" -o "$name_format" $url
+        youtube-dl.exe -f $format -o $name_format $opts $url
     fi
 }
 alias yt-download='dl_youtube_vid ""'
@@ -241,7 +248,7 @@ function dl_twitch_chat {
 alias tw-download-chat='dl_twitch_chat'
 alias tw-dl='youtube-dl.exe -f "1080" -o "%(upload_date)s-%(title)s-twitch-%(id)s.%(ext)s"'
 alias tw-dl2='youtube-dl.exe -o "%(upload_date)s-%(title)s-twitch-%(id)s.%(ext)s"'
-alias tw-download='dl_twitch_vid "1080"'
+alias tw-download='dl_twitch_vid "1080p"'
 alias tw-download-60='dl_twitch_vid "1080p60"'
 alias tw-download-720='dl_twitch_vid "720p"'
 alias tw-download-720-60='dl_twitch_vid "720p60"'
@@ -304,6 +311,7 @@ alias gds='git diff --stat=160,120'
 alias gdw='git diff --color-words'
 alias gf='git fetch'
 alias gfa='git fetch --all'
+alias gfd='git fetch --prune'
 alias gfix="git commit --amend -C HEAD"
 alias gfixx="git commit --amend -C HEAD ; gp -f"
 alias gfixs="git commit -S -a --amend -C HEAD" # signed
@@ -327,10 +335,7 @@ alias gmtheirs='git merge -Xtheirs'
 alias gp='git push'
 alias gpa='git push --all && echo "pushing tags..." && git push --tags'
 alias gpdf='gpf && gphf'
-alias gpp='echo "Pushing Upstream master to production" && git push production master'
-alias gppp='echo "Pushing to remotes first..." && git push origin master:master && git push upstream master:master && echo "Pushing upstream master to Production..." && git push production upstream/master:master'
 alias gps='git push staging'
-alias gpps='echo "Pushing Upstream master to staging" && git push staging upstream/master:master -f'
 alias gppf='gpf && git push production HEAD:production -f'
 alias gpu='git push --set-upstream origin HEAD'
 alias gpff='git pull --ff-only'
