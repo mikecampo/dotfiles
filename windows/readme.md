@@ -192,7 +192,7 @@ and place the exe's in `~/bin`.
   removed the bad font rendering.
 
 ### Spotify
-* Spotify caches song data in `C:\Users\<user>\AppData\Local\Spotify/Data` and this path cannot be
+* Spotify caches song data in `C:\Users\<user>\AppData\Local\Spotify\Data` and this path cannot be
   modified within the app settings. This is an issue if your main drive is an SSD, as you want to
   limit the amount of writes to it and you may not have a lot of free space. The simplest way I
   found to stop this is to change the `Data` folder's permissions (under the Security tab) and deny
