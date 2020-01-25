@@ -1,5 +1,11 @@
 #set -x  # Print out all of the commands that are executing.
 
+# Unbreak broken, non-colored terminal
+export TERM=xterm-256color
+
+# Don't use ^D to exit
+set -o ignoreeof
+
 # For Windows setup
 test -f ~/.functions && . ~/.functions
 test -f ~/.aliases && . ~/.aliases
@@ -8,14 +14,13 @@ test -f ~/.aliases.private && . ~/.aliases.private
 test -f ~/.private-dotfiles.common/env && . ~/.private-dotfiles.common/env
 test -f ~/.private-dotfiles/env && . ~/.private-dotfiles/env
 
-# Unbreak broken, non-colored terminal
-export TERM=xterm-256color
+if [[ -d "$HOME/bin" ]]; then
+    export PATH=$HOME/bin/:$PATH
+fi
 
-# Don't use ^D to exit
-set -o ignoreeof
-
-# Needed for mingw32
-export PATH=$HOME/bin/:$HOME/.dotfiles/bin:$PATH
+if [[ -d "$HOME/.private-dotfiles.common/bin" ]]; then
+    export PATH=$HOME/.private-dotfiles.common/bin:$PATH
+fi
 
 # TMP and TEMP are defined in the Windows environment. Leaving them set to the default
 # Windows temporary directory can have unexpected consequences.

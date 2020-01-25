@@ -3,7 +3,7 @@
 * Turn off hibernation
   * Open admin cmd prompt: `powercfg.exe /hibernate off`
 
-* Map caps to left-ctrl using sharpkeys 
+* Map caps to left-ctrl using sharpkeys
 
 * Install Windows Defender
 
@@ -48,6 +48,13 @@ processor time and is generally useless.
     * https://docs.microsoft.com/en-us/windows/desktop/Win7AppQual/fault-tolerant-heap
       * Disable on system via regedit: set the REG_DWORD value **HKLM\\Software\\Microsoft\\FTH\\Enabled** to **0**.
 
+## Setting up Visual Studio
+
+* Use the backed up VS2015 ISO or download it from https://go.microsoft.com/fwlink/?LinkId=615448&clcid=0x409
+* Pick a custom install directory, e.g. `/x/programs/Visual Studio 15`
+* Select a custom install and check off the C++ language support.
+* Once installed, open Visual Studio and go to `Tools` -> `Options`. Open `Debugging` -> `Symbols` and add the path to the cached symbols directory that you set up above under `Setup a symbol server`.
+
 ## Setup up Unix-like Shell
 * Install [MSYS2 w/ MinGW-w64](http://www.msys2.org/) to `C:\msys64`
   * Open `C:\msys64\mingw64.exe`
@@ -61,25 +68,22 @@ processor time and is generally useless.
     and verify that `which envsubst` reports back `/usr/bin/envsubst`.
   * Bug report is at https://github.com/Alexpux/MSYS2-packages/issues/735
 * Switch to the shell `C:\msys64\msys2.exe` going forward.
+  * You can also load the shell with a batch file. This allows you to do some setup work, like run `vcvarsall.bat`, eg.
+    ```batch
+    REM saved as shell-64.bat
+    @echo off
+    call "drive:\path\to\visual studio 15\VC\vcvarsall.bat" x64
+    REM or you can do:
+    REM call "drive:\path\to\visual studio 17\VC\Auxiliary\Build\vcvarsall.bat" x64
+    set _NO_DEBUG_HEAP=1
+    call C:\msys64\msys2_shell.cmd -mingw64 -use-full-path
+    exit
+    ```
+    * Now you can make a system32 cmd line shortcut that will be used to launch the batch file. e.g.
+      * `target:` `%windir%\System32\cmd.exe /k drive:\path\to\shell-64.bat`
+      * `start in:` `drive:\some\path`
 * Setup git completions for bash:
   * `curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash -o ~/.git-completion.bash`
-* In the editor options under the Looks tab, set the cursor to the block type.
-* Use symlink command `cmd //c 'mklink .name-of-dotfile drive:\path\to\file'`.
-* Symlink `~/.private-files` to the root directory containing `dev/`.
-* Symlink `~/.dev` to `~/.private-files/path/to/dev`.
-* Symlink `~/.dotfiles` to `~/.dev/path/to/dotfiles`.
-* Create `~/bin`.
-* Symlink `$HOME/bin/sym` to `$HOME/.dotfiles/bin/symbolic-link`. You can now use this to
-  do symlinks.
-* Symlink files in the dotfiles windows folder.
-* Symlink appropriate files in the root dotfiles directory.
-  * Ignore all zsh files.
-  * Don't symlink .vim folder because Plugged will fail to install the plugins. Just make a copy.
-* Setup private dotfiles. Once done, you should now have `~/bin` and `~/.dotfiles/bin` in your path.
-
-## Configure Private dotfiles
-* The most important task is to setup the `c-dev-x64` shortcut for launching a msys shell with appropriate dev environment.
-  * Add this to your taskbar and use this for launching a shell.
 
 ## Setting up dev tools
 
@@ -89,13 +93,6 @@ processor time and is generally useless.
   * Installer will display a compatibility warning. Ignore it.
   * Full list of tools can be found here
     https://www.technlg.net/windows/download-windows-resource-kit-tools/
-
-## Setting up Visual Studio
-
-* Use the backed up VS2015 ISO or download it from https://go.microsoft.com/fwlink/?LinkId=615448&clcid=0x409
-* Pick a custom install directory, e.g. `/x/programs/Visual Studio 15`
-* Select a custom install and check off the C++ language support.
-* Once installed, open Visual Studio and go to `Tools` -> `Options`. Open `Debugging` -> `Symbols` and add the path to the cached symbols directory that you set up above under `Setup a symbol server`.
 
 ## Setting up Vim
 
@@ -193,6 +190,9 @@ and place the exe's in `~/bin`.
   removed the bad font rendering.
 
 ### Spotify
+* If you install an older version then you'll need to block the auto updater:
+    * Go to `%APPDATA%\Spotify` and create `Spotify_new.exe` and `Spotify_new.exe.sig`
+    * Set both as read-only. I did this by denying all permissions to the active user account.
 * Spotify caches song data in `C:\Users\<user>\AppData\Local\Spotify\Data` and this path cannot be
   modified within the app settings. This is an issue if your main drive is an SSD, as you want to
   limit the amount of writes to it and you may not have a lot of free space. The simplest way I
