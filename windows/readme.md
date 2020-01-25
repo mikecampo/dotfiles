@@ -3,6 +3,8 @@
 * Turn off hibernation
   * Open admin cmd prompt: `powercfg.exe /hibernate off`
 
+* Map caps to left-ctrl using sharpkeys 
+
 * Install Windows Defender
 
 * Disable the WinSAT task which is used to figure out your Windows performance score. It eats up
@@ -58,11 +60,10 @@ processor time and is generally useless.
   * To patch, cd into `/mingw64/bin` and run `mv envsubst.exe envsubst.exe_backup`. Now run `pacman -S gettext`
     and verify that `which envsubst` reports back `/usr/bin/envsubst`.
   * Bug report is at https://github.com/Alexpux/MSYS2-packages/issues/735
-* Map caps to left-ctrl using https://sharpkeys.codeplex.com/
+* Switch to the shell `C:\msys64\msys2.exe` going forward.
 * Setup git completions for bash:
   * `curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash -o ~/.git-completion.bash`
 * In the editor options under the Looks tab, set the cursor to the block type.
-
 * Use symlink command `cmd //c 'mklink .name-of-dotfile drive:\path\to\file'`.
 * Symlink `~/.private-files` to the root directory containing `dev/`.
 * Symlink `~/.dev` to `~/.private-files/path/to/dev`.
