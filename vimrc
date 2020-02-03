@@ -441,8 +441,12 @@ map <leader>mm :split<cr>
 " Forward delete and replace a word.
 map <leader>d ciw
 
-" Map paste and nonumber.
-map <leader>p :set paste! paste?<cr>
+" Allow fast pasting by accessing the system clipboard register.
+map <leader>p "+p
+" Likely won't need to use this if pasting with <leader>p, but just in case
+" here ya go.
+map <leader>pp :set paste! paste?<cr>
+
 map <leader>o :set number! number?<cr>
 
 " Show spell checking.
