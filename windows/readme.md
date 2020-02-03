@@ -46,7 +46,13 @@ processor time and is generally useless.
 * Disable Win 7 Fault Tolerant Heap
     * I don't see why you want to spend large amounts of CPU time to hide application instability.
     * https://docs.microsoft.com/en-us/windows/desktop/Win7AppQual/fault-tolerant-heap
-      * Disable on system via regedit: set the REG_DWORD value **HKLM\\Software\\Microsoft\\FTH\\Enabled** to **0**.
+      * Disable on system via regedit: set the REG_DWORD value `HKLM\\Software\\Microsoft\\FTH\\Enabled` to `0`.
+
+## Windows 10 Stuff
+
+* Disable the Windows Customer Experience Improvement program via group policy
+  https://www.ghacks.net/2016/10/26/turn-off-the-windows-customer-experience-program/
+* Install the Windows SDK https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk
 
 ## Setting up Visual Studio
 
@@ -128,7 +134,9 @@ processor time and is generally useless.
 
 * First install Rusto. See `Setting up Rust` below.
 * Setup `ripgrep`:
-  * Open an `msvc x64` shell and run `cargo install ripgrep`.
+  * Open an `msvc x64` shell and run `cargo install ripgrep`. **Note** the last time I did this
+  I got linker errors saying that it was trying to link an x86 exe in a 64-bit env. I had to run
+  the `msvc x86` shell instead.
   * Verify it works by running `rg` in a shell.
 
 ### Setting up ctags
