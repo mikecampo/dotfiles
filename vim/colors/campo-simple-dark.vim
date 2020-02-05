@@ -22,12 +22,13 @@ let g:colors_name = "campo-simple-dark"
 
 if has("gui_running") || &t_Co == 256
     hi NonText cterm=NONE ctermfg=black ctermbg=black gui=NONE guifg=bg guibg=#0a0a0a
-    hi Normal cterm=NONE ctermfg=250 ctermbg=black gui=NONE guifg=#bcbcbc guibg=#0a0a0a
-    hi Keyword cterm=NONE ctermfg=255 ctermbg=black gui=NONE guifg=#eeeeee guibg=#0a0a0a
+    hi Normal cterm=NONE ctermfg=250 ctermbg=black gui=NONE guifg=#ffffff guibg=#0a0a0a
+    hi Keyword cterm=NONE ctermfg=255 ctermbg=black gui=NONE guifg=#ffffff guibg=#0a0a0a
     hi Constant cterm=NONE ctermfg=252 ctermbg=black gui=NONE guifg=#d0d0d0 guibg=#0a0a0a
-    hi String cterm=NONE ctermfg=245 ctermbg=black gui=NONE guifg=#8a8a8a guibg=#0a0a0a
-    hi Comment cterm=NONE ctermfg=240 ctermbg=black gui=NONE guifg=#585858 guibg=#0a0a0a
+    hi String cterm=NONE ctermfg=245 ctermbg=black gui=NONE guifg=#aaaaaa guibg=#0a0a0a
+    hi Comment cterm=NONE ctermfg=240 ctermbg=black gui=NONE guifg=#777777 guibg=#0a0a0a
     hi Number cterm=NONE ctermfg=255  ctermbg=black gui=NONE guifg=#ff0000 guibg=#0a0a0a
+    hi LineNr cterm=NONE ctermfg=255  ctermbg=black gui=NONE guifg=#454545 guibg=#0a0a0a
     hi Error cterm=NONE ctermfg=255 ctermbg=DarkGray gui=NONE guifg=#eeeeee guibg=#0a0a0a " Should match the text colors
     hi ErrorMsg cterm=bold ctermfg=255 ctermbg=DarkGray gui=NONE guifg=#ff0000 guibg=#0a0a0a
     hi Search cterm=NONE ctermfg=245 ctermbg=Gray gui=NONE guifg=#fff229 guibg=#0a0a0a
@@ -98,7 +99,6 @@ highlight! link Folded Number
 highlight! link WarningMsg Number
 highlight! link iCursor SpecialKey
 highlight! link SpellLocal SpellCap
-highlight! link LineNr Comment
 highlight! link NonText NonText
 highlight! link DiffDelete Comment
 highlight! link diffRemoved Comment
