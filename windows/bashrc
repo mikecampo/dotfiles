@@ -18,8 +18,8 @@ if [[ -d "$HOME/bin" ]]; then
     export PATH=$HOME/bin/:$PATH
 fi
 
-if [[ -d "$HOME/.private-dotfiles.common/bin" ]]; then
-    export PATH=$HOME/.private-dotfiles.common/bin:$PATH
+if [[ -d "$HOME/.dotfiles/bin" ]]; then
+    export PATH=$HOME/.dotfiles/bin/:$PATH
 fi
 
 # TMP and TEMP are defined in the Windows environment. Leaving them set to the default
