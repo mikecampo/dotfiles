@@ -5,7 +5,11 @@
 
 * Map caps to left-ctrl using sharpkeys
 
-* Install Windows Defender
+* Add custom hosts file
+    * Run notepad as administrator
+    * Open C:/Windows/System32/Drivers/etc/hosts
+    * Add contents of the hosts file from this directory
+    * Restart PC
 
 * Disable the WinSAT task which is used to figure out your Windows performance score. It eats up
 processor time and is generally useless.
