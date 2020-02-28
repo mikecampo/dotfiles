@@ -153,26 +153,50 @@ function dl_youtube_vid {
     shift 2
     local opts="$@"
     opts+=" --all-subs --embed-subs"
-    local name_format="%(upload_date)s%(title)s-youtube-%(id)s.%(ext)s"
+    local name_format=$(youtube-dl.exe --get-filename -o "%(upload_date)s-%(title)s-youtube-%(id)s.%(ext)s" $url)
+    name_format="${name_format:0:4}-${name_format:4:2}-${name_format:6}"
+
     if [[ $format == "" ]]; then
         echo "Downloading default format"
-        youtube-dl.exe -o $name_format $opts $url
+        youtube-dl.exe -o "$name_format" $opts $url
     else
-        youtube-dl.exe -f $format -o $name_format $opts $url
+        youtube-dl.exe -f $format -o "$name_format" $opts $url
     fi
 }
 function dl_youtube_playlist {
     local format="$1"
     local url="$2"
-    shift 2
+    local dir_name="$3"
+    if [[ $dir_name == "" ]]; then
+        echo "Please provide a name for the playlist directory"
+        return
+    fi
+    shift 3
     local opts="$@"
     opts+=" --all-subs --embed-subs"
-    local name_format="%(playlist_index)s - %(title)s-youtube-%(id)s.%(ext)s"
+
+    # @note If the filename contains symbols that are incompatible with
+    # Windows' directory names then add --restrict-filenames to the command.
+    if [[ $dir_name == "" ]]; then
+        return
+    fi
+    echo "Creating directory '$dir_name'"
+    mkdir "$dir_name"
+    cd "$dir_name"
+    error=$?
+    if [[ ! $error -eq 0 ]]; then
+        echo "Error: failed to create directory. Aborting."
+        return
+    fi
+
+    echo "Downloading playlist"
+    local name_format="v%(playlist_index)s--%(upload_date)s-%(title)s-youtube-%(id)s.%(ext)s"
+
     if [[ $format == "" ]]; then
         echo "Downloading default format"
-        youtube-dl.exe -o $name_format $opts $url
+        youtube-dl.exe -o "$name_format" $opts $url
     else
-        youtube-dl.exe -f $format -o $name_format $opts $url
+        youtube-dl.exe -f $format -o "$name_format" $opts $url
     fi
 }
 alias yt-download='dl_youtube_vid ""'
@@ -187,27 +211,33 @@ alias yt-download-audio='youtube-dl.exe -f "140"'
 function dl_twitch_vid {
     local format="$1"
     local url="$2"
+    shift 2
+    local opts="$@"
+
     # @note If the filename contains symbols that are incompatible with
     # Windows' directory names then add --restrict-filenames to the command.
-    local dir=$(youtube-dl.exe --get-filename -o "%(upload_date)s - %(title)s" $url)
-    if [[ $dir == "" ]]; then
+    local dir_name=$(youtube-dl.exe --get-filename -o "%(upload_date)s - %(title)s" $url)
+    if [[ $dir_name == "" ]]; then
         return
     fi
-    dir="${dir:0:4}-${dir:4:2}-${dir:6}"
-    echo "Creating directory '$dir'"
-    mkdir "$dir"
-    cd "$dir"
+
+    dir_name="${dir_name:0:4}-${dir_name:4:2}-${dir_name:6}"
+    echo "Creating directory '$dir_name'"
+    mkdir "$dir_name"
+    cd "$dir_name"
     error=$?
     if [[ ! $error -eq 0 ]]; then
-        echo "Failed to download '$url'"
+        echo "Error: failed to create directory. Aborting."
         return
     fi
+
     local name_format="%(upload_date)s-%(title)s-twitch-%(id)s"
     local video_file=$(youtube-dl.exe --get-filename -o "$name_format.%(ext)s" $url)
-    youtube-dl.exe -f "$format" -o "$video_file" $url
+    video_file="${video_file:0:4}-${video_file:4:2}-${video_file:6}"
+    youtube-dl.exe -f "$format" -o "$video_file" $opts $url
+
     error=$?
     if [[ $error -eq 0 ]]; then
-        mv "$video_file" "${video_file:0:4}-${video_file:4:2}-${video_file:6}"
         # Download Twitch chat transcript
         local chat_file=$(youtube-dl.exe --get-filename -o "$name_format" $url)
         rechat.exe -d $url "$chat_file.json"
@@ -215,25 +245,26 @@ function dl_twitch_vid {
         mv "$chat_file.txt" "${chat_file:0:4}-${chat_file:4:2}-${chat_file:6}.txt"
         tt "$chat_file.json"
     else
-        echo "Failed to download '$url'"
+        echo "Error: Failed to download '$url'"
     fi
     cd ..
 }
 function dl_twitch_chat {
     local url="$1"
+
     # @note If the filename contains symbols that are incompatible with
     # Windows' directory names then add --restrict-filenames to the command.
-    local dir=$(youtube-dl.exe --get-filename -o "%(upload_date)s - %(title)s" $url)
-    if [[ $dir == "" ]]; then
+    local dir_name=$(youtube-dl.exe --get-filename -o "%(upload_date)s - %(title)s" $url)
+    if [[ $dir_name == "" ]]; then
         return
     fi
-    dir="${dir:0:4}-${dir:4:2}-${dir:6}"
-    echo "Creating directory '$dir'"
-    mkdir "$dir"
-    cd "$dir"
+    dir_name="${dir_name:0:4}-${dir_name:4:2}-${dir_name:6}"
+    echo "Creating directory '$dir_name'"
+    mkdir "$dir_name"
+    cd "$dir_name"
     error=$?
     if [[ ! $error -eq 0 ]]; then
-        echo "Failed to download chat for '$url'"
+        echo "Error: failed to create directory. Aborting."
         return
     fi
     # Download Twitch chat transcript

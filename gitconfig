@@ -45,3 +45,5 @@
   enabled = true
 [gc]
   auto = 0
+[advice]
+  detachedHead = false
