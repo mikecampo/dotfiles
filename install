@@ -1,14 +1,16 @@
 #!/bin/bash
 
-source "script_helpers/all.sh"
+source "$HOME/.dotfiles/script_helpers/all.sh"
 
 set -e
 
 cwd=$PWD
 platform=`uname`
 
+echo platform: $platform
+
 os_is_windows is_windows
-if [[ $is_windows -eq 0 ]]; then
+if [[ $is_windows -eq 1 ]]; then
   error "This is only supported on Linux or MacOS.\n"
   exit 1
 fi
@@ -43,6 +45,9 @@ setup_git() {
 
 setup_zsh() {
   printf "Setting up zsh...\n"
+
+  sudo apt install zsh
+
   TEST_CURRENT_SHELL=$(expr "$SHELL" : '.*/\(.*\)')
   if [ "$TEST_CURRENT_SHELL" != "zsh" ]; then
     if hash chsh >/dev/null 2>&1; then
@@ -85,7 +90,6 @@ setup_misc() {
 
   FILES=()
   FILES+=('curlrc')
-  FILES+=('racketrc')
 
   for file in "${FILES[@]}"
   do

@@ -226,7 +226,8 @@ if IsWindows()
   " Just assume we don't have a zsh shell
   set shell=bash
 else
-  set shell=zsh
+  "set shell=zsh
+  set shell=bash
 endif
 
 set t_ti= t_te=                   " Prevent Vim from clobbering the scrollback buffer. See http://www.shallowsky.com/linux/noaltscreen.html

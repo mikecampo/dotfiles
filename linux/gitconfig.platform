@@ -1,2 +1,4 @@
 [code]
   editor = vim
+[core]
+    autocrlf = true

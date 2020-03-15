@@ -95,6 +95,10 @@ processor time and is generally useless.
 * Setup git completions for bash:
   * `curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash -o ~/.git-completion.bash`
 
+### 32-bit dev tools
+* Load a 32-bit shell
+* Install toolchain: `pacman -S mingw-w64-i686-toolchain`
+
 ## Setting up dev tools
 
 * Download the Windows 2003 Resource Kit in order to get tools like `list.exe` (command line hex

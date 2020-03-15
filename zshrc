@@ -40,9 +40,9 @@ prompt grb
 # Linux specific config
 if [[ $platform == 'Linux' ]]; then
   # Set caps to ctrl
-  setxkbmap -option 'caps:ctrl_modifier'
+  #setxkbmap -option 'caps:ctrl_modifier'
   # Make caps act as Esc when tapped. Require `xcape` package.
-  xcape -e 'Caps_Lock=Escape'
+  #xcape -e 'Caps_Lock=Escape'
 fi
 
 # Autoload things before calling compinit

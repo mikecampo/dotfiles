@@ -1,3 +1,8 @@
+#
+# Note: this may contain windows line ended. If you're going to use it in Linux then you'll need
+# to remove those with: sed -i 's/\r//' <file>
+#
+
 # Handle the fact that this file will be used with multiple OSs
 platform=`uname`
 if [[ $platform == 'Linux' ]]; then
@@ -121,7 +126,8 @@ alias rcc='rclone copy'
 
 function reload {
   if [[ $platform == 'Linux' || $platform == 'Darwin' ]]; then
-    source ~/.zshrc
+    #source ~/.zshrc
+    test -f ~/.aliases && . ~/.aliases
   else
     test -f ~/.aliases && . ~/.aliases
   fi
@@ -347,6 +353,7 @@ alias gfix="git commit --amend -C HEAD"
 alias gfixx="git commit --amend -C HEAD ; gp -f"
 alias gfixs="git commit -S -a --amend -C HEAD" # signed
 alias gfo='git fetch origin'
+alias gfu='git fetch up'
 alias gfm='git fetch origin master'
 alias gfup='git fetch upstream'
 alias ggrep='git log --all --oneline | grep '

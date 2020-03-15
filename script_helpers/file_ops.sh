@@ -186,8 +186,8 @@ link_file() {
     ! test -d "$source_path" && ! test -e "$source_path" && error "Source path '$source_path' doesn't exist!" && abort
 
     # Verify that the dest path doesn't already exist.
-    test -d "$dest_path" && error "Dest folder '$dest_path' already exists!" && abort
-    test -e "$dest_path" && error "Dest file '$dest_path' already exists!" && abort
+    test -d "$dest_path" && error "Dest folder '$dest_path' already exists!\n" && return
+    test -e "$dest_path" && error "Dest file '$dest_path' already exists!\n" && return
 
     if [[ $is_windows -eq 1 ]]; then
         source_path=$(unix_to_windows_path "$source_path")
