@@ -63,31 +63,50 @@ alias cd.....='cd ../../../..'
 alias aliases='vim ~/.dotfiles/aliases'
 alias al='aliases'
 
-
-r() {
-  if [ -f run ]; then ./run $@ ; else test -f run.sh && ./run.sh $@ ; fi
-}
-
+# Dev build
 b() {
   if [ -f build ]; then ./build $@ ; else test -f build.sh && ./build.sh $@ ; fi
 }
 
+# fast dev build
+bl() {
+  if [ -f build ]; then ./build $@ -fast ; else test -f build.sh && ./build.sh $@ -fast ; fi
+}
+
+# Optimized dev build
 bb() {
   if [ -f build ]; then ./build -o 1 $@ ; else test -f build.sh && ./build.sh -o 1 $@ ; fi
 }
 
+# Production build
 bp() {
   if [ -f build ]; then ./build -p p $@ ; else test -f build.sh && ./build.sh -p p $@ ; fi
 }
 
+# Profiling build
+bf() {
+  if [ -f build ]; then ./build -p pf $@ ; else test -f build.sh && ./build.sh -p pf $@ ; fi
+}
+
+# GPU profiling build
+bg() {
+  if [ -f build ]; then ./build -p gpu $@ ; else test -f build.sh && ./build.sh -p gpu $@ ; fi
+}
+
+# Run build
+r() {
+  if [ -f run ]; then ./run $@ ; else test -f run.sh && ./run.sh $@ ; fi
+}
+
+# Build then run
 br() {
   b $@ ; r
 }
 
 alias bd='if [ -f build ]; then ./build -data 1 ; else test -f build.sh && ./build.sh -data 1 ; fi'
 alias bbd='if [ -f build ]; then ./build -o 1 -data 1 ; else test -f build.sh && ./build.sh -o 1 -data 1 ; fi'
-alias bl='brew link --overwrite'
-alias bld='brew link --overwrite --dry-run'
+#alias bl='brew link --overwrite'
+#lias bld='brew link --overwrite --dry-run'
 alias bower='noglob bower'
 alias cr='RUSTFLAGS="$RUSTFLAGS -A unused_variables -A dead_code -A unused_parens" cargo run'
 alias crr='cargo run --release'
@@ -133,8 +152,9 @@ function reload {
   fi
 }
 
-alias rl='reload'
 alias restart='sudo shutdown now -r'
+alias rl='reload'
+alias rmr='rm -r'
 alias s='cd ~/.ssh'
 alias sc='vim ~/.ssh/config'
 alias stream='streamlink --player mpv'
@@ -152,6 +172,33 @@ alias vu='vagrant up'
 alias vimrc='vim ~/.vimrc'
 alias weather='curl wttr.in/toronto'
 
+function make_vid_dir_and_cd_into {
+    local url="$1"
+    local dir_name="$2"
+
+    if [[ $dir_name == "" ]]; then
+        # @note If the filename contains symbols that are incompatible with
+        # Windows' directory names then add --restrict-filenames to the command.
+        dir_name=$(youtube-dl.exe --get-filename -o "%(upload_date)s - %(title)s" $url)
+        if [[ $dir_name == "" ]]; then
+            return 1
+        fi
+        dir_name="${dir_name:0:4}-${dir_name:4:2}-${dir_name:6}"
+    fi
+
+    echo "Creating directory '$dir_name'"
+    mkdir "$dir_name"
+    cd "$dir_name"
+
+    error=$?
+    if [[ ! $error -eq 0 ]]; then
+        echo "Error: failed to create directory. Aborting."
+        return 1
+    fi
+
+    return 0
+}
+
 # Download YouTube videos
 function dl_youtube_vid {
     local format="$1"
@@ -159,6 +206,12 @@ function dl_youtube_vid {
     shift 2
     local opts="$@"
     opts+=" --all-subs --embed-subs"
+
+    make_vid_dir_and_cd_into $url
+    if [[ $? -ne 0 ]]; then
+        return
+    fi
+
     local name_format=$(youtube-dl.exe --get-filename -o "%(upload_date)s-%(title)s-youtube-%(id)s.%(ext)s" $url)
     name_format="${name_format:0:4}-${name_format:4:2}-${name_format:6}"
 
@@ -168,6 +221,8 @@ function dl_youtube_vid {
     else
         youtube-dl.exe -f $format -o "$name_format" $opts $url
     fi
+
+    cd ..
 }
 function dl_youtube_playlist {
     local format="$1"
@@ -181,17 +236,8 @@ function dl_youtube_playlist {
     local opts="$@"
     opts+=" --all-subs --embed-subs"
 
-    # @note If the filename contains symbols that are incompatible with
-    # Windows' directory names then add --restrict-filenames to the command.
-    if [[ $dir_name == "" ]]; then
-        return
-    fi
-    echo "Creating directory '$dir_name'"
-    mkdir "$dir_name"
-    cd "$dir_name"
-    error=$?
-    if [[ ! $error -eq 0 ]]; then
-        echo "Error: failed to create directory. Aborting."
+    make_vid_dir_and_cd_into $url $dir_name
+    if [[ $? -ne 0 ]]; then
         return
     fi
 
@@ -220,20 +266,8 @@ function dl_twitch_vid {
     shift 2
     local opts="$@"
 
-    # @note If the filename contains symbols that are incompatible with
-    # Windows' directory names then add --restrict-filenames to the command.
-    local dir_name=$(youtube-dl.exe --get-filename -o "%(upload_date)s - %(title)s" $url)
-    if [[ $dir_name == "" ]]; then
-        return
-    fi
-
-    dir_name="${dir_name:0:4}-${dir_name:4:2}-${dir_name:6}"
-    echo "Creating directory '$dir_name'"
-    mkdir "$dir_name"
-    cd "$dir_name"
-    error=$?
-    if [[ ! $error -eq 0 ]]; then
-        echo "Error: failed to create directory. Aborting."
+    make_vid_dir_and_cd_into $url
+    if [[ $? -ne 0 ]]; then
         return
     fi
 
@@ -258,21 +292,11 @@ function dl_twitch_vid {
 function dl_twitch_chat {
     local url="$1"
 
-    # @note If the filename contains symbols that are incompatible with
-    # Windows' directory names then add --restrict-filenames to the command.
-    local dir_name=$(youtube-dl.exe --get-filename -o "%(upload_date)s - %(title)s" $url)
-    if [[ $dir_name == "" ]]; then
+    make_vid_dir_and_cd_into $url
+    if [[ $? -ne 0 ]]; then
         return
     fi
-    dir_name="${dir_name:0:4}-${dir_name:4:2}-${dir_name:6}"
-    echo "Creating directory '$dir_name'"
-    mkdir "$dir_name"
-    cd "$dir_name"
-    error=$?
-    if [[ ! $error -eq 0 ]]; then
-        echo "Error: failed to create directory. Aborting."
-        return
-    fi
+
     # Download Twitch chat transcript
     local name_format="%(upload_date)s-%(title)s-twitch-%(id)s"
     local chat_file=$(youtube-dl.exe --get-filename -o "$name_format" $url)
@@ -285,9 +309,10 @@ function dl_twitch_chat {
 alias tw-download-chat='dl_twitch_chat'
 alias tw-dl='youtube-dl.exe -f "1080" -o "%(upload_date)s-%(title)s-twitch-%(id)s.%(ext)s"'
 alias tw-dl2='youtube-dl.exe -o "%(upload_date)s-%(title)s-twitch-%(id)s.%(ext)s"'
+alias tw-download-custom='dl_twitch_vid '
 alias tw-download='dl_twitch_vid "1080p"'
 alias tw-download-60='dl_twitch_vid "1080p60"'
-alias tw-download-720='dl_twitch_vid "720p"'
+alias tw-download-720='dl_twitch_vid "720p-1"'
 alias tw-download-720-60='dl_twitch_vid "720p60"'
 alias tw-download-4k='dl_twitch_vid "2160p"'
 
