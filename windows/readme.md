@@ -5,6 +5,13 @@
 
 * Map caps to left-ctrl using sharpkeys
 
+* Run photo_viewer.reg from this folder to restore access to the Windows Photo Viewer app.
+  The default Win10 photos app is fucking awful.
+    * You'll need to change the default app for the various image extensions. Don't change gif types
+      though because photo viewer doesn't support animations.
+    * Now run disable-are-you-sure-you-want-to-open-with-the-default-program-dialog.reg to stop it
+      from occasionally asking if you still want to use photo viewer.
+
 * Add custom hosts file
     * Run notepad as administrator
     * Open C:/Windows/System32/Drivers/etc/hosts
@@ -60,10 +67,12 @@ processor time and is generally useless.
 
 ## Setting up Visual Studio
 
-* Use the backed up VS2015 ISO or download it from https://go.microsoft.com/fwlink/?LinkId=615448&clcid=0x409
-* Pick a custom install directory, e.g. `/x/programs/Visual Studio 15`
-* Select a custom install and check off the C++ language support.
-* Once installed, open Visual Studio and go to `Tools` -> `Options`. Open `Debugging` -> `Symbols` and add the path to the cached symbols directory that you set up above under `Setup a symbol server`.
+* Use an install path with no spaces in it `/x/programs/vs15`
+* Select custom install and check off the C++ language support.
+* Once installed, open Visual Studio and go to `Tools` -> `Options`. Open `Debugging` -> `Symbols`
+  and add the path to the cached symbols directory that you set up above under `Setup a symbol server`.
+* Open the `Visual Studio Layout` folder in this directory and copy the file to `%LOCALAPPDATA%/Microsoft/VisualStudio/{VisualStudioInstanceID}`.
+  You can now apply the custom layout in VS: `Window -> Apply Window Layout -> Campo`
 
 ## Setup up Unix-like Shell
 * Install [MSYS2 w/ MinGW-w64](http://www.msys2.org/) to `C:\msys64`
@@ -82,16 +91,26 @@ processor time and is generally useless.
     ```batch
     REM saved as shell-64.bat
     @echo off
-    call "drive:\path\to\visual studio 15\VC\vcvarsall.bat" x64
-    REM or you can do:
-    REM call "drive:\path\to\visual studio 17\VC\Auxiliary\Build\vcvarsall.bat" x64
+
+    REM For VS2015:
+    call "drive:\path-to-vs2015\VC\vcvarsall.bat" x64
+
+    REM For VS2017:
+    REM call "drive:\path-to-vs2017\VC\Auxiliary\Build\vcvarsall.bat" x64
+
+    REM For VS2019:
+    REM call "drive:\path-to-vs2019\VC\Auxiliary\Build\vcvarsall.bat" x64
+
+    REM Disable CRT heap debug stuff. See https://preshing.com/20110717/the-windows-heap-is-slow-when-launched-from-the-debugger/
     set _NO_DEBUG_HEAP=1
+
     call C:\msys64\msys2_shell.cmd -mingw64 -use-full-path
     exit
     ```
+    * This will launch a 64-bit env. If you need 32-bit then replace x64 above with x86.
     * Now you can make a system32 cmd line shortcut that will be used to launch the batch file. e.g.
-      * `target:` `%windir%\System32\cmd.exe /k drive:\path\to\shell-64.bat`
-      * `start in:` `drive:\some\path`
+      * `target:` `%windir%\System32\cmd.exe /k drive:\path-to-bat-file\shell-64.bat`
+      * `start in:` `drive:\some-path`
 * Setup git completions for bash:
   * `curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash -o ~/.git-completion.bash`
 
@@ -182,7 +201,10 @@ processor time and is generally useless.
 ## Setting up Wacom tablet
 
 * Install the shitty Wacom driver.
-* Preemptively deal with future issues by following this guide: [Fixing All Issues with Your Wacom Tablet and Photoshop](https://www.youtube.com/watch?v=sGi47EWEkuY)
+* Preemptively deal with future issues in Photoshop by saving the `PSUserConfig.txt` file
+  in this directory to `%APPDATA%\Adobe\Adobe Photoshop XX\Adobe Photoshop XX Settings` (should take you to AppData/Roaming)
+* In Wacom tablet settings disable anything having to do with Windows Ink.
+* These steps are from [FlippedNormals - Fixing All Issues with Your Wacom Tablet and Photoshop](https://www.youtube.com/watch?v=sGi47EWEkuY)
 
 ## Software
 
