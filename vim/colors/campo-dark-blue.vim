@@ -19,7 +19,7 @@ if has('termguicolors')
   let s:green = "88b888"
   let s:red = "ef2929"
 
-  let s:text = "e9e9e9"
+  let s:text = "f1f1f1"
 
   let s:foreground = s:text
   let s:background = "08363c"

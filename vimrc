@@ -961,7 +961,13 @@ nnoremap <expr> p (&buftype is# "quickfix" ? "<CR>\|:copen<CR>" : "p")
 function! GlobalReplaceIt(confirm_replacement)
   if exists(':Ggrep')
     call inputsave()
-    let l:term = input('Enter search term: ')
+
+    if a:confirm_replacement
+        let l:term = input('Enter search term (w/ confirmation): ')
+    else
+        let l:term = input('Enter search term (no confirmation): ')
+    endif
+
     call inputrestore()
     if empty(l:term)
       return
@@ -986,8 +992,8 @@ function! GlobalReplaceIt(confirm_replacement)
     echo "Unable to search since you're not in a git repo"
   endif
 endfunction
-map <leader>gg :call GlobalReplaceIt(0)<cr>
-map <leader>gr :call GlobalReplaceIt(1)<cr>
+map <leader>r :call GlobalReplaceIt(0)<cr>
+map <leader>rr :call GlobalReplaceIt(1)<cr>
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
