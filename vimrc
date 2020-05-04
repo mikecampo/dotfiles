@@ -870,12 +870,12 @@ function! StopRunTask()
 endfunction
 
 function! ExecuteRunScript()
-  exec "AsyncRun! -post=call\\ StopRunTask() ./run"
+  exec "AsyncRun! -post=call\\ StopRunTask() ./run %"
 endfunction
 
 function! SilentBuild()
   AsyncStop
-  exec "AsyncRun! -save=2 -post=call\\ HideAsyncResults() ./build*"
+  exec "AsyncRun! -save=2 -post=call\\ HideAsyncResults() ./build* %"
 endfunction
 
 " Show results window the moment the async job starts
@@ -891,7 +891,7 @@ nnoremap <leader>bc :call ToggleBuildResults()<cr>
 noremap <F10> :call HideBuildResultsAndClearErrors()<cr>
 
 " Execute build script
-nnoremap <leader>b :AsyncRun! -save=2 ./build*<cr>
+nnoremap <leader>b :AsyncRun! -save=2 ./build* %<cr>
 nnoremap <F8> :call SilentBuild()<cr>
 
 " Execute run script
