@@ -39,7 +39,41 @@
   # opposed to %cr which is the commiter's timestamp. I prefer the former
   # because I sometimes edit an earlier commit message while rebasing and I
   # want to continue to see the original date.
-  lg = log --graph --pretty=format:'%Cred%h%Creset %C(yellow)%an [%cn]%d%Creset %s %Cgreen(%ad|%cr)%Creset' --date=relative
+  #
+  # @note If you want a grey that's slightly darker than %C(white dim) then
+  # try %C(black bold).
+  #
+
+  # Style 1
+  #lg = log --graph --pretty=format:'%C(yellow bold)%h %Creset%C(white dim)[%Creset%an%Creset%C(white dim)]%Creset%C(yellow bold)%d %Creset%C(white bold)%s %C(white dim)<%ad|%cr>%Creset' --date=relative
+
+  # Style 2
+  # lg = log --graph --pretty=format:'%C(yellow bold)%h [%Creset%an%Creset%C(yellow bold)]%d %Creset%C(white bold)%s %C(white dim)<%ad|%cr>%Creset' --date=relative
+
+  # Style 3
+  #lg = log --graph --pretty=format:'%C(yellow bold)%h %Creset<%an> %C(yellow bold)%d %Creset%C(white bold)%s %C(white dim)<%ad|%cr>%Creset' --date=relative
+
+  # Style 4
+  # lg = log --graph --pretty=format:'%C(yellow bold)%h %Creset[%an] %C(yellow bold)|%d %Creset%C(white bold)%s %C(white dim)<%ad|%cr>%Creset' --date=relative
+
+  # Style 5
+  # lg = log --graph --pretty=format:'%C(yellow bold)%h|%Creset%an%Creset%C(yellow bold)|%d %Creset%C(white bold)%s %C(white dim)<%ad|%cr>%Creset' --date=relative
+
+  # Style 6
+  #lg = log --graph --pretty=format:'%C(yellow bold)%h|%Creset%C(yellow dim)%an%Creset%C(yellow bold)|%d %Creset%C(white bold)%s %C(white dim)<%ad|%cr>%Creset' --date=relative
+
+  # Style 7
+  #lg = log --graph --pretty=format:'%C(yellow bold)%h %Creset%C(yellow dim)%an %Creset%C(yellow bold)|%d %Creset%C(white bold)%s %C(white dim)[%ad|%cr]%Creset' --date=relative
+
+  # Style 8
+  #lg = log --graph --pretty=format:'%C(yellow bold)%h%Creset%C(white dim)|%Creset%an%Creset%C(white dim) >%Creset%C(yellow bold)%d %Creset%C(white bold)%s %C(white dim)<%ad|%cr>%Creset' --date=relative
+
+  # Style 9
+  lg = log --graph --pretty=format:'%C(yellow bold)%h%C(black bold)|%C(white dim)%an%Creset%C(yellow bold) >%d %Creset%C(white bold)%s %C(black bold)<%ad|%cr>%Creset' --date=relative
+
+  # Style 10
+  #lg = log --graph --pretty=format:'%C(yellow bold)%h %Creset%C(yellow dim)%an%Creset%C(yellow bold) >%d %Creset%C(white bold)%s %C(white dim)<%ad|%cr>%Creset' --date=relative
+
   start = !git init && git commit --allow-empty -m \"Initial commit\"
 [rerere]
   enabled = true
