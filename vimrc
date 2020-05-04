@@ -326,7 +326,7 @@ augroup campoCmds
     " The ampersand at the end is to make this run in the background. I had to
     " group the commands in parens to make the chained commands run in the
     " background.
-    let l:ctags_cmd = "!(ctags --c-types=+l --c++-types=+l --exclude=*.md --exclude=*.txt --exclude=*.config --exclude=*.css --exclude=*.html --exclude=*.htm --exclude=*.json " . g:campo_custom_ctags_args . " -R -o newtags; mv newtags tags) &"
+    let l:ctags_cmd = "!(ctags --c-types=+l --c++-types=+l --exclude=*.md --exclude=*.txt --exclude=*.config --exclude=*.css --exclude=*.html --exclude=*.htm --exclude=*.json --exclude=node_modules --exclude=.git --exclude=.cache " . g:campo_custom_ctags_args . " -R -o newtags; mv newtags tags) &"
     exec l:ctags_cmd | redraw!
   endfun
   " Generate ctags on save.
