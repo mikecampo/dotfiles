@@ -24,5 +24,5 @@ fi
 
 if [[ $3 ]]; then expand_symlinks=$3; else expand_symlinks=0; fi
 
-confirm_link=1
+confirm_link=0
 link_file "$source_path" "$dest_path" $confirm_link $expand_symlinks

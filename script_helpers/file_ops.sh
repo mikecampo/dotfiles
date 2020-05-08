@@ -145,19 +145,15 @@ link_file() {
     os_is_windows is_windows
     os_is_unix is_unix
 
-    # @INSTEAD ESCAPE THE SPACES IN THE FINAL WINDOWS PATH
-    # @INSTEAD ESCAPE THE SPACES IN THE FINAL WINDOWS PATH
-    # @INSTEAD ESCAPE THE SPACES IN THE FINAL WINDOWS PATH
-    # @INSTEAD ESCAPE THE SPACES IN THE FINAL WINDOWS PATH
-    # @INSTEAD ESCAPE THE SPACES IN THE FINAL WINDOWS PATH
-    # @INSTEAD ESCAPE THE SPACES IN THE FINAL WINDOWS PATH
-    #https://stackoverflow.com/questions/1473981/how-to-check-if-a-string-has-spaces-in-bash-shell
-    #https://stackoverflow.com/questions/28256178/how-can-i-match-spaces-with-a-regexp-in-bash
+    # @INSTEAD ESCAPE THE SPACES IN THE FINAL WINDOWS PATH:
+    # e.g. path="${path// /\\ }" # Add a backslash before spaces.
+    # https://stackoverflow.com/questions/1473981/how-to-check-if-a-string-has-spaces-in-bash-shell
+    # https://stackoverflow.com/questions/28256178/how-can-i-match-spaces-with-a-regexp-in-bash
 
     source_has_space=$(path_has_a_space "$source_path")
     dest_has_space=$(path_has_a_space "$dest_path")
 
-    debug=1
+    debug=0
     if [[ $debug -eq 1 ]]; then
         echo source path: $source_path
         echo dest path: $dest_path
