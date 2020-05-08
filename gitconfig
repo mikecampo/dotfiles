@@ -48,28 +48,28 @@
   #lg = log --graph --pretty=format:'%C(yellow bold)%h %Creset%C(white dim)[%Creset%an%Creset%C(white dim)]%Creset%C(yellow bold)%d %Creset%C(white bold)%s %C(white dim)<%ad|%cr>%Creset' --date=relative
 
   # Style 2
-  # lg = log --graph --pretty=format:'%C(yellow bold)%h [%Creset%an%Creset%C(yellow bold)]%d %Creset%C(white bold)%s %C(white dim)<%ad|%cr>%Creset' --date=relative
+  #lg = log --graph --pretty=format:'%C(yellow bold)%h [%Creset%an%Creset%C(yellow bold)]%d %Creset%C(white bold)%s %C(white dim)<%ad|%cr>%Creset' --date=relative
 
   # Style 3
   #lg = log --graph --pretty=format:'%C(yellow bold)%h %Creset<%an> %C(yellow bold)%d %Creset%C(white bold)%s %C(white dim)<%ad|%cr>%Creset' --date=relative
 
   # Style 4
-  # lg = log --graph --pretty=format:'%C(yellow bold)%h %Creset[%an] %C(yellow bold)|%d %Creset%C(white bold)%s %C(white dim)<%ad|%cr>%Creset' --date=relative
+  #lg = log --graph --pretty=format:'%C(yellow bold)%h %Creset[%an] %C(yellow bold)|%d %Creset%C(white bold)%s %C(white dim)<%ad|%cr>%Creset' --date=relative
 
   # Style 5
-  # lg = log --graph --pretty=format:'%C(yellow bold)%h|%Creset%an%Creset%C(yellow bold)|%d %Creset%C(white bold)%s %C(white dim)<%ad|%cr>%Creset' --date=relative
+  #lg = log --graph --pretty=format:'%C(yellow bold)%h|%Creset%an%Creset%C(yellow bold)|%d %Creset%C(white bold)%s %C(white dim)<%ad|%cr>%Creset' --date=relative
 
   # Style 6
   #lg = log --graph --pretty=format:'%C(yellow bold)%h|%Creset%C(yellow dim)%an%Creset%C(yellow bold)|%d %Creset%C(white bold)%s %C(white dim)<%ad|%cr>%Creset' --date=relative
 
   # Style 7
-  #lg = log --graph --pretty=format:'%C(yellow bold)%h %Creset%C(yellow dim)%an %Creset%C(yellow bold)|%d %Creset%C(white bold)%s %C(white dim)[%ad|%cr]%Creset' --date=relative
+  lg = log --graph --pretty=format:'%C(yellow bold)%h %Creset%C(yellow dim)%an %Creset%C(yellow bold)| %Creset%C(white bold)%s %C(white dim)[%ad|%cr] %Creset%C(yellow bold)%d %C(cyan bold)%<(8,trunc)%GK%Creset' --date=relative
 
   # Style 8
   #lg = log --graph --pretty=format:'%C(yellow bold)%h%Creset%C(white dim)|%Creset%an%Creset%C(white dim) >%Creset%C(yellow bold)%d %Creset%C(white bold)%s %C(white dim)<%ad|%cr>%Creset' --date=relative
 
   # Style 9
-  lg = log --graph --pretty=format:'%C(yellow bold)%h%C(black bold)|%C(white dim)%an%Creset%C(yellow bold) >%d %Creset%C(white bold)%s %C(black bold)<%ad|%cr>%Creset' --date=relative
+  #lg = log --graph --pretty=format:'%C(yellow bold)%h%C(black bold)|%C(white dim)%an%Creset%C(yellow bold) >%d %Creset%C(white bold)%s %C(black bold)<%ad|%cr>%Creset' --date=relative
 
   # Style 10
   #lg = log --graph --pretty=format:'%C(yellow bold)%h %Creset%C(yellow dim)%an%Creset%C(yellow bold) >%d %Creset%C(white bold)%s %C(white dim)<%ad|%cr>%Creset' --date=relative
