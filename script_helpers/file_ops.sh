@@ -213,3 +213,23 @@ link_file() {
     eval $link_cmd
 }
 
+function setup_file() {
+    src=$1
+    dest=$2
+    if [ ! -f $dest ]; then
+        link_file $src $dest $confirm_link
+    else
+        printf "${BOLD}*${NORMAL} ${YELLOW}'$dest'${NORMAL} already linked to ${YELLOW}'$src'${NORMAL}\n"
+    fi
+}
+
+function setup_dir() {
+    src=$1
+    dest=$2
+    if [ ! -d $dest ]; then
+        link_file $src $dest $confirm_link
+    else
+        printf "${BOLD}*${NORMAL} ${YELLOW}'$dest'${NORMAL} already linked to ${YELLOW}'$src'${NORMAL}\n"
+    fi
+}
+

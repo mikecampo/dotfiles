@@ -1,47 +1,29 @@
 #!/bin/bash
 
-source "$HOME/.dotfiles/script_helpers/all.sh"
-
-set -e
+source "script_helpers/printing.sh"
+source "script_helpers/core.sh"
+source "script_helpers/platform.sh"
+source "script_helpers/file_ops.sh"
 
 cwd=$PWD
 platform=`uname`
-
-echo platform: $platform
-
+confirm_link=0
 os_is_windows is_windows
+
 if [[ $is_windows -eq 1 ]]; then
-  error "This is only supported on Linux or MacOS.\n"
-  exit 1
+    # Check for admin permissions.
+    net session &>/dev/null
+    admin_error=$?
+    if [[ ! $admin_error -eq 0 ]]; then
+        fatal "You need to run this in an admin shell!"
+    fi
 fi
 
-setup_dotfile_repo() {
-  if [ ! -d "$HOME/.dotfiles" ]; then
-    printf "${YELLOW}Creating dotfiles symlink${NORMAL}\n"
-    ln -s $cwd $HOME/.dotfiles
-  fi
+set -e
 
-  # Used by various things (e.g. vim history)
-  mkdir -p $HOME/tmp
-}
-
-link() {
-  file=$1
-  link_file "$HOME/.dotfiles/$file" "$HOME/.$file" 0
-}
-
-setup_git() {
-  printf "Setting up git...\n"
-
-  FILES=()
-  FILES+=('gitconfig')
-  FILES+=('githelpers')
-
-  for file in "${FILES[@]}"
-  do
-    link "$file"
-  done
-}
+####################################################################################################
+# Helpers
+####################################################################################################
 
 setup_zsh() {
   printf "Setting up zsh...\n"
@@ -68,52 +50,59 @@ setup_zsh() {
 
   for file in "${FILES[@]}"
   do
-    link "$file"
+    setup_file "$file"
   done
 }
 
-setup_vim() {
-  printf "Setting up vim...\n"
+####################################################################################################
+# Setup
+####################################################################################################
 
-  FILES=()
-  FILES+=('vim')
-  FILES+=('vimrc')
+pushd "$HOME" &>/dev/null
 
-  for file in "${FILES[@]}"
-  do
-    link "$file"
-  done
-}
+#########################
+# Setup root dirs
+#########################
+setup_dir $cwd .dotfiles
+setup_dir .dotfiles/vim .vim
 
-setup_misc() {
-  printf "Setting up misc...\n"
+#########################
+# Setup root files
+#########################
+FILES=()
+FILES+=('aliases')
+FILES+=('functions')
+FILES+=('gitconfig')
+FILES+=('githelpers')
+FILES+=('vimrc')
+FILES+=('curlrc')
 
-  FILES=()
-  FILES+=('curlrc')
+for file in "${FILES[@]}"
+do
+    setup_file .dotfiles/$file .$file
+done
 
-  for file in "${FILES[@]}"
-  do
-    link "$file"
-  done
-}
+#########################
+# Setup non-root files
+#########################
+if [[ $is_windows -eq 1 ]]; then
+    setup_file .dotfiles/bash/bashrc .bashrc
+    setup_file .dotfiles/bash/bash_profile .bash_profile
+    setup_file .dotfiles/bash/inputrc .inputrc
+    setup_file .dotfiles/windows/gitconfig.platform .gitconfig.platform
+fi
 
-# ////////////////////////////////////////////////////////////////////////////////////////
-# OSX
+curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash -o .git-completion.bash
 
-setup_osx() {
-  ./osx/install.sh
-}
-
-# ////////////////////////////////////////////////////////////////////////////////////////
-# Run
-
-setup_dotfile_repo
-setup_git
-setup_zsh
-setup_vim
-setup_misc
+if [[ $is_windows -eq 0 ]]; then
+    setup_zsh
+fi
 
 if [[ $platform == 'Darwin' ]]; then
-  printf "\n${BOLD}Running the OS X installer${NORMAL}\n"
-  setup_osx
+    printf "\n${BOLD}Running the OS X installer${NORMAL}\n"
+    ./osx/install.sh
 fi
+
+popd "$HOME" &>/dev/null
+
+printf "${BOLD}${GREEN}Done!${NORMAL}\n"

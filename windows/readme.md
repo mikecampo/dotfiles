@@ -111,7 +111,7 @@ processor time and is generally useless.
     * Now you can make a system32 cmd line shortcut that will be used to launch the batch file. e.g.
       * `target:` `%windir%\System32\cmd.exe /k drive:\path-to-bat-file\shell-64.bat`
       * `start in:` `drive:\some-path`
-* Setup git completions for bash:
+* Setup git completions for bash (note: shouldn't have to do this if you ran the install script):
   * `curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash -o ~/.git-completion.bash`
 
 ### 32-bit dev tools

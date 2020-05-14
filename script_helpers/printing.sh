@@ -23,6 +23,12 @@ error() {
   printf "${BOLD}${RED}$1${NORMAL}"
 }
 
+fatal() {
+    msg=$1
+    printf "${RED}${msg}${NORMAL}\n"
+    exit 1
+}
+
 log() {
   msg="$1"
   value="$2"
