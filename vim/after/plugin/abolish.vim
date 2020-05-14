@@ -12,3 +12,4 @@ Abolish constnat constant
 Abolish darw draw
 Abolish transfered transferred
 Abolish transfering transferring
+Abolish haev have
