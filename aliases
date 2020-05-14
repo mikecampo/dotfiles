@@ -1,10 +1,237 @@
 #
-# Note: this may contain windows line ended. If you're going to use it in Linux then you'll need
-# to remove those with: sed -i 's/\r//' <file>
+# Note: this may contain Windows line endings. If you're going to use it in Linux then you'll need
+# to remove those with: `sed -i 's/\r//' <file>` or with `dos2unix`.
 #
 
-# Handle the fact that this file will be used with multiple OSs
 platform=`uname`
+
+####################################################################################################
+# Helper Functions
+####################################################################################################
+
+function reload {
+    if [[ $platform == 'Linux' || $platform == 'Darwin' ]]; then
+        #source ~/.zshrc
+        test -f ~/.aliases && . ~/.aliases
+    else
+        test -f ~/.aliases && . ~/.aliases
+    fi
+}
+
+# See top 10 bash commands
+function hist {
+    if [[ "${platform,,}" == *'ming'* ]]; then
+        hist_file=~/.bash_history
+    else
+        hist_file=~/.history
+    fi
+    cat $hist_file|cut -d ';' -f 2- 2>/dev/null| awk '{a[$1]++ } END{for(i in a){print a[i] " " i}}'|sort -rn|head
+}
+
+function remove_windows_file {
+    if [ -f "$1" ]; then
+        recycle-bin.exe "$1"
+    elif [ -d "$1" ]; then
+        recycle-bin.exe "$1"
+    else
+        echo "'$1' does not exist!"
+    fi
+}
+
+function make_vid_dir_and_cd_into {
+    local url="$1"
+    local dir_name="$2"
+
+    if [[ $dir_name == "" ]]; then
+        # @note If the filename contains symbols that are incompatible with
+        # Windows' directory names then add --restrict-filenames to the command.
+        dir_name=$(youtube-dl.exe --get-filename -o "%(upload_date)s - %(title)s" $url)
+        if [[ $dir_name == "" ]]; then
+            return 1
+        fi
+        dir_name="${dir_name:0:4}-${dir_name:4:2}-${dir_name:6}"
+    fi
+
+    echo "Creating directory '$dir_name'"
+    mkdir "$dir_name"
+    cd "$dir_name"
+
+    error=$?
+    if [[ ! $error -eq 0 ]]; then
+        echo "Error: failed to create directory. Aborting."
+        return 1
+    fi
+
+    return 0
+}
+
+# Download YouTube videos
+function dl_youtube_vid {
+    local format="$1"
+    local url="$2"
+    shift 2
+    local opts="$@"
+    opts+=" --all-subs --embed-subs"
+
+    make_vid_dir_and_cd_into $url
+    if [[ $? -ne 0 ]]; then
+        return
+    fi
+
+    local name_format=$(youtube-dl.exe --get-filename -o "%(upload_date)s-%(title)s-youtube-%(id)s.%(ext)s" $url)
+    name_format="${name_format:0:4}-${name_format:4:2}-${name_format:6}"
+
+    if [[ $format == "" ]]; then
+        echo "Downloading default format"
+        youtube-dl.exe -o "$name_format" $opts $url
+    else
+        youtube-dl.exe -f $format -o "$name_format" $opts $url
+    fi
+
+    cd ..
+}
+
+function dl_youtube_playlist {
+    local format="$1"
+    local url="$2"
+    local dir_name="$3"
+    if [[ $dir_name == "" ]]; then
+        echo "Please provide a name for the playlist directory"
+        return
+    fi
+    shift 3
+    local opts="$@"
+    opts+=" --all-subs --embed-subs"
+
+    make_vid_dir_and_cd_into $url $dir_name
+    if [[ $? -ne 0 ]]; then
+        return
+    fi
+
+    echo "Downloading playlist"
+    local name_format="v%(playlist_index)s--%(upload_date)s-%(title)s-youtube-%(id)s.%(ext)s"
+
+    if [[ $format == "" ]]; then
+        echo "Downloading default format"
+        youtube-dl.exe -o "$name_format" $opts $url
+    else
+        youtube-dl.exe -f $format -o "$name_format" $opts $url
+    fi
+}
+
+# Download Twitch videos
+function dl_twitch_vid {
+    local format="$1"
+    local url="$2"
+    shift 2
+    local opts="$@"
+
+    make_vid_dir_and_cd_into $url
+    if [[ $? -ne 0 ]]; then
+        return
+    fi
+
+    local name_format="%(upload_date)s-%(title)s-twitch-%(id)s"
+    local video_file=$(youtube-dl.exe --get-filename -o "$name_format.%(ext)s" $url)
+    video_file="${video_file:0:4}-${video_file:4:2}-${video_file:6}"
+    youtube-dl.exe -f "$format" -o "$video_file" $opts $url
+
+    error=$?
+    if [[ $error -eq 0 ]]; then
+        # Download Twitch chat transcript
+        local chat_file=$(youtube-dl.exe --get-filename -o "$name_format" $url)
+        rechat.exe -d $url "$chat_file.json"
+        rechat.exe -p "$chat_file.json" "$chat_file.txt" -b -o
+        mv "$chat_file.txt" "${chat_file:0:4}-${chat_file:4:2}-${chat_file:6}.txt"
+        tt "$chat_file.json"
+    else
+        echo "Error: Failed to download '$url'"
+    fi
+    cd ..
+}
+
+function dl_twitch_chat {
+    local url="$1"
+
+    make_vid_dir_and_cd_into $url
+    if [[ $? -ne 0 ]]; then
+        return
+    fi
+
+    # Download Twitch chat transcript
+    local name_format="%(upload_date)s-%(title)s-twitch-%(id)s"
+    local chat_file=$(youtube-dl.exe --get-filename -o "$name_format" $url)
+    rechat.exe -d $url "$chat_file.json"
+    rechat.exe -p "$chat_file.json" "$chat_file.txt" -b -o
+    mv "$chat_file.txt" "${chat_file:0:4}-${chat_file:4:2}-${chat_file:6}.txt"
+    tt "$chat_file.json"
+    cd ..
+}
+
+function activate_virtualenv {
+    if [ -f venv/bin/activate ]; then . venv/bin/activate;
+        elif [ -f ../venv/bin/activate ]; then . ../venv/bin/activate;
+        elif [ -f ../../venv/bin/activate ]; then . ../../venv/bin/activate;
+        elif [ -f ../../../venv/bin/activate ]; then . ../../../venv/bin/activate;
+    fi
+}
+
+function play {
+    # Skip DASH manifest for speed purposes. This might actually disable
+    # being able to specify things like 'bestaudio' as the requested format,
+    # but try anyway.
+    # Get the best audio that isn't WebM, because afplay doesn't support it.
+    # Use "$*" so that quoting the requested song isn't necessary.
+    youtube-dl.exe --default-search=ytsearch: \
+                   --youtube-skip-dash-manifest \
+                   --output="${TMPDIR:-/tmp/}%(title)s-%(id)s.%(ext)s" \
+                   --restrict-filenames \
+                   --format="bestaudio[ext!=webm]" \
+                   --exec=afplay "$*"
+}
+
+function mp3 {
+    # Get the best audio, convert it to MP3, and save it to the current
+    # directory.
+    youtube-dl.exe --default-search=ytsearch: \
+                   --restrict-filenames \
+                   --format=bestaudio \
+                   --extract-audio \
+                   --format="bestaudio[ext!=webm]" \
+                   --audio-quality=1 "$*" \
+                   --exec=afplay "$*"
+}
+
+function take {
+    mkdir $1
+    cd $1
+}
+
+###################################
+# Git Functions
+###################################
+
+function gitCmdWrapper {
+  # If no args are provided then run `git status`
+  if [[ $# > 0 ]]; then
+    git $@
+  else
+    git status
+  fi
+}
+
+function git_branch_name {
+    val=`git branch 2>/dev/null | grep '^*' | colrm 1 2`
+    echo "$val"
+}
+
+function git_nuke {
+  git checkout master && git branch -D $1 && git push origin :$1
+}
+
+####################################################################################################
+
+# Handle the fact that this file will be used with multiple OSs
 if [[ $platform == 'Linux' ]]; then
   alias l='ls -lhg --color'
   alias ll='ls -lahg --color'
@@ -39,16 +266,6 @@ elif [[ "${platform,,}" == *'ming'* ]]; then # convert to lowercase then compare
   alias tt='remove_windows_file'
   alias cgrep='cgrep.exe'
 fi
-
-remove_windows_file() {
-    if [ -f "$1" ]; then
-        recycle-bin.exe "$1"
-    elif [ -d "$1" ]; then
-        recycle-bin.exe "$1"
-    else
-        echo "'$1' does not exist!"
-    fi
-}
 
 alias c='cd'
 alias c-='cd -'
@@ -125,7 +342,6 @@ alias dot='cd ~/.dotfiles'
 alias pdot='cd ~/.private-dotfiles'
 alias duh='du -csh'
 alias f='fg'
-alias functions='vim ~/.dotfiles/functions'
 alias history='fc -l 1'
 alias histroy='history'
 alias irb='irb --readline -r irb/completion'
@@ -142,22 +358,11 @@ alias rbp='cd $RBENV_PATH/versions/$(rbenv version | sed -e "s/ (set.*$//")'
 alias rbl='cd $RBENV_PATH/versions/$(rbenv version | sed -e "s/ (set.*$//")/lib/ruby'
 alias rc='rclone'
 alias rcc='rclone copy'
-
-function reload {
-  if [[ $platform == 'Linux' || $platform == 'Darwin' ]]; then
-    #source ~/.zshrc
-    test -f ~/.aliases && . ~/.aliases
-  else
-    test -f ~/.aliases && . ~/.aliases
-  fi
-}
-
 alias restart='sudo shutdown now -r'
 alias rl='reload'
 alias rmr='rm -r'
 alias s='cd ~/.ssh'
 alias sc='vim ~/.ssh/config'
-alias stream='streamlink --player mpv'
 alias shutdown='sudo shutdown now'
 alias stk='rlwrap stk-simply'
 alias t='tree'
@@ -172,85 +377,6 @@ alias vu='vagrant up'
 alias vimrc='vim ~/.vimrc'
 alias weather='curl wttr.in/toronto'
 
-function make_vid_dir_and_cd_into {
-    local url="$1"
-    local dir_name="$2"
-
-    if [[ $dir_name == "" ]]; then
-        # @note If the filename contains symbols that are incompatible with
-        # Windows' directory names then add --restrict-filenames to the command.
-        dir_name=$(youtube-dl.exe --get-filename -o "%(upload_date)s - %(title)s" $url)
-        if [[ $dir_name == "" ]]; then
-            return 1
-        fi
-        dir_name="${dir_name:0:4}-${dir_name:4:2}-${dir_name:6}"
-    fi
-
-    echo "Creating directory '$dir_name'"
-    mkdir "$dir_name"
-    cd "$dir_name"
-
-    error=$?
-    if [[ ! $error -eq 0 ]]; then
-        echo "Error: failed to create directory. Aborting."
-        return 1
-    fi
-
-    return 0
-}
-
-# Download YouTube videos
-function dl_youtube_vid {
-    local format="$1"
-    local url="$2"
-    shift 2
-    local opts="$@"
-    opts+=" --all-subs --embed-subs"
-
-    make_vid_dir_and_cd_into $url
-    if [[ $? -ne 0 ]]; then
-        return
-    fi
-
-    local name_format=$(youtube-dl.exe --get-filename -o "%(upload_date)s-%(title)s-youtube-%(id)s.%(ext)s" $url)
-    name_format="${name_format:0:4}-${name_format:4:2}-${name_format:6}"
-
-    if [[ $format == "" ]]; then
-        echo "Downloading default format"
-        youtube-dl.exe -o "$name_format" $opts $url
-    else
-        youtube-dl.exe -f $format -o "$name_format" $opts $url
-    fi
-
-    cd ..
-}
-function dl_youtube_playlist {
-    local format="$1"
-    local url="$2"
-    local dir_name="$3"
-    if [[ $dir_name == "" ]]; then
-        echo "Please provide a name for the playlist directory"
-        return
-    fi
-    shift 3
-    local opts="$@"
-    opts+=" --all-subs --embed-subs"
-
-    make_vid_dir_and_cd_into $url $dir_name
-    if [[ $? -ne 0 ]]; then
-        return
-    fi
-
-    echo "Downloading playlist"
-    local name_format="v%(playlist_index)s--%(upload_date)s-%(title)s-youtube-%(id)s.%(ext)s"
-
-    if [[ $format == "" ]]; then
-        echo "Downloading default format"
-        youtube-dl.exe -o "$name_format" $opts $url
-    else
-        youtube-dl.exe -f $format -o "$name_format" $opts $url
-    fi
-}
 alias yt-download='dl_youtube_vid ""'
 alias yt-download-1080='dl_youtube_vid "137+140"'
 alias yt-download-720='dl_youtube_vid "136+140"'
@@ -260,53 +386,6 @@ alias yt-download-playlist-720='dl_youtube_playlist "136+140"'
 alias yt-download-playlist-tiny='dl_youtube_playlist "160+140"'
 alias yt-download-audio='youtube-dl.exe -f "140"'
 
-# Download Twitch videos
-function dl_twitch_vid {
-    local format="$1"
-    local url="$2"
-    shift 2
-    local opts="$@"
-
-    make_vid_dir_and_cd_into $url
-    if [[ $? -ne 0 ]]; then
-        return
-    fi
-
-    local name_format="%(upload_date)s-%(title)s-twitch-%(id)s"
-    local video_file=$(youtube-dl.exe --get-filename -o "$name_format.%(ext)s" $url)
-    video_file="${video_file:0:4}-${video_file:4:2}-${video_file:6}"
-    youtube-dl.exe -f "$format" -o "$video_file" $opts $url
-
-    error=$?
-    if [[ $error -eq 0 ]]; then
-        # Download Twitch chat transcript
-        local chat_file=$(youtube-dl.exe --get-filename -o "$name_format" $url)
-        rechat.exe -d $url "$chat_file.json"
-        rechat.exe -p "$chat_file.json" "$chat_file.txt" -b -o
-        mv "$chat_file.txt" "${chat_file:0:4}-${chat_file:4:2}-${chat_file:6}.txt"
-        tt "$chat_file.json"
-    else
-        echo "Error: Failed to download '$url'"
-    fi
-    cd ..
-}
-function dl_twitch_chat {
-    local url="$1"
-
-    make_vid_dir_and_cd_into $url
-    if [[ $? -ne 0 ]]; then
-        return
-    fi
-
-    # Download Twitch chat transcript
-    local name_format="%(upload_date)s-%(title)s-twitch-%(id)s"
-    local chat_file=$(youtube-dl.exe --get-filename -o "$name_format" $url)
-    rechat.exe -d $url "$chat_file.json"
-    rechat.exe -p "$chat_file.json" "$chat_file.txt" -b -o
-    mv "$chat_file.txt" "${chat_file:0:4}-${chat_file:4:2}-${chat_file:6}.txt"
-    tt "$chat_file.json"
-    cd ..
-}
 alias tw-download-chat='dl_twitch_chat'
 alias tw-dl='youtube-dl.exe -f "1080" -o "%(upload_date)s-%(title)s-twitch-%(id)s.%(ext)s"'
 alias tw-dl2='youtube-dl.exe -o "%(upload_date)s-%(title)s-twitch-%(id)s.%(ext)s"'
@@ -317,22 +396,25 @@ alias tw-download-720='dl_twitch_vid "720p-1"'
 alias tw-download-720-60='dl_twitch_vid "720p60"'
 alias tw-download-4k='dl_twitch_vid "2160p"'
 
+####################################################################################################
 # Git
-
-function gitCmdWrapper {
-  # If no args are provided then run `git status`
-  if [[ $# > 0 ]]; then
-    git $@
-  else
-    git status
-  fi
-}
+####################################################################################################
 
 if [[ $platform != 'Darwin' && $platform != 'Linux' ]]; then
   # Fix a weird mingw 'not a valid identifierline' error.
   # Got the fix from https://github.com/Alexpux/MSYS2-packages/issues/735#issuecomment-328938800
   alias git="PATH=/usr/bin git"
 fi
+
+function git_commit {
+    cmd="git commit -m \"$*\""
+    eval "$cmd"
+}
+
+function git_commit_signed {
+    cmd="git commit -S -m \"$*\""
+    eval "$cmd"
+}
 
 alias am='git commit --amend'
 alias ama='git commit --amend -C head --author'
@@ -354,8 +436,8 @@ alias gbr='git branch -rv'
 alias gc='git commit'
 alias gcs='git commit -S' # signed
 alias gcl='git clone'
-alias gcm="git commit -m"
-alias gcms="git commit -S -m" # signed
+alias gcm='git_commit'
+alias gcms='git_commit_signed' # signed
 alias gco='git checkout'
 alias gco-='git checkout -'
 git_checkout_build() {
@@ -384,7 +466,6 @@ alias gfu='git fetch up'
 alias gfm='git fetch origin master'
 alias gfup='git fetch upstream'
 alias ggrep='git log --all --oneline | grep '
-alias gh="source ~/.githelpers && show_git_head"
 alias gla='git lg --all'
 alias gl='git lg -30'
 alias gll='git lg'

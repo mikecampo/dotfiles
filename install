@@ -71,9 +71,7 @@ setup_dir .dotfiles/vim .vim
 #########################
 FILES=()
 FILES+=('aliases')
-FILES+=('functions')
 FILES+=('gitconfig')
-FILES+=('githelpers')
 FILES+=('vimrc')
 FILES+=('curlrc')
 
