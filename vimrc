@@ -16,10 +16,6 @@
 "
 "###################################################################################################
 
-" Remove Menubar and Toolbar from gvim
-"set guioptions -=m
-"set guioptions -=T
-
 scriptencoding utf-8
 set encoding=utf-8 fileencoding=utf-8 fileencodings=ucs-bom,utf8,prc
 set nocompatible
@@ -29,6 +25,7 @@ filetype off
 " different platforms
 let s:uname = system("echo -n \"$(uname)\"")
 let s:vim_dir = $HOME . "/.vim"
+let mapleader=","
 
 function! IsWindows()
     if s:uname =~ "mingw" || s:uname =~ "msys"
@@ -37,8 +34,22 @@ function! IsWindows()
     return 0
 endfunction
 
-let mapleader=","
+"--------------------------------------------
+" Colors
+"--------------------------------------------
+let g:campo_dark_theme = 'campo-simple-dark'
+"let g:campo_dark_theme = 'campo-dark-blue'
+"let g:campo_dark_theme = 'campo-dark-grey-blue'
+"let g:campo_dark_theme = 'campo-dark-greyscale'
 
+let g:campo_light_theme = 'campo-simple-light'
+"let g:campo_light_theme = 'campo-light'
+
+let g:campo_theme_use_rainbow_parens = 1
+"--------------------------------------------
+
+" You can further customize things in a private vimrc. I use this
+" for things that I don't want included in my public dotfiles repo.
 source ~/.vimrc.private
 
 "################################################################
@@ -52,7 +63,7 @@ source ~/.vimrc.private
 let s:max_line_length = 100
 let g:quickfix_window_height  = 16 " in rows
 " Start vim with the dark theme. Set to 'light' for the light theme.
-" To change the themes see `s:dark_theme` and `s:light_theme`.
+" To change the themes see `g:campo_dark_theme` and `g:campo_light_theme`.
 let s:default_bg = 'dark'
 let s:rainbow_theme = s:default_bg
 
@@ -221,6 +232,10 @@ set numberwidth=5
 set showtabline=2
 set winwidth=79
 
+" Remove gvim Menubar and Toolbar
+"set guioptions -=m
+"set guioptions -=T
+
 " @warning: This must come AFTER `set ignorecase smartcase` otherwise vim spews out a ton of errors. No idea why!
 if IsWindows()
   " Just assume we don't have a zsh shell
@@ -320,7 +335,7 @@ augroup campoCmds
   " Auto reload VIM when settings changed.
   autocmd BufWritePost .vimrc so $MYVIMRC
   autocmd BufWritePost *.vim so $MYVIMRC
-  autocmd BufWritePost vimrc.symlink so $MYVIMRC
+  autocmd BufWritePost ~/.vimrc.private so $MYVIMRC
 
   function! s:RunCtags()
     " The ampersand at the end is to make this run in the background. I had to
@@ -381,6 +396,7 @@ nmap <leader>z <c-z>
 
 " Open the vimrc file for editing / reload vimrc file.
 nmap <silent> <leader>ev :vsp $MYVIMRC<cr>
+nmap <silent> <leader>pv :vsp ~/.vimrc.private<cr>
 nmap <silent> <leader>rv :so $MYVIMRC<cr>
 
 " Type %/ in the command bar to have it replaced with the current buffer's
@@ -729,17 +745,8 @@ set statusline=%<%f\ (%{&ft})\ %-4(%m%)%=%-19(%3l,%02c%03V%)
 " COLORS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-let g:campo_theme_use_rainbow_parens = 1
-"let s:dark_theme = 'campo-dark-blue'
-"let s:dark_theme = 'campo-dark-grey-blue'
-"let s:dark_theme = 'campo-dark-greyscale'
-let s:dark_theme = 'campo-simple-dark'
-
-"let s:light_theme = 'campo-light'
-let s:light_theme = 'campo-simple-light'
-
-execute "autocmd ColorScheme " . s:dark_theme . " call ReloadRainbow()"
-execute "autocmd ColorScheme " . s:light_theme . " call ReloadRainbow()"
+execute "autocmd ColorScheme " . g:campo_dark_theme . " call ReloadRainbow()"
+execute "autocmd ColorScheme " . g:campo_light_theme . " call ReloadRainbow()"
 
 " Switch between light and dark themes.
 map <leader>l :call ChangeBgTheme('light', 0)<cr>
@@ -748,12 +755,12 @@ map <leader>ll :call ChangeBgTheme('dark', 0)<cr>
 function! ChangeBgTheme(bg, onlySetTheme)
   if a:bg =~ 'light'
     let s:rainbow_theme = 'light'
-    let s:theme = s:light_theme
+    let s:theme = g:campo_light_theme
     exe 'colorscheme ' . s:theme
     set background=light
   else
     let s:rainbow_theme = 'dark'
-    let s:theme = s:dark_theme
+    let s:theme = g:campo_dark_theme
     " We have to set the theme twice in order to get its correct dark-theme colors.
     " Weird stuff.
     exe 'colorscheme ' . s:theme
