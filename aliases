@@ -78,15 +78,45 @@ function dl_youtube_vid {
         return
     fi
 
-    local name_format=$(youtube-dl.exe --get-filename -o "%(upload_date)s-%(title)s-youtube-%(id)s.%(ext)s" $url)
-    name_format="${name_format:0:4}-${name_format:4:2}-${name_format:6}"
+    local filename=$(youtube-dl.exe --get-filename -o "%(upload_date)s-%(title)s-youtube-%(id)s.%(ext)s" $url)
+    filename="${filename:0:4}-${filename:4:2}-${filename:6}"
 
     if [[ $format == "" ]]; then
         echo "Downloading default format"
-        youtube-dl.exe -o "$name_format" $opts $url
+        youtube-dl.exe -o "$filename" $opts $url
     else
-        youtube-dl.exe -f $format -o "$name_format" $opts $url
+        youtube-dl.exe -f $format -o "$filename" $opts $url
     fi
+
+    cd ..
+}
+
+# Download YouTube video and flip horizontally.
+function dl_youtube_vid_and_hflip {
+    local format="$1"
+    local url="$2"
+    shift 2
+    local opts="$@"
+    opts+=" --all-subs --embed-subs"
+
+    make_vid_dir_and_cd_into $url
+    if [[ $? -ne 0 ]]; then
+        return
+    fi
+
+    local filename=$(youtube-dl.exe --get-filename -o "%(upload_date)s-%(title)s-youtube-%(id)s.%(ext)s" $url)
+    filename="${filename:0:4}-${filename:4:2}-${filename:6}"
+
+    if [[ $format == "" ]]; then
+        echo "Downloading default format"
+        youtube-dl.exe -o "$filename" $opts $url
+    else
+        youtube-dl.exe -f $format -o "$filename" $opts $url
+    fi
+
+    # Flip
+    ffmpeg -i "$filename" -vf hflip -c:a copy "copy_${filename}"
+    mv "copy_${filename}" "$filename"
 
     cd ..
 }
@@ -103,7 +133,7 @@ function dl_youtube_playlist {
     local opts="$@"
     opts+=" --all-subs --embed-subs"
 
-    make_vid_dir_and_cd_into $url $dir_name
+    make_vid_dir_and_cd_into $url "$dir_name"
     if [[ $? -ne 0 ]]; then
         return
     fi
@@ -117,6 +147,8 @@ function dl_youtube_playlist {
     else
         youtube-dl.exe -f $format -o "$name_format" $opts $url
     fi
+
+    cd ..
 }
 
 # Download Twitch videos
@@ -132,9 +164,9 @@ function dl_twitch_vid {
     fi
 
     local name_format="%(upload_date)s-%(title)s-twitch-%(id)s"
-    local video_file=$(youtube-dl.exe --get-filename -o "$name_format.%(ext)s" $url)
-    video_file="${video_file:0:4}-${video_file:4:2}-${video_file:6}"
-    youtube-dl.exe -f "$format" -o "$video_file" $opts $url
+    local filename=$(youtube-dl.exe --get-filename -o "$name_format.%(ext)s" $url)
+    filename="${filename:0:4}-${filename:4:2}-${filename:6}"
+    youtube-dl.exe -f "$format" -o "$filename" $opts $url
 
     error=$?
     if [[ $error -eq 0 ]]; then
@@ -143,10 +175,48 @@ function dl_twitch_vid {
         rechat.exe -d $url "$chat_file.json"
         rechat.exe -p "$chat_file.json" "$chat_file.txt" -b -o
         mv "$chat_file.txt" "${chat_file:0:4}-${chat_file:4:2}-${chat_file:6}.txt"
-        tt "$chat_file.json"
+        rm "$chat_file.json"
     else
         echo "Error: Failed to download '$url'"
     fi
+
+    cd ..
+}
+
+# Download Twitch videos
+function dl_twitch_vid_compressed {
+    local format="$1"
+    local url="$2"
+    shift 2
+    local opts="$@"
+
+    make_vid_dir_and_cd_into $url
+    if [[ $? -ne 0 ]]; then
+        return
+    fi
+
+    local name_format="%(upload_date)s-%(title)s-twitch-%(id)s"
+    local filename=$(youtube-dl.exe --get-filename -o "$name_format.%(ext)s" $url)
+    filename="${filename:0:4}-${filename:4:2}-${filename:6}"
+
+    youtube-dl.exe -f "$format" -o "$filename" $opts $url
+
+    error=$?
+    if [[ $error -eq 0 ]]; then
+        # Download Twitch chat transcript
+        local chat_file=$(youtube-dl.exe --get-filename -o "$name_format" $url)
+        rechat.exe -d $url "$chat_file.json"
+        rechat.exe -p "$chat_file.json" "$chat_file.txt" -b -o
+        mv "$chat_file.txt" "${chat_file:0:4}-${chat_file:4:2}-${chat_file:6}.txt"
+        rm "$chat_file.json"
+
+        compress-video "$filename" 25 "temp"
+        extension="${filename##*.}"
+        mv temp.$extension "$filename"
+    else
+        echo "Error: Failed to download '$url'"
+    fi
+
     cd ..
 }
 
@@ -164,8 +234,50 @@ function dl_twitch_chat {
     rechat.exe -d $url "$chat_file.json"
     rechat.exe -p "$chat_file.json" "$chat_file.txt" -b -o
     mv "$chat_file.txt" "${chat_file:0:4}-${chat_file:4:2}-${chat_file:6}.txt"
-    tt "$chat_file.json"
+    rm "$chat_file.json"
+
     cd ..
+}
+
+# Download video.
+function dl_mp4 {
+    local url="$1"
+    local filename="$2"
+
+    echo "$RANDOM"
+    temp_name="temp_${RANDOM}.mp4"
+
+    echo "Downloading: $filename"
+    curl "$url" -o $temp_name
+
+    if [[ $? -ne 0 ]]; then
+        echo "Error: failed to download."
+        return
+    fi
+
+    mv $temp_name "$filename.mp4"
+}
+
+# Download Instagram video and flip horizontally.
+function dl_instagram_vid_and_hflip {
+    local url="$1"
+    local filename="$2"
+
+    echo "$RANDOM"
+    temp_name="temp_${RANDOM}.mp4"
+
+    echo "Downloading: $filename"
+    curl "$url" -o $temp_name
+
+    if [[ $? -ne 0 ]]; then
+        echo "Error: failed to download."
+        return
+    fi
+
+    # Flip
+    ffmpeg -i $temp_name -vf hflip -c:a copy "copy_$temp_name"
+    mv copy_${temp_name} "$filename.mp4"
+    rm $temp_name
 }
 
 function activate_virtualenv {
@@ -386,12 +498,17 @@ alias yt-download-playlist-720='dl_youtube_playlist "136+140"'
 alias yt-download-playlist-tiny='dl_youtube_playlist "160+140"'
 alias yt-download-audio='youtube-dl.exe -f "140"'
 
+alias yt-download-and-hflip='dl_youtube_vid_and_hflip "137+140"' # 1080p
+alias ig-download-and-hflip='dl_instagram_vid_and_hflip '
+alias download-mp4='dl_mp4'
+
 alias tw-download-chat='dl_twitch_chat'
 alias tw-dl='youtube-dl.exe -f "1080" -o "%(upload_date)s-%(title)s-twitch-%(id)s.%(ext)s"'
 alias tw-dl2='youtube-dl.exe -o "%(upload_date)s-%(title)s-twitch-%(id)s.%(ext)s"'
 alias tw-download-custom='dl_twitch_vid '
 alias tw-download='dl_twitch_vid "1080p"'
 alias tw-download-60='dl_twitch_vid "1080p60"'
+alias tw-download-60-compressed='dl_twitch_vid_compressed "1080p60"'
 alias tw-download-720='dl_twitch_vid "720p-1"'
 alias tw-download-720-60='dl_twitch_vid "720p60"'
 alias tw-download-4k='dl_twitch_vid "2160p"'
@@ -426,6 +543,7 @@ alias ga='git add -A'
 alias gaa='git add -A; gdcc'
 alias gap='git add -Ap'
 alias gau='git add --update'
+alias gaup='git add --update -p'
 alias gb='git branch -v'
 alias gbd='git branch -D'
 alias gbdr='git branch -Dr'

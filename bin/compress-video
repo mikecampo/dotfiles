@@ -1,0 +1,64 @@
+#!/bin/bash
+
+if which tput >/dev/null 2>&1; then
+  ncolors=$(tput colors)
+fi
+if [ -t 1 ] && [ -n "$ncolors" ] && [ "$ncolors" -ge 8 ]; then
+  RED="$(tput setaf 1)"
+  GREEN="$(tput setaf 2)"
+  YELLOW="$(tput setaf 3)"
+  BLUE="$(tput setaf 4)"
+  BOLD="$(tput bold)"
+  NORMAL="$(tput sgr0)"
+else
+  RED=""
+  GREEN=""
+  YELLOW=""
+  BLUE=""
+  BOLD=""
+  NORMAL=""
+fi
+
+if [[ $1 == "" ]]; then
+    printf "\n${BOLD}Usage: $0 <filename> <optional crf value> <optional output name>\n - If you want to encode a range of CRF values then use -1 as the crf value.${NORMAL}\n"
+    exit 1
+fi
+
+filename=$(basename -- "$1")
+extension="${filename##*.}"
+filename="${filename%.*}"
+
+use_crf=$2
+default_crf=25 # Programming vids have pretty crisp text @ crf 25.
+
+output_name="$3"
+
+function encode() {
+    crf=$1
+    if [[ $output_name == "" ]]; then
+        output="${filename}_REDUCED_CRF-${crf}.$extension"
+    else
+        output="${output_name}.$extension"
+    fi
+
+    printf "\n${YELLOW}${BOLD}Encoding with crf $crf | output: $output${NORMAL}\n"
+    ffmpeg -i "$filename.$extension" -c:v libx264 -crf $crf -preset veryfast -profile:v baseline -level 3.0 -strict -2 "$output"
+    printf "\n${GREEN}${BOLD}Done encoding with crf $crf${NORMAL}\n\n"
+}
+
+
+if [[ $use_crf == "" ]]; then
+    use_crf=$default_crf
+fi
+
+if [[ $use_crf == -1 ]]; then
+    printf "\n${YELLOW}${BOLD}Encoding using a range of crf values.${NORMAL}\n"
+
+    # Bigger crf values == bigger compression.
+    for crf in {25..28}
+    do
+        encode $crf
+    done
+else
+    encode $use_crf
+fi
