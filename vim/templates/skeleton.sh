@@ -20,11 +20,11 @@ else
 fi
 
 error() {
-  printf "${BOLD}${RED}$1${NORMAL}"
+  printf "${BOLD}${RED}$1${NORMAL}\n"
 }
 
 abort() {
-  error "\nAborting...\n"
+  error "\nAborting..."
   exit 1
 }
 

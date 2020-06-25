@@ -186,8 +186,9 @@ function dl_twitch_vid {
 # Download Twitch videos
 function dl_twitch_vid_compressed {
     local format="$1"
-    local url="$2"
-    shift 2
+    local shortname="$2"
+    local url="$3"
+    shift 3
     local opts="$@"
 
     make_vid_dir_and_cd_into $url
@@ -195,7 +196,12 @@ function dl_twitch_vid_compressed {
         return
     fi
 
-    local name_format="%(upload_date)s-%(title)s-twitch-%(id)s"
+    if [[ $shortname -eq 0 ]]; then
+        local name_format="%(upload_date)s-%(title)s-twitch-%(id)s"
+    else
+        local name_format="%(upload_date)s-shortname-twitch-%(id)s"
+    fi
+
     local filename=$(youtube-dl.exe --get-filename -o "$name_format.%(ext)s" $url)
     filename="${filename:0:4}-${filename:4:2}-${filename:6}"
 
@@ -453,6 +459,7 @@ alias dc='gdc'
 alias dot='cd ~/.dotfiles'
 alias pdot='cd ~/.private-dotfiles'
 alias duh='du -csh'
+alias exp='explorer .'
 alias f='fg'
 alias history='fc -l 1'
 alias histroy='history'
@@ -507,8 +514,12 @@ alias tw-dl='youtube-dl.exe -f "1080" -o "%(upload_date)s-%(title)s-twitch-%(id)
 alias tw-dl2='youtube-dl.exe -o "%(upload_date)s-%(title)s-twitch-%(id)s.%(ext)s"'
 alias tw-download-custom='dl_twitch_vid '
 alias tw-download='dl_twitch_vid "1080p"'
+alias tw-download-1080='dl_twitch_vid "1080"'
 alias tw-download-60='dl_twitch_vid "1080p60"'
-alias tw-download-60-compressed='dl_twitch_vid_compressed "1080p60"'
+alias tw-download-60-compressed='dl_twitch_vid_compressed "1080p60" 0'
+alias tw-download-60-shortname-compressed='dl_twitch_vid_compressed "1080p60" 1'
+alias tw-download-compressed='dl_twitch_vid_compressed "1080p" 0'
+alias tw-download-shortname-compressed='dl_twitch_vid_compressed "1080p" 1'
 alias tw-download-720='dl_twitch_vid "720p-1"'
 alias tw-download-720-60='dl_twitch_vid "720p60"'
 alias tw-download-4k='dl_twitch_vid "2160p"'

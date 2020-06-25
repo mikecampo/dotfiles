@@ -49,7 +49,8 @@ let g:campo_theme_use_rainbow_parens = 1
 "--------------------------------------------
 
 " You can further customize things in a private vimrc. I use this
-" for things that I don't want included in my public dotfiles repo.
+" for things that I don't want included in my public dotfiles repo
+" such as temp file settings.
 source ~/.vimrc.private
 
 "################################################################
@@ -250,8 +251,18 @@ set scrolloff=3                   " keep more context when scrolling off the end
 set cursorline
 set cursorcolumn
 
-" Store temporary files in a central spot. The location of the cache is
-" set in the vimrc.private file that is sourced near the top of this file.
+" Store swap, backup and undo files in a central spot. I have my settings in
+" a `vimrc.private` file that is sourced near the top of this file so
+" that my drive paths aren't in this config. If you want to set them
+" here then add:
+"
+" set directory=<dir path for swap files>
+" set backupdir=<dir path for backup files>
+" if has('persistent_undo')
+"    set undodir=<dir path for undo files>
+" endif
+"
+" And make sure those directories exist before opening vim.
 set backup
 set backupcopy=yes
 :au BufWritePre * let &bex = '.' . strftime("%Y-%m-%d-%T") . '.bak'
