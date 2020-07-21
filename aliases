@@ -5,11 +5,39 @@
 
 platform=`uname`
 
+if which tput >/dev/null 2>&1; then
+  ncolors=$(tput colors)
+fi
+if [ -t 1 ] && [ -n "$ncolors" ] && [ "$ncolors" -ge 8 ]; then
+  RED="$(tput setaf 1)"
+  GREEN="$(tput setaf 2)"
+  YELLOW="$(tput setaf 3)"
+  BLUE="$(tput setaf 4)"
+  BOLD="$(tput bold)"
+  NORMAL="$(tput sgr0)"
+else
+  RED=""
+  GREEN=""
+  YELLOW=""
+  BLUE=""
+  BOLD=""
+  NORMAL=""
+fi
+
 ####################################################################################################
 # Helper Functions
 ####################################################################################################
 
-function reload {
+error() {
+  printf "${BOLD}${RED}$1${NORMAL}\n"
+}
+
+abort() {
+  error "\nAborting..."
+  exit 1
+}
+
+reload() {
     if [[ $platform == 'Linux' || $platform == 'Darwin' ]]; then
         #source ~/.zshrc
         test -f ~/.aliases && . ~/.aliases
@@ -19,7 +47,7 @@ function reload {
 }
 
 # See top 10 bash commands
-function hist {
+hist() {
     if [[ "${platform,,}" == *'ming'* ]]; then
         hist_file=~/.bash_history
     else
@@ -28,7 +56,7 @@ function hist {
     cat $hist_file|cut -d ';' -f 2- 2>/dev/null| awk '{a[$1]++ } END{for(i in a){print a[i] " " i}}'|sort -rn|head
 }
 
-function remove_windows_file {
+remove_windows_file() {
     if [ -f "$1" ]; then
         recycle-bin.exe "$1"
     elif [ -d "$1" ]; then
@@ -38,7 +66,7 @@ function remove_windows_file {
     fi
 }
 
-function make_vid_dir_and_cd_into {
+make_vid_dir_and_cd_into() {
     local url="$1"
     local dir_name="$2"
 
@@ -52,13 +80,13 @@ function make_vid_dir_and_cd_into {
         dir_name="${dir_name:0:4}-${dir_name:4:2}-${dir_name:6}"
     fi
 
-    echo "Creating directory '$dir_name'"
+    printf "${BOLD}Creating directory ${YELLOW}'$dir_name'${NORMAL}\n"
     mkdir "$dir_name"
     cd "$dir_name"
 
     error=$?
     if [[ ! $error -eq 0 ]]; then
-        echo "Error: failed to create directory. Aborting."
+        error "Error: failed to create directory. Aborting.\n"
         return 1
     fi
 
@@ -66,7 +94,7 @@ function make_vid_dir_and_cd_into {
 }
 
 # Download YouTube videos
-function dl_youtube_vid {
+dl_youtube_vid() {
     local format="$1"
     local url="$2"
     shift 2
@@ -82,8 +110,8 @@ function dl_youtube_vid {
     filename="${filename:0:4}-${filename:4:2}-${filename:6}"
 
     if [[ $format == "" ]]; then
-        echo "Downloading default format"
-        youtube-dl.exe -o "$filename" $opts $url
+        printf "${BOLD}Getting best non-webm format${NORMAL}\n"
+        youtube-dl.exe -f "bestvideo[ext!=webm]" -o "$filename" $opts $url
     else
         youtube-dl.exe -f $format -o "$filename" $opts $url
     fi
@@ -92,7 +120,7 @@ function dl_youtube_vid {
 }
 
 # Download YouTube video and flip horizontally.
-function dl_youtube_vid_and_hflip {
+dl_youtube_vid_and_hflip() {
     local format="$1"
     local url="$2"
     shift 2
@@ -108,8 +136,8 @@ function dl_youtube_vid_and_hflip {
     filename="${filename:0:4}-${filename:4:2}-${filename:6}"
 
     if [[ $format == "" ]]; then
-        echo "Downloading default format"
-        youtube-dl.exe -o "$filename" $opts $url
+        printf "${BOLD}Getting best non-webm format${NORMAL}\n"
+        youtube-dl.exe -f "bestvideo[ext!=webm]" -o "$filename" $opts $url
     else
         youtube-dl.exe -f $format -o "$filename" $opts $url
     fi
@@ -121,12 +149,12 @@ function dl_youtube_vid_and_hflip {
     cd ..
 }
 
-function dl_youtube_playlist {
+dl_youtube_playlist() {
     local format="$1"
     local url="$2"
     local dir_name="$3"
-    if [[ $dir_name == "" ]]; then
-        echo "Please provide a name for the playlist directory"
+    if [[ $url == "" || $dir_name == "" ]]; then
+        error "Format: cmd <url> <directory name>\n"
         return
     fi
     shift 3
@@ -138,12 +166,12 @@ function dl_youtube_playlist {
         return
     fi
 
-    echo "Downloading playlist"
+    printf "${BOLD}Downloading playlist${NORMAL}\n"
     local name_format="v%(playlist_index)s--%(upload_date)s-%(title)s-youtube-%(id)s.%(ext)s"
 
     if [[ $format == "" ]]; then
-        echo "Downloading default format"
-        youtube-dl.exe -o "$name_format" $opts $url
+        printf "${BOLD}Getting best non-webm format${NORMAL}\n"
+        youtube-dl.exe -f "bestvideo[ext!=webm]" -o "$name_format" $opts $url
     else
         youtube-dl.exe -f $format -o "$name_format" $opts $url
     fi
@@ -152,44 +180,19 @@ function dl_youtube_playlist {
 }
 
 # Download Twitch videos
-function dl_twitch_vid {
-    local format="$1"
-    local url="$2"
-    shift 2
-    local opts="$@"
-
-    make_vid_dir_and_cd_into $url
-    if [[ $? -ne 0 ]]; then
-        return
-    fi
-
-    local name_format="%(upload_date)s-%(title)s-twitch-%(id)s"
-    local filename=$(youtube-dl.exe --get-filename -o "$name_format.%(ext)s" $url)
-    filename="${filename:0:4}-${filename:4:2}-${filename:6}"
-    youtube-dl.exe -f "$format" -o "$filename" $opts $url
-
-    error=$?
-    if [[ $error -eq 0 ]]; then
-        # Download Twitch chat transcript
-        local chat_file=$(youtube-dl.exe --get-filename -o "$name_format" $url)
-        rechat.exe -d $url "$chat_file.json"
-        rechat.exe -p "$chat_file.json" "$chat_file.txt" -b -o
-        mv "$chat_file.txt" "${chat_file:0:4}-${chat_file:4:2}-${chat_file:6}.txt"
-        rm "$chat_file.json"
-    else
-        echo "Error: Failed to download '$url'"
-    fi
-
-    cd ..
-}
-
-# Download Twitch videos
-function dl_twitch_vid_compressed {
+dl_twitch_vid() {
     local format="$1"
     local shortname="$2"
-    local url="$3"
-    shift 3
+    local compression_level="$3"
+    local url="$4"
+    shift 4
     local opts="$@"
+
+    if [[ $compression_level -eq 0 ]]; then
+        printf "${BOLD}Downloading Twitch vid with no compression.${NORMAL}\n"
+    else
+        printf "${BOLD}Downloading Twitch vid with compression level ${YELLOW}$compression_level${NORMAL}.\n"
+    fi
 
     make_vid_dir_and_cd_into $url
     if [[ $? -ne 0 ]]; then
@@ -216,17 +219,21 @@ function dl_twitch_vid_compressed {
         mv "$chat_file.txt" "${chat_file:0:4}-${chat_file:4:2}-${chat_file:6}.txt"
         rm "$chat_file.json"
 
-        compress-video "$filename" 25 "temp"
-        extension="${filename##*.}"
-        mv temp.$extension "$filename"
+        if [[ $compression_level -ne 0 ]]; then
+            compress-video "$filename" $compression_level "temp"
+            extension="${filename##*.}"
+            mv "$filename" uncompressed_original.$extension
+            mv temp.$extension "$filename"
+            printf "${BOLD}Make sure to delete the original video file${NORMAL}\n"
+        fi
     else
-        echo "Error: Failed to download '$url'"
+        error "Error: Failed to download '$url'\n"
     fi
 
     cd ..
 }
 
-function dl_twitch_chat {
+dl_twitch_chat() {
     local url="$1"
 
     make_vid_dir_and_cd_into $url
@@ -246,18 +253,17 @@ function dl_twitch_chat {
 }
 
 # Download video.
-function dl_mp4 {
+dl_mp4() {
     local url="$1"
     local filename="$2"
 
-    echo "$RANDOM"
     temp_name="temp_${RANDOM}.mp4"
 
-    echo "Downloading: $filename"
+    printf "${BOLD}Downloading: ${YELLOW}$filename${NORMAL}\n"
     curl "$url" -o $temp_name
 
     if [[ $? -ne 0 ]]; then
-        echo "Error: failed to download."
+        error "Error: failed to download.\n"
         return
     fi
 
@@ -265,18 +271,17 @@ function dl_mp4 {
 }
 
 # Download Instagram video and flip horizontally.
-function dl_instagram_vid_and_hflip {
+dl_instagram_vid_and_hflip() {
     local url="$1"
     local filename="$2"
 
-    echo "$RANDOM"
     temp_name="temp_${RANDOM}.mp4"
 
-    echo "Downloading: $filename"
+    printf "${BOLD}Downloading: ${YELLOW}$filename${NORMAL}\n"
     curl "$url" -o $temp_name
 
     if [[ $? -ne 0 ]]; then
-        echo "Error: failed to download."
+        error "Error: failed to download.\n"
         return
     fi
 
@@ -286,7 +291,7 @@ function dl_instagram_vid_and_hflip {
     rm $temp_name
 }
 
-function activate_virtualenv {
+activate_virtualenv() {
     if [ -f venv/bin/activate ]; then . venv/bin/activate;
         elif [ -f ../venv/bin/activate ]; then . ../venv/bin/activate;
         elif [ -f ../../venv/bin/activate ]; then . ../../venv/bin/activate;
@@ -294,56 +299,35 @@ function activate_virtualenv {
     fi
 }
 
-function play {
-    # Skip DASH manifest for speed purposes. This might actually disable
-    # being able to specify things like 'bestaudio' as the requested format,
-    # but try anyway.
-    # Get the best audio that isn't WebM, because afplay doesn't support it.
-    # Use "$*" so that quoting the requested song isn't necessary.
-    youtube-dl.exe --default-search=ytsearch: \
-                   --youtube-skip-dash-manifest \
-                   --output="${TMPDIR:-/tmp/}%(title)s-%(id)s.%(ext)s" \
-                   --restrict-filenames \
-                   --format="bestaudio[ext!=webm]" \
-                   --exec=afplay "$*"
-}
-
-function mp3 {
-    # Get the best audio, convert it to MP3, and save it to the current
-    # directory.
-    youtube-dl.exe --default-search=ytsearch: \
-                   --restrict-filenames \
-                   --format=bestaudio \
-                   --extract-audio \
-                   --format="bestaudio[ext!=webm]" \
-                   --audio-quality=1 "$*" \
-                   --exec=afplay "$*"
-}
-
-function take {
-    mkdir $1
-    cd $1
-}
-
 ###################################
 # Git Functions
 ###################################
 
-function gitCmdWrapper {
-  # If no args are provided then run `git status`
+git_cmd_wrapper() {
+  # If no args are provided then run `git status -s`
   if [[ $# > 0 ]]; then
     git $@
   else
-    git status
+    git status -s
   fi
 }
 
-function git_branch_name {
+git_commit() {
+    cmd="git commit -m \"$*\""
+    eval "$cmd"
+}
+
+git_commit_signed() {
+    cmd="git commit -S -m \"$*\""
+    eval "$cmd"
+}
+
+git_branch_name() {
     val=`git branch 2>/dev/null | grep '^*' | colrm 1 2`
     echo "$val"
 }
 
-function git_nuke {
+git_nuke() {
   git checkout master && git branch -D $1 && git push origin :$1
 }
 
@@ -513,16 +497,31 @@ alias tw-download-chat='dl_twitch_chat'
 alias tw-dl='youtube-dl.exe -f "1080" -o "%(upload_date)s-%(title)s-twitch-%(id)s.%(ext)s"'
 alias tw-dl2='youtube-dl.exe -o "%(upload_date)s-%(title)s-twitch-%(id)s.%(ext)s"'
 alias tw-download-custom='dl_twitch_vid '
-alias tw-download='dl_twitch_vid "1080p"'
-alias tw-download-1080='dl_twitch_vid "1080"'
-alias tw-download-60='dl_twitch_vid "1080p60"'
-alias tw-download-60-compressed='dl_twitch_vid_compressed "1080p60" 0'
-alias tw-download-60-shortname-compressed='dl_twitch_vid_compressed "1080p60" 1'
-alias tw-download-compressed='dl_twitch_vid_compressed "1080p" 0'
-alias tw-download-shortname-compressed='dl_twitch_vid_compressed "1080p" 1'
-alias tw-download-720='dl_twitch_vid "720p-1"'
-alias tw-download-720-60='dl_twitch_vid "720p60"'
-alias tw-download-4k='dl_twitch_vid "2160p"'
+
+alias tw-download='dl_twitch_vid "1080p" 0 0'
+alias tw-download-compressed='dl_twitch_vid "1080p" 0 25'
+alias tw-download-shortname='dl_twitch_vid "1080p" 1 0'
+alias tw-download-shortname-compressed='dl_twitch_vid "1080p" 1 25'
+
+alias tw-download-1080='dl_twitch_vid "1080" 0 0'
+alias tw-download-1080-compressed='dl_twitch_vid "1080" 0 25'
+alias tw-download-1080-shortname='dl_twitch_vid "1080" 1 0'
+alias tw-download-1080-shortname-compressed='dl_twitch_vid "1080" 1 25'
+
+alias tw-download-60='dl_twitch_vid "1080p60" 0 0'
+alias tw-download-60-compressed='dl_twitch_vid "1080p60" 0 25'
+alias tw-download-60-shortname='dl_twitch_vid "1080p60" 1 0'
+alias tw-download-60-shortname-compressed='dl_twitch_vid "1080p60" 1 25'
+
+alias tw-download-720='dl_twitch_vid "720p-1" 0 0'
+alias tw-download-720-shortname='dl_twitch_vid "720p-1" 1 0'
+alias tw-download-720-60='dl_twitch_vid "720p60" 0 0'
+alias tw-download-720-60-shortname='dl_twitch_vid "720p60" 1 0'
+
+alias tw-download-4k='dl_twitch_vid "2160p" 0 0'
+alias tw-download-4k-compressed='dl_twitch_vid "2160p" 0 25'
+alias tw-download-4k-shortname='dl_twitch_vid "2160p" 1 0'
+alias tw-download-4k-shortname-compressed='dl_twitch_vid "2160p" 1 25'
 
 ####################################################################################################
 # Git
@@ -534,22 +533,12 @@ if [[ $platform != 'Darwin' && $platform != 'Linux' ]]; then
   alias git="PATH=/usr/bin git"
 fi
 
-function git_commit {
-    cmd="git commit -m \"$*\""
-    eval "$cmd"
-}
-
-function git_commit_signed {
-    cmd="git commit -S -m \"$*\""
-    eval "$cmd"
-}
-
 alias am='git commit --amend'
 alias ama='git commit --amend -C head --author'
 alias ams='git commit -S --amend' # signed
 alias ammend='echo "use am instead"'
 alias amend='echo "use am instead"'
-alias g='gitCmdWrapper'
+alias g='git_cmd_wrapper'
 alias ga='git add -A'
 alias gaa='git add -A; gdcc'
 alias gap='git add -Ap'
