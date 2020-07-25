@@ -39,7 +39,6 @@ abort() {
 
 reload() {
     if [[ $platform == 'Linux' || $platform == 'Darwin' ]]; then
-        #source ~/.zshrc
         test -f ~/.aliases && . ~/.aliases
     else
         test -f ~/.aliases && . ~/.aliases
@@ -445,6 +444,7 @@ alias pdot='cd ~/.private-dotfiles'
 alias duh='du -csh'
 alias exp='explorer .'
 alias f='fg'
+alias grep='grep -n --color '
 alias history='fc -l 1'
 alias histroy='history'
 alias irb='irb --readline -r irb/completion'

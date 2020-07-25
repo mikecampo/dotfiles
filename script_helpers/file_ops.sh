@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Requires the printing.sh helper to be sourced.
 # Requires the platform.sh helper to be sourced.
@@ -165,12 +165,14 @@ link_file() {
         echo "expand_symlinks? $expand_symlinks"
     fi
 
-    if [[ $expand_symlinks -eq 1 ]]; then
-        source_path=$(expand_path "$source_path")
-        dest_path=$(expand_path "$dest_path")
-    else
-        source_path=$(_clean_link_file_path "$source_path")
-        dest_path=$(_clean_link_file_path "$dest_path")
+    if [[ $is_windows -eq 1 ]]; then
+        if [[ $expand_symlinks -eq 1 ]]; then
+            source_path=$(expand_path "$source_path")
+            dest_path=$(expand_path "$dest_path")
+        else
+            source_path=$(_clean_link_file_path "$source_path")
+            dest_path=$(_clean_link_file_path "$dest_path")
+        fi
     fi
 
     if [[ $debug -eq 1 ]]; then
@@ -210,6 +212,7 @@ link_file() {
         echo Link cmd:: $link_cmd
     fi
 
+    printf "${BOLD}*${NORMAL} ${YELLOW}Linking '$source_path'${NORMAL} to ${YELLOW}'$dest_path'${NORMAL}\n"
     eval $link_cmd
 }
 

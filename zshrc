@@ -90,8 +90,19 @@ bindkey -e
 source $ZSH/lib/*.zsh
 
 # Source my custom files after oh-my-zsh so I can override things.
-source $HOME/.env.platform
-source $HOME/.aliases
+test -f $HOME/.aliases && . $HOME/.aliases
+test -f $HOME/.aliases.private && . $HOME/.aliases.private
+# Common env must come first.
+test -f $HOME/.private-dotfiles.common/env && . $HOME/.private-dotfiles.common/env
+test -f $HOME/.private-dotfiles/env && . $HOME/.private-dotfiles/env
+
+if [[ -d "$HOME/bin" ]]; then
+    export PATH=$HOME/bin/:$PATH
+fi
+
+if [[ -d "$HOME/.dotfiles/bin" ]]; then
+    export PATH=$HOME/.dotfiles/bin/:$PATH
+fi
 
 # Fix <c-h> in neovim
 infocmp $TERM | sed 's/kbs=^[hH]/kbs=\\177/' > $HOME/.$TERM.ti

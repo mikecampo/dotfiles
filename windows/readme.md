@@ -159,7 +159,7 @@ processor time and is generally useless.
 
 ### Setting up Custom Search
 
-* First install Rusto. See `Setting up Rust` below.
+* First install Rust. See `Setting up Rust` below.
 * Setup `ripgrep`:
   * Open an `msvc x64` shell and run `cargo install ripgrep`. **Note** the last time I did this
   I got linker errors saying that it was trying to link an x86 exe in a 64-bit env. I had to run

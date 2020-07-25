@@ -1,10 +1,4 @@
 platform=`uname -s`
-kernel_release=`uname -r`
-
-test -f ~/.aliases.private && . ~/.aliases.private
-# Common env must come first.
-test -f ~/.private-dotfiles.common/env && . ~/.private-dotfiles.common/env
-test -f ~/.private-dotfiles/env && . ~/.private-dotfiles/env
 
 # Unbreak broken, non-colored terminal
 export TERM=xterm-256color
@@ -17,11 +11,10 @@ export HOMEBREW_NO_ANALYTICS=1
 export HOMEBREW_NO_INSECURE_REDIRECT=1
 export HOMEBREW_CASK_OPTS=--require-sha
 
-# Grep tweaks
-export GREP_OPTIONS="-nRi --color --exclude-dir=.git  --exclude-dir=tmp --exclude-dir=log --exclude-dir=node_modules --exclude-dir=bower_components --exclude-dir=coverage --exclude-dir=.bundle --exclude=*.csv --exclude=*.pdf --exclude-dir=vendor --exclude-dir=rdoc --exclude-dir=target --exclude-dir=personal --exclude-dir=resources/public/js/*.*" # --exclude-dir=images --exclude-dir=coverage
-
+# Ruby
 export RBENV_PATH="$HOME/.rbenv"
 
+# Clojure
 export LEIN_FAST_TRAMPOLINE=y
 
 if [[ $platform == 'Linux' ]]; then
@@ -30,16 +23,6 @@ if [[ $platform == 'Linux' ]]; then
   export LOLCOMMITS_FORK=true
   export LOLCOMMITS_STEALTH=true
   export LOLCOMMITS_DIR="/shared/Dev/lolcommits"
-fi
-
-path=($HOME/bin $HOME/.dotfiles/bin ${RBENV_PATH}/bin $HOME/.vim/scripts $path)
-
-if [[ $platform == 'Darwin' ]]; then
-  test -f $HOME/.cargo && source $HOME/.cargo/env
-  # TODO: test for qt
-  if [ -d "$HOME/Qt" ]; then
-    path=($HOME/Qt/5.8/clang_64/bin $path)
-  fi
 fi
 
 if [ -d "$HOME/.rbenv" ]; then

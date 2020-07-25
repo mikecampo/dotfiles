@@ -134,11 +134,6 @@ Plug 'nelstrom/vim-qargs'             " For the GlobalReplaceIt function (i.e. s
 if IsWindows()
     Plug 'suxpert/vimcaps'            " Disable capslock (useful if the OS isn't configured to do so).
 else
-    " Fuzzy search
-    " @incomplete Test out ctrlp for non-Windows setup.
-    " Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
-    " Plug 'junegunn/fzf.vim'
-
     " @fixme Doesn't do anything under Windows...
     " Plug 'ervandew/supertab'          " Improved autocompletion.
 endif
@@ -332,75 +327,75 @@ imap <right> <nop>
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 augroup campoCmds
-  " Clear all autocmds in the group.
-  autocmd!
+    " Clear all autocmds in the group.
+    autocmd!
 
-  " Automatically wrap at N characters.
-  autocmd FileType gitcommit setlocal colorcolumn=72
-  autocmd BufRead,BufNewFile *.{md,txt,plan} execute "setlocal textwidth=" .s:max_line_length
+    " Automatically wrap at N characters.
+    autocmd FileType gitcommit setlocal colorcolumn=72
+    autocmd BufRead,BufNewFile *.{md,txt,plan} execute "setlocal textwidth=" .s:max_line_length
 
-  " Spell checking.
-  autocmd FileType gitcommit,markdown,text setlocal spell
+    " Spell checking.
+    autocmd FileType gitcommit,markdown,text setlocal spell
 
-  " Jump to last cursor position unless it's invalid or in an event handler.
-  autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g`\"" | endif
+    " Jump to last cursor position unless it's invalid or in an event handler.
+    autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g`\"" | endif
 
-  " Indent HTML <p> tags.
-  autocmd FileType html,eruby if g:html_indent_tags !~ '\\|p\>' | let g:html_indent_tags .= '\|p\|li\|dt\|dd' | endif
+    " Indent HTML <p> tags.
+    autocmd FileType html,eruby if g:html_indent_tags !~ '\\|p\>' | let g:html_indent_tags .= '\|p\|li\|dt\|dd' | endif
 
-  " Properly indent schemes (scheme, racket, etc).
-  autocmd bufread,bufnewfile *.{lisp,scm,rkt} setlocal equalprg=scmindent.rkt
+    " Properly indent schemes (scheme, racket, etc).
+    autocmd bufread,bufnewfile *.{lisp,scm,rkt} setlocal equalprg=scmindent.rkt
 
-  " Auto reload VIM when settings changed.
-  autocmd BufWritePost .vimrc so $MYVIMRC
-  autocmd BufWritePost *.vim so $MYVIMRC
-  autocmd BufWritePost ~/.vimrc.private so $MYVIMRC
+    " Auto reload VIM when settings changed.
+    autocmd BufWritePost .vimrc so $MYVIMRC
+    autocmd BufWritePost *.vim so $MYVIMRC
+    autocmd BufWritePost ~/.vimrc.private so $MYVIMRC
 
-  function! s:RunCtags()
-    " The ampersand at the end is to make this run in the background. I had to
-    " group the commands in parens to make the chained commands run in the
-    " background.
-    let l:ctags_cmd = "!(ctags --c-types=+l --c++-types=+l --exclude=*.md --exclude=*.txt --exclude=*.config --exclude=*.css --exclude=*.html --exclude=*.htm --exclude=*.json --exclude=node_modules --exclude=.git --exclude=.cache " . g:campo_custom_ctags_args . " -R -o newtags; mv newtags tags) &"
-    exec l:ctags_cmd | redraw!
-  endfun
-  " Generate ctags on save.
-  " Also Include local variables for C-like languages.
-  autocmd BufWritePost *.cs,*.js,*.py,*.c,*.cpp,*.h silent! :call <SID>RunCtags()
+    function! s:RunCtags()
+        " The ampersand at the end is to make this run in the background. I had to
+        " group the commands in parens to make the chained commands run in the
+        " background.
+        let l:ctags_cmd = "!(ctags --c-types=+l --c++-types=+l --exclude=*.md --exclude=*.txt --exclude=*.config --exclude=*.css --exclude=*.html --exclude=*.htm --exclude=*.json --exclude=node_modules --exclude=.git --exclude=.cache " . g:campo_custom_ctags_args . " -R -o newtags; mv newtags tags) &"
+        exec l:ctags_cmd | redraw!
+    endfun
+    " Generate ctags on save.
+    " Also Include local variables for C-like languages.
+    autocmd BufWritePost *.cs,*.js,*.py,*.c,*.cpp,*.h silent! :call <SID>RunCtags()
 
-  " Remove trailing whitespace when saving any file.
-  function! s:StripTrailingWhitespaces()
-    if g:campo_strip_trailing_whitespace
-        let l = line(".")
-        let c = col(".")
-        %s/\s\+$//e
-        call cursor(l, c)
-    endif
-  endfun
-  autocmd BufWritePre * :call <SID>StripTrailingWhitespaces()
+    " Remove trailing whitespace when saving any file.
+    function! s:StripTrailingWhitespaces()
+        if g:campo_strip_trailing_whitespace
+            let l = line(".")
+            let c = col(".")
+            %s/\s\+$//e
+            call cursor(l, c)
+        endif
+    endfun
+    autocmd BufWritePre * :call <SID>StripTrailingWhitespaces()
 
-  "////////////////////////////////////////////////////////////////
-  " FILE TEMPLATES
-  "////////////////////////////////////////////////////////////////
+    "////////////////////////////////////////////////////////////////
+    " FILE TEMPLATES
+    "////////////////////////////////////////////////////////////////
 
-  " Shell script template.
-  autocmd BufNewFile *.sh 0r ~/.vim/templates/skeleton.sh
-  autocmd BufNewFile *.plan 0r ~/.vim/templates/skeleton.plan
+    " Shell script template.
+    autocmd BufNewFile *.sh 0r ~/.vim/templates/skeleton.sh
+    autocmd BufNewFile *.plan 0r ~/.vim/templates/skeleton.plan
 
-  " C/C++ template.
-  autocmd bufnewfile *.{c,cc,cpp,h,hpp} 0r ~/.vim/templates/c_header_notice
-  autocmd bufnewfile *.{c,cc,cpp,h,hpp} exe "2," . 6 . "g/File:.*/s//File: " .expand("%")
-  autocmd bufnewfile *.{c,cc,cpp,h,hpp} exe "2," . 6 . "g/Creation Date:.*/s//Creation Date: " .strftime("%Y-%m-%d")
-  autocmd bufnewfile *.{c,cc,cpp,h,hpp} exe "2," . 6 . "g/$year/s//" .strftime("%Y")
-  function! s:InsertHeaderGates()
-    let gatename = substitute(toupper(expand("%:t")), "\\.", "_", "g")
-    execute "normal! ggO#ifndef " . gatename
-    normal! Go
-    normal! Go
-    execute "normal! Go#define " . gatename . " "
-    execute "normal! o#endif"
-    normal! kkk
-  endfunction
-  autocmd bufnewfile *.{h,hpp} call <SID>InsertHeaderGates()
+    " C/C++ template.
+    autocmd bufnewfile *.{c,cc,cpp,h,hpp} 0r ~/.vim/templates/c_header_notice
+    autocmd bufnewfile *.{c,cc,cpp,h,hpp} exe "2," . 6 . "g/File:.*/s//File: " .expand("%")
+    autocmd bufnewfile *.{c,cc,cpp,h,hpp} exe "2," . 6 . "g/Creation Date:.*/s//Creation Date: " .strftime("%Y-%m-%d")
+    autocmd bufnewfile *.{c,cc,cpp,h,hpp} exe "2," . 6 . "g/$year/s//" .strftime("%Y")
+    function! s:InsertHeaderGates()
+        let gatename = substitute(toupper(expand("%:t")), "\\.", "_", "g")
+        execute "normal! ggO#ifndef " . gatename
+        normal! Go
+        normal! Go
+        execute "normal! Go#define " . gatename . " "
+        execute "normal! o#endif"
+        normal! kkk
+    endfunction
+    autocmd bufnewfile *.{h,hpp} call <SID>InsertHeaderGates()
 augroup END
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -446,16 +441,16 @@ map Q <Nop>
 
 " Open a terminal within vim. Use `exit` to close it.
 if exists(':terminal')
-  map <leader>t :terminal<cr>
-  tnoremap <leader>e <C-\><C-n>
-  tnoremap <A-h> <C-\><C-n><C-w>h
-  tnoremap <A-j> <C-\><C-n><C-w>j
-  tnoremap <A-k> <C-\><C-n><C-w>k
-  tnoremap <A-l> <C-\><C-n><C-w>l
-  nnoremap <A-h> <C-w>h
-  nnoremap <A-j> <C-w>j
-  nnoremap <A-k> <C-w>k
-  nnoremap <A-l> <C-w>l
+    map <leader>t :terminal<cr>
+    tnoremap <leader>e <C-\><C-n>
+    tnoremap <A-h> <C-\><C-n><C-w>h
+    tnoremap <A-j> <C-\><C-n><C-w>j
+    tnoremap <A-k> <C-\><C-n><C-w>k
+    tnoremap <A-l> <C-\><C-n><C-w>l
+    nnoremap <A-h> <C-w>h
+    nnoremap <A-j> <C-w>j
+    nnoremap <A-k> <C-w>k
+    nnoremap <A-l> <C-w>l
 endif
 
 " Jump to other buffers.
@@ -493,7 +488,7 @@ map <leader>= z=
 
 " Clear the search buffer (highlighting) when hitting return.
 function! MapCR()
-  nnoremap <cr> :nohlsearch<cr>
+    nnoremap <cr> :nohlsearch<cr>
 endfunction
 call MapCR()
 nnoremap <leader><leader> <c-^>
@@ -514,10 +509,10 @@ nnoremap <c-g> :%s///g<left><left>
 "////////////////////////////////////////////////////////////////
 
 function! s:CompleteFilenameWithoutExtension(ArgLead, CmdLine, CursorPos)
-  " Returns a matching filename without the period that separates the name
-  " from the extension.
-  let l:file = substitute(glob(a:ArgLead.'*', 0, 0), "[\.].*", "", "*")
-  return l:file
+    " Returns a matching filename without the period that separates the name
+    " from the extension.
+    let l:file = substitute(glob(a:ArgLead.'*', 0, 0), "[\.].*", "", "*")
+    return l:file
 endfunction
 
 " Custom command to open cpp and h files without typing an extension
@@ -681,9 +676,9 @@ let s:light_rainbow = ['red', 'green', 'magenta', 'cyan', 'yellow', 'white', 'gr
 let s:dark_rainbow = ['darkblue', 'red', 'black', 'darkgreen', 'darkyellow', 'darkred', 'darkgray']
 
 function! UpdateRainbowConf()
-  let g:rainbow_conf = {
+    let g:rainbow_conf = {
         \   'ctermfgs': (s:rainbow_theme == "light"? s:dark_rainbow : s:light_rainbow)
-   \}
+     \}
 "\   'separately': {
 "\       '*': 0, " Disable all
 "\       'c++': {} " Only enable c++
@@ -693,18 +688,18 @@ endfunction
 call UpdateRainbowConf()
 
 function! ReloadRainbow()
-  if g:campo_theme_use_rainbow_parens
-    if exists(':RainbowToggle')
-      call UpdateRainbowConf()
-      call rainbow#clear() | call rainbow#hook()
+    if g:campo_theme_use_rainbow_parens
+        if exists(':RainbowToggle')
+            call UpdateRainbowConf()
+            call rainbow#clear() | call rainbow#hook()
+        endif
+    else
+        let g:rainbow_active = 0
+        if exists(':RainbowToggle')
+            call UpdateRainbowConf()
+            call rainbow#clear()
+        endif
     endif
-  else
-    let g:rainbow_active = 0
-    if exists(':RainbowToggle')
-      call UpdateRainbowConf()
-      call rainbow#clear()
-    endif
-  endif
 endfunction
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -731,19 +726,19 @@ set tags+=tags;$HOME
 " CENTER THE BUFFER
 "////////////////////////////////////////////////////////////////
 
- function! CenterPane()
-  " centers the current pane as the middle 2 of 4 imaginary columns
-  " should be called in a window with a single pane
-  " Taken from https://dev.to/vinneycavallo/easily-center-content-in-vim
-   lefta vnew
-   wincmd w
-   exec 'vertical resize '. string(&columns * 0.75)
- endfunction
+function! CenterPane()
+    " centers the current pane as the middle 2 of 4 imaginary columns
+    " should be called in a window with a single pane
+    " Taken from https://dev.to/vinneycavallo/easily-center-content-in-vim
+    lefta vnew
+    wincmd w
+    exec 'vertical resize '. string(&columns * 0.75)
+endfunction
 nnoremap <leader>c :call CenterPane()<cr>
 
 function! RemoveCenterPane()
-  wincmd w
-  close
+    wincmd w
+    close
 endfunction
 nnoremap <leader>cw :call RemoveCenterPane()<cr>
 
@@ -772,24 +767,24 @@ map <leader>l :call ChangeBgTheme('light', 0)<cr>
 map <leader>ll :call ChangeBgTheme('dark', 0)<cr>
 
 function! ChangeBgTheme(bg, onlySetTheme)
-  if a:bg =~ 'light'
-    let s:rainbow_theme = 'light'
-    let s:theme = g:campo_light_theme
-    exe 'colorscheme ' . s:theme
-    set background=light
-  else
-    let s:rainbow_theme = 'dark'
-    let s:theme = g:campo_dark_theme
-    " We have to set the theme twice in order to get its correct dark-theme colors.
-    " Weird stuff.
-    exe 'colorscheme ' . s:theme
-    set background=dark
-    exe 'colorscheme ' . s:theme
-  endif
+    if a:bg =~ 'light'
+        let s:rainbow_theme = 'light'
+        let s:theme = g:campo_light_theme
+        exe 'colorscheme ' . s:theme
+        set background=light
+    else
+        let s:rainbow_theme = 'dark'
+        let s:theme = g:campo_dark_theme
+        " We have to set the theme twice in order to get its correct dark-theme colors.
+        " Weird stuff.
+        exe 'colorscheme ' . s:theme
+        set background=dark
+        exe 'colorscheme ' . s:theme
+    endif
 
-  if !a:onlySetTheme
-    exec ':AirlineTheme ' . a:bg
-  endif
+    if !a:onlySetTheme
+        exec ':AirlineTheme ' . a:bg
+    endif
 endfunction
 
 if s:default_bg =~ 'light'
@@ -878,35 +873,35 @@ set errorformat+=\\\ %#%f(%l)\ :\ %#%t%[A-z]%#\ %m
 set errorformat+=\\\ %#%f(%l\\\,%c-%*[0-9]):\ %#%t%[A-z]%#\ %m
 
 function! HideBuildResultsAndClearErrors()
-  RemoveErrorMarkers
-  call asyncrun#quickfix_toggle(g:quickfix_window_height, 0)
+    RemoveErrorMarkers
+    call asyncrun#quickfix_toggle(g:quickfix_window_height, 0)
 endfunction
 
 function! HideAsyncResults()
-  call asyncrun#quickfix_toggle(g:quickfix_window_height, 0)
+    call asyncrun#quickfix_toggle(g:quickfix_window_height, 0)
 endfunction
 
 function! ToggleBuildResults()
-  call asyncrun#quickfix_toggle(g:quickfix_window_height)
+    call asyncrun#quickfix_toggle(g:quickfix_window_height)
 endfunction
 
 function! StopRunTask()
-  AsyncStop
-  call HideAsyncResults()
+    AsyncStop
+    call HideAsyncResults()
 endfunction
 
 function! ExecuteRunScript()
-  exec "AsyncRun! -post=call\\ StopRunTask() ./run %"
+    exec "AsyncRun! -post=call\\ StopRunTask() ./run %"
 endfunction
 
 function! SilentBuild()
-  AsyncStop
-  exec "AsyncRun! -save=2 -post=call\\ HideAsyncResults() ./build* %"
+    AsyncStop
+    exec "AsyncRun! -save=2 -post=call\\ HideAsyncResults() ./build* %"
 endfunction
 
 " Show results window the moment the async job starts
 augroup vimrc
-  autocmd User AsyncRunStart call asyncrun#quickfix_toggle(g:quickfix_window_height, 1)
+    autocmd User AsyncRunStart call asyncrun#quickfix_toggle(g:quickfix_window_height, 1)
 augroup END
 
 " Toggle build results
@@ -939,35 +934,23 @@ nnoremap <C-p> :cp<CR>
 " SEARCH
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-" @incomplete
-if !IsWindows()
-  let rg_args = "--column --line-number --no-heading --fixed-strings --ignore-case --no-ignore --hidden --follow --pretty \"always\" " . g:campo_custom_search_args
-  let cmd = "command! -bang -nargs=* Find call fzf#vim#grep('rg " . rg_args .  "'.shellescape(<q-args>), 1, <bang>0)"
-  exec cmd
-endif
-
 " Search using ripgrep (first install with Rust: cargo install ripgrep).
 function! Search(case_sensitive)
-  let helper = "[" . (a:case_sensitive ? "case-sensitive" : "case-insensitive") . "] search: "
-  let term = input(helper)
-  if empty(term)
-    return
-  endif
+    let l:helper = "[" . (a:case_sensitive ? "case-sensitive" : "case-insensitive") . "] search: "
+    let l:term = input(l:helper)
+    if empty(l:term)
+        return
+    endif
 
-  "@note --pretty (i.e. colors) is not enabled in vim-ripgrep because the
-  "quickfix window doesn't seem to parse the ansi color codes.
-  let rg_args = "--trim -g \"!tags\" " . g:campo_custom_search_args
+    "@note --pretty (i.e. colors) is not enabled in vim-ripgrep because the
+    "quickfix window doesn't seem to parse the ansi color codes.
+    let l:rg_args = "--column --line-number --no-heading --fixed-strings --no-ignore --hidden --follow --trim -g \"!tags\" " . g:campo_custom_search_args
 
-  if !a:case_sensitive
-    let rg_args .= " --ignore-case"
-  endif
+    if !a:case_sensitive
+        let l:rg_args .= " --ignore-case"
+    endif
 
-  if IsWindows()
-    exec 'Rg ' . rg_args . ' "' . term . '"'
-  else
-    " @incomplete Test out ripgrep on non-Windows OS
-    echo "Not implemented"
-  endif
+    exec 'Rg ' . l:rg_args . ' "' . l:term . '"'
 endfunction
 map <leader>s :call Search(0)<cr>
 map <leader>ss :call Search(1)<cr>
@@ -978,45 +961,44 @@ map <leader>ss :call Search(1)<cr>
 nnoremap <expr> o (&buftype is# "quickfix" ? "<CR>\|:lopen<CR>" : "o")
 nnoremap <expr> p (&buftype is# "quickfix" ? "<CR>\|:copen<CR>" : "p")
 
-
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " SEARCH & REPLACE
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 " Replace the selected text in all files within the repo.
 function! GlobalReplaceIt(confirm_replacement)
-  if exists(':Ggrep')
-    call inputsave()
+    if exists(':Ggrep')
+        call inputsave()
 
-    if a:confirm_replacement
-        let l:term = input('Enter search term (w/ confirmation): ')
+        if a:confirm_replacement
+            let l:term = input('Enter search term (w/ confirmation): ')
+        else
+            let l:term = input('Enter search term (no confirmation): ')
+        endif
+
+        call inputrestore()
+        if empty(l:term)
+            return
+        endif
+
+        call inputsave()
+        let l:replacement = input('Enter replacement: ')
+        call inputrestore()
+        if empty(l:replacement)
+            return
+        endif
+
+        if a:confirm_replacement
+            let l:confirm_opt = 'c'
+        else
+            let l:confirm_opt = 'e'
+        endif
+
+        execute 'Ggrep '.l:term
+        execute 'Qargs | argdo %s/'.l:term.'/'.l:replacement.'/g'.l:confirm_opt.' | update'
     else
-        let l:term = input('Enter search term (no confirmation): ')
+        echo "Unable to search since you're not in a git repo"
     endif
-
-    call inputrestore()
-    if empty(l:term)
-      return
-    endif
-
-    call inputsave()
-    let l:replacement = input('Enter replacement: ')
-    call inputrestore()
-    if empty(l:replacement)
-      return
-    endif
-
-    if a:confirm_replacement
-      let l:confirm_opt = 'c'
-    else
-      let l:confirm_opt = 'e'
-    endif
-
-    execute 'Ggrep '.l:term
-    execute 'Qargs | argdo %s/'.l:term.'/'.l:replacement.'/g'.l:confirm_opt.' | update'
-  else
-    echo "Unable to search since you're not in a git repo"
-  endif
 endfunction
 map <leader>r :call GlobalReplaceIt(0)<cr>
 map <leader>rr :call GlobalReplaceIt(1)<cr>

@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+if which tput >/dev/null 2>&1; then
+  ncolors=$(tput colors)
+fi
+if [ -t 1 ] && [ -n "$ncolors" ] && [ "$ncolors" -ge 8 ]; then
+  RED="$(tput setaf 1)"
+  GREEN="$(tput setaf 2)"
+  YELLOW="$(tput setaf 3)"
+  BLUE="$(tput setaf 4)"
+  BOLD="$(tput bold)"
+  NORMAL="$(tput sgr0)"
+else
+  RED=""
+  GREEN=""
+  YELLOW=""
+  BLUE=""
+  BOLD=""
+  NORMAL=""
+fi
+
+set -e
+
+printf "Installing Homebrew...\n"
+
+# OSX 10.11 and earlier will issue certificate errors when Homebrew attempts to download packages
+# with curl. Detect if we're running on 10.11 or earlier and if so use a fork that passes the
+# --insecure option to curl.
+kernel_major="$(uname -r | sed 's/\..*//')"
+case $kernel_major in
+    15 | 14 | 13) download_patched_homebrew=1 ;;
+    *) download_patched_homebrew=0 ;;
+esac
+
+if [[ $download_patched_homebrew -eq 1 ]]; then
+    printf "${BOLD}Current MacOS kernel ${NORMAL}${YELLOW}$(uname -r)${NORMAL}${BOLD} requires a patched version of Homebrew...${NORMAL}\n"
+    bash -c "$(curl -fsSL https://raw.githubusercontent.com/sir-pinecone/brew/master/install.sh)"
+else
+    bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+fi
+
+brew tap homebrew/core
+
+printf "\nInstalling bash...\n"
+ret=$(brew list | awk /$package/)
+if [[ $ret == $package ]]; then
+    printf "${YELLOW}Already installed!${NORMAL}\n"
+else
+    eval "brew install bash"
+    printf "\n${YELLOW}Finished installing updated version of bash.\nYou must now enable it. Run:${NORMAL}\n"
+    printf "    ${BOLD}sudo vim /etc/shells${NORMAL}\n"
+    printf "${YELLOW}And add ${NORMAL}${BOLD}/usr/local/bin/bash${NORMAL}${YELLOW} to the end of the list. After that close your terminal and re-run the dotfiles install script.${NORMAL}\n"
+fi
+

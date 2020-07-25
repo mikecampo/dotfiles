@@ -1,4 +1,15 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+platform=`uname`
+
+if [[ $platform == 'Darwin' ]]; then
+    if ! command -v brew &>/dev/null
+    then
+        # We need to update bash, so we'll start with setting up homebrew.
+        ./osx/pre_install
+        exit
+    fi
+fi
 
 source "script_helpers/printing.sh"
 source "script_helpers/core.sh"
@@ -6,9 +17,10 @@ source "script_helpers/platform.sh"
 source "script_helpers/file_ops.sh"
 
 cwd=$PWD
-platform=`uname`
 confirm_link=0
 os_is_windows is_windows
+os_is_macos is_macos
+os_is_linux is_linux
 
 if [[ $is_windows -eq 1 ]]; then
     # Check for admin permissions.
@@ -26,32 +38,34 @@ set -e
 ####################################################################################################
 
 setup_zsh() {
-  printf "Setting up zsh...\n"
+    printf "Setting up zsh...\n"
 
-  sudo apt install zsh
-
-  TEST_CURRENT_SHELL=$(expr "$SHELL" : '.*/\(.*\)')
-  if [ "$TEST_CURRENT_SHELL" != "zsh" ]; then
-    if hash chsh >/dev/null 2>&1; then
-      printf "\n${BLUE}Changing the default shell to zsh${NORMAL}\n"
-      chsh -s $(grep /zsh$ /etc/shells | tail -1)
-    else
-      printf "\n${RED}Unable to change the shell because this system does not have chsh.\n"
-      printf "${BLUE}If this is Windows then you probably want to run the bash installer.${NORMAL}\n"
+    if [[ $is_linux -eq 1 ]]; then
+        sudo apt install zsh
     fi
-  fi
 
-  FILES=()
-  FILES+=('zsh')
-  FILES+=('zshrc')
-  FILES+=('zshenv')
-  FILES+=('zlogin')
-  FILES+=('zprofile')
+    TEST_CURRENT_SHELL=$(expr "$SHELL" : '.*/\(.*\)')
+    if [ "$TEST_CURRENT_SHELL" != "zsh" ]; then
+        if hash chsh >/dev/null 2>&1; then
+            printf "\n${BLUE}Changing the default shell to zsh${NORMAL}\n"
+            chsh -s $(grep /zsh$ /etc/shells | tail -1)
+        else
+            printf "\n${RED}Unable to change the shell because this system does not have chsh.\n"
+            printf "${BLUE}If this is Windows then you probably want to run the bash installer.${NORMAL}\n"
+        fi
+    fi
 
-  for file in "${FILES[@]}"
-  do
-    setup_file "$file"
-  done
+    setup_dir .dotfiles/zsh .zsh
+
+    FILES=()
+    FILES+=('zshrc')
+    FILES+=('zshenv')
+    FILES+=('zlogin')
+
+    for file in "${FILES[@]}"
+    do
+        setup_file .dotfiles/$file .$file
+    done
 }
 
 ####################################################################################################
@@ -96,9 +110,9 @@ if [[ $is_windows -eq 0 ]]; then
     setup_zsh
 fi
 
-if [[ $platform == 'Darwin' ]]; then
-    printf "\n${BOLD}Running the OS X installer${NORMAL}\n"
-    ./osx/install.sh
+if [[ $is_macos -eq 1 ]]; then
+    printf "\n${BOLD}Running the MacOS installer${NORMAL}\n"
+    $cwd/osx/install
 fi
 
 popd "$HOME" &>/dev/null

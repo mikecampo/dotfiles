@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 source_helpers="$HOME/.dotfiles/script_helpers"
 source "$source_helpers/printing.sh"

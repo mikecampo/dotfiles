@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 source "$HOME/.dotfiles/script_helpers/all.sh"
 
