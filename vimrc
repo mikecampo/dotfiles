@@ -37,6 +37,13 @@ endfunction
 "--------------------------------------------
 " Colors
 "--------------------------------------------
+if has('termguicolors')
+    set termguicolors
+    " Set Vim-specific sequences for RGB colors
+    let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+    let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+endif
+
 let g:campo_dark_theme = 'campo-simple-dark'
 "let g:campo_dark_theme = 'campo-dark-blue'
 "let g:campo_dark_theme = 'campo-dark-grey-blue'
@@ -282,6 +289,7 @@ set backspace=indent,eol,start    " Allow backspacing over everything in insert 
 set complete+=kspell              " Spell checking autocomplete.
 set complete-=i                   " Don't scan all included files since it's really slow.
 
+set termguicolors
 syntax on                         " Enable highlighting for syntax
 
 set wildmenu
