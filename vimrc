@@ -133,9 +133,6 @@ Plug 'nelstrom/vim-qargs'             " For the GlobalReplaceIt function (i.e. s
 
 if IsWindows()
     Plug 'suxpert/vimcaps'            " Disable capslock (useful if the OS isn't configured to do so).
-else
-    " @fixme Doesn't do anything under Windows...
-    " Plug 'ervandew/supertab'          " Improved autocompletion.
 endif
 
 "///////////////////
@@ -150,28 +147,31 @@ endif
 "////////////////////////////////////////////////////////////////
 
 Plug 'luochen1990/rainbow', { 'commit': '1c45e0f' } " Rainbow parens. Locked to an older commit that still works fine on my PC.
-Plug 'godlygeek/csapprox'             " Try to make gvim themes look decent in Windows
 "Plug 'flazz/vim-colorschemes'        " @warning: Has a lot of themes, but they break the other themes listed below
 Plug 'elixir-lang/vim-elixir'
 Plug 'vim-airline/vim-airline-themes'
 
+if IsWindows()
+    Plug 'godlygeek/csapprox'         " Try to make gvim themes look decent on Windows.
+endif
+
 " Light Themes
-Plug 'raggi/vim-color-raggi'          " @note No Win support, unless using gvim.
-Plug 'LanFly/vim-colors'              " @note No Win support, unless using gvim.
+Plug 'raggi/vim-color-raggi'          " @note No Windows support, unless using gvim.
+Plug 'LanFly/vim-colors'              " @note No Windows support, unless using gvim.
 
 " Dark Themes
-Plug 'rhysd/vim-color-spring-night'   " @note No Win support, unless using gvim.
+Plug 'rhysd/vim-color-spring-night'   " @note No Windows support, unless using gvim.
 Plug 'nanotech/jellybeans.vim'
 Plug 'zcodes/vim-colors-basic'
 
 " Hybrid Themes
 Plug 'sickill/vim-monokai'
-Plug 'chmllr/elrodeo-vim-colorscheme' " A little dark on Windows, term
-Plug 'reedes/vim-colors-pencil'       " High-contrast
+Plug 'chmllr/elrodeo-vim-colorscheme' " A little dark on Windows.
+Plug 'reedes/vim-colors-pencil'       " High-contrast.
 " Seabird themes
   " High contrast: seagull  (light),  petrel      (dark)
   " Low contrast:  greygull (light),  stormpetrel (dark)
-Plug 'nightsense/seabird'             " @note No Win support, unless using gvim.
+Plug 'nightsense/seabird'             " @note No Windows support, unless using gvim.
 
 "//////////////////////////////
 " SYNTAX HIGHLIGHTING
@@ -182,7 +182,6 @@ Plug 'octol/vim-cpp-enhanced-highlight' " C/C++
 Plug 'vim-ruby/vim-ruby'                " Ruby
 Plug 'fatih/vim-go'                     " Go
 Plug 'rust-lang/rust.vim'               " Rust
-Plug 'peterhoeg/vim-qml'                " QML
 Plug 'jdonaldson/vaxe'                  " Haxe
 
 " Clojure -- Disabled since I'm not doing any Clojure work atm.
