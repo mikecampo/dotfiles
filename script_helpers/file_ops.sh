@@ -11,19 +11,18 @@
 # Will return a symlink path in its expanded form.  If the path's root is the
 # home directory symbol "~" then it'll be replaced by the full home path.
 expand_path() {
-  local ret="$1"
+    local ret="$1"
 
-  IFS="/" read -ra parts <<< "$ret"
-  if [[ "${parts[0]}" == "~" ]]; then
-    ret="$HOME"
-    for ((i=1; i < ${#parts[@]}; i++))
-    do
-      ret="$ret/${parts[$i]}"
-    done
-  fi
-
-  ret=$(readlink -m "$ret")
-  echo $ret
+    IFS="/" read -ra parts <<< "$ret"
+    if [[ "${parts[0]}" == "~" ]]; then
+        ret="$HOME"
+        for ((i=1; i < ${#parts[@]}; i++))
+        do
+            ret="$ret/${parts[$i]}"
+        done
+    fi
+    ret=$(readlink -m "$ret")
+    echo $ret
 }
 
 unix_to_windows_path() {
@@ -42,82 +41,82 @@ unix_to_windows_path() {
 }
 
 windows_to_unix_path() {
-  ret=$1
-  ret="/${ret/:/}"     # Remove drive ':'.
-  ret="${ret//\\//}"   # Replace Windows slashes.
-  ret="${ret// /\\ }"  # Add a backslash before spaces.
-  echo "$ret"
+    ret=$1
+    ret="/${ret/:/}"     # Remove drive ':'.
+    ret="${ret//\\//}"   # Replace Windows slashes.
+    ret="${ret// /\\ }"  # Add a backslash before spaces.
+    echo "$ret"
 }
 
 move_file() {
-  local src="$1"
-  local src_path=$(dirname "${src}")
-  local src_name=$(basename "${src}")
-  local dest=$2
-  local src_type=$3 # e.g. "script", "dependency", etc
+    local src="$1"
+    local src_path=$(dirname "${src}")
+    local src_name=$(basename "${src}")
+    local dest=$2
+    local src_type=$3 # e.g. "script", "dependency", etc
 
-  if [[ $src_type != '' ]]; then
-    src_type="$src_type "
-  fi
+    if [[ $src_type != '' ]]; then
+        src_type="$src_type "
+    fi
 
-  if [[ -e "$src" ]]; then
-    mkdir -p "$dest"
-    mv "$src" "$dest"
-    printf "${BOLD}${GREEN}Moved $src_type$src to $dest${NORMAL}\n"
-  else
-    error "Unable to find $src_type$src!\n"
-  fi
+    if [[ -e "$src" ]]; then
+        mkdir -p "$dest"
+        mv "$src" "$dest"
+        printf "${BOLD}${GREEN}Moved $src_type$src to $dest${NORMAL}\n"
+    else
+        error "Unable to find $src_type$src!\n"
+    fi
 }
 
 copy_file() {
-  local src="$1"
-  local src_path=$(dirname "${src}")
-  local src_name=$(basename "${src}")
-  local dest=$2
-  local src_type=$3 # e.g. "script", "dependency", etc
+    local src="$1"
+    local src_path=$(dirname "${src}")
+    local src_name=$(basename "${src}")
+    local dest=$2
+    local src_type=$3 # e.g. "script", "dependency", etc
 
-  if [[ $src_type != '' ]]; then
-    src_type="$src_type "
-  fi
+    if [[ $src_type != '' ]]; then
+        src_type="$src_type "
+    fi
 
-  if [[ -e "$src" ]]; then
-    # @fixme If $dest is a file then strip the file name from the path and mkdir on that instead
-    echo "MAKE DIR $src $dest"
-    #mkdir -p "$dest"
-    cp "$src" "$dest"
-    printf "${BOLD}${GREEN}Copied $src_type$src to $dest${NORMAL}\n"
-  else
-    error "Unable to find $src_type$src!\n"
-  fi
+    if [[ -e "$src" ]]; then
+        # @fixme If $dest is a file then strip the file name from the path and mkdir on that instead
+        echo "MAKE DIR $src $dest"
+        #mkdir -p "$dest"
+        cp "$src" "$dest"
+        printf "${BOLD}${GREEN}Copied $src_type$src to $dest${NORMAL}\n"
+    else
+        error "Unable to find $src_type$src!\n"
+    fi
 }
 
 copy_dir_files() {
-  local src="$1"
-  local dest=$2
+    local src="$1"
+    local dest=$2
 
-  if [[ -d "$src" ]]; then
-    mkdir -p "$dest"
-    cp -r $src/* $dest
-    printf "${BOLD}${GREEN}Copied contents of $src into $dest${NORMAL}\n"
-  else
-    error "Unable to find $src!\n"
-  fi
+    if [[ -d "$src" ]]; then
+        mkdir -p "$dest"
+        cp -r $src/* $dest
+        printf "${BOLD}${GREEN}Copied contents of $src into $dest${NORMAL}\n"
+    else
+        error "Unable to find $src!\n"
+    fi
 }
 
 is_absolute_unix_path() {
-  if [[ $1 =~ ^/ ]]; then echo 1; else echo 0; fi
+    if [[ $1 =~ ^/ ]]; then echo 1; else echo 0; fi
 }
 
 is_sym_file() {
-  if [[ $1 =~ ^\.{1} ]]; then echo 1; else echo 0; fi
+    if [[ $1 =~ ^\.{1} ]]; then echo 1; else echo 0; fi
 }
 
 is_windows_path() {
-  if [[ ! $1 =~ \/+ ]]; then echo 1; else echo 0; fi
+    if [[ ! $1 =~ \/+ ]]; then echo 1; else echo 0; fi
 }
 
 is_unix_path() {
-  echo $(! is_windows_path "$1")
+    echo $(! is_windows_path "$1")
 }
 
 path_has_a_space() {
@@ -200,7 +199,7 @@ link_file() {
     fi
 
     if [[ $require_confirmation -eq 1 ]]; then
-        echo "${BOLD}${BLUE}Will attempt to link ${GREEN}$source_path${BLUE} to ${GREEN}$dest_path${BLUE}"
+        echo "${BOLD}${BLUE}Will attempt to link ${YELLOW}$source_path${BLUE} to ${YELLOW}$dest_path${BLUE}"
         printf "${BOLD}Enter 1 to proceed\n${YELLOW}> ${NORMAL}"
         read confirm
         if [[ $confirm != 1 ]]; then abort; fi
@@ -212,7 +211,7 @@ link_file() {
         echo Link cmd:: $link_cmd
     fi
 
-    printf "${BOLD}*${NORMAL} ${YELLOW}Linking '$source_path'${NORMAL} to ${YELLOW}'$dest_path'${NORMAL}\n"
+    printf "${BOLD}${GREEN}==> ${NORMAL}Linking ${BOLD}${YELLOW}'$source_path'${NORMAL} to ${BOLD}${YELLOW}'$dest_path'${NORMAL}\n"
     eval $link_cmd
 }
 
@@ -222,7 +221,7 @@ function setup_file() {
     if [ ! -f $dest ]; then
         link_file $src $dest $confirm_link
     else
-        printf "${BOLD}*${NORMAL} ${YELLOW}'$dest'${NORMAL} already linked to ${YELLOW}'$src'${NORMAL}\n"
+        printf "${BOLD}${MAGENTA}==> ${NORMAL}${BOLD}${YELLOW}'$dest'${NORMAL} already linked to ${BOLD}${YELLOW}'$src'${NORMAL}\n"
     fi
 }
 
@@ -232,7 +231,7 @@ function setup_dir() {
     if [ ! -d $dest ]; then
         link_file $src $dest $confirm_link
     else
-        printf "${BOLD}*${NORMAL} ${YELLOW}'$dest'${NORMAL} already linked to ${YELLOW}'$src'${NORMAL}\n"
+        printf "${BOLD}${MAGENTA}==> ${NORMAL}${BOLD}${YELLOW}'$dest'${NORMAL} already linked to ${BOLD}${YELLOW}'$src'${NORMAL}\n"
     fi
 }
 

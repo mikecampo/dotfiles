@@ -4,28 +4,32 @@ if which tput >/dev/null 2>&1; then
   ncolors=$(tput colors)
 fi
 if [ -t 1 ] && [ -n "$ncolors" ] && [ "$ncolors" -ge 8 ]; then
-  RED="$(tput setaf 1)"
-  GREEN="$(tput setaf 2)"
-  YELLOW="$(tput setaf 3)"
-  BLUE="$(tput setaf 4)"
-  BOLD="$(tput bold)"
-  NORMAL="$(tput sgr0)"
+    RED="$(tput setaf 1)"
+    GREEN="$(tput setaf 2)"
+    YELLOW="$(tput setaf 3)"
+    BLUE="$(tput setaf 4)"
+    MAGENTA="$(tput setaf 5)"
+    CYAN="$(tput setaf 6)"
+    BOLD="$(tput bold)"
+    NORMAL="$(tput sgr0)"
 else
-  RED=""
-  GREEN=""
-  YELLOW=""
-  BLUE=""
-  BOLD=""
-  NORMAL=""
+    RED=""
+    GREEN=""
+    YELLOW=""
+    BLUE=""
+    MAGENTA=""
+    CYAN=""
+    BOLD=""
+    NORMAL=""
 fi
 
 error() {
-  printf "${BOLD}${RED}$1${NORMAL}\n"
+    printf "${BOLD}${RED}$1${NORMAL}\n"
 }
 
 abort() {
-  error "\nAborting..."
-  exit 1
+    error "\nAborting..."
+    exit 1
 }
 
 set -e
@@ -35,7 +39,7 @@ cwd=$PWD
 uname_s="$(uname -s)"
 case "${uname_s}" in
     Linux*)   machine=Linux;;
-    Darwin*)  machine=Mac;;
+    Darwin*)  machine=MacOS;;
     CYGWIN*)  machine=Cygwin;;
     MINGW*)   machine=MinGw;;
     *)        machine="UNKNOWN:${uname_s}"
