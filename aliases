@@ -102,6 +102,12 @@ dl_youtube_vid() {
     local url="$2"
     shift 2
     local opts="$@"
+
+    if [[ $url == "" ]]; then
+        error "Format: cmd <url> <optional args>\n"
+        return
+    fi
+
     opts+=" --all-subs --embed-subs"
 
     make_vid_dir_and_cd_into $url
@@ -128,6 +134,12 @@ dl_youtube_vid_and_hflip() {
     local url="$2"
     shift 2
     local opts="$@"
+
+    if [[ $url == "" ]]; then
+        error "Format: cmd <url> <optional args>\n"
+        return
+    fi
+
     opts+=" --all-subs --embed-subs"
 
     make_vid_dir_and_cd_into $url
@@ -156,12 +168,14 @@ dl_youtube_playlist() {
     local format="$1"
     local url="$2"
     local dir_name="$3"
-    if [[ $url == "" || $dir_name == "" ]]; then
-        error "Format: cmd <url> <directory name>\n"
-        return
-    fi
     shift 3
     local opts="$@"
+
+    if [[ $url == "" || $dir_name == "" ]]; then
+        error "Format: cmd <url> <directory name> <optional args>\n"
+        return
+    fi
+
     opts+=" --all-subs --embed-subs"
 
     make_vid_dir_and_cd_into $url "$dir_name"
@@ -190,6 +204,11 @@ dl_twitch_vid() {
     local url="$4"
     shift 4
     local opts="$@"
+
+    if [[ $url == "" ]]; then
+        error "Format: cmd <url> <optional args>\n"
+        return
+    fi
 
     if [[ $compression_level -eq 0 ]]; then
         printf "${BOLD}Downloading Twitch vid with no compression.${NORMAL}\n"
@@ -238,6 +257,11 @@ dl_twitch_vid() {
 
 dl_twitch_chat() {
     local url="$1"
+
+    if [[ $url == "" ]]; then
+        error "Format: cmd <url>\n"
+        return
+    fi
 
     make_vid_dir_and_cd_into $url
     if [[ $? -ne 0 ]]; then
@@ -484,48 +508,45 @@ alias vu='vagrant up'
 alias vimrc='vim ~/.vimrc'
 alias weather='curl wttr.in/toronto'
 
-alias yt-download='dl_youtube_vid ""'
-alias yt-download-1080='dl_youtube_vid "137+140"'
-alias yt-download-720='dl_youtube_vid "136+140"'
-alias yt-download-playlist='dl_youtube_playlist ""'
-alias yt-download-playlist-1080='dl_youtube_playlist "137+140"'
-alias yt-download-playlist-720='dl_youtube_playlist "136+140"'
-alias yt-download-playlist-tiny='dl_youtube_playlist "160+140"'
-alias yt-download-audio='youtube-dl.exe -f "140"'
+alias yt='dl_youtube_vid ""'
+alias yt-1080='dl_youtube_vid "137+140"'
+alias yt-720='dl_youtube_vid "136+140"'
+alias yt-playlist='dl_youtube_playlist ""'
+alias yt-playlist-1080='dl_youtube_playlist "137+140"'
+alias yt-playlist-720='dl_youtube_playlist "136+140"'
+alias yt-playlist-tiny='dl_youtube_playlist "160+140"'
+alias yt-audio='youtube-dl.exe -f "140"'
 
-alias yt-download-and-hflip='dl_youtube_vid_and_hflip "137+140"' # 1080p
+alias yt-and-hflip='dl_youtube_vid_and_hflip "137+140"' # 1080p
 alias ig-download-and-hflip='dl_instagram_vid_and_hflip '
 alias download-mp4='dl_mp4'
 
-alias tw-download-chat='dl_twitch_chat'
-alias tw-dl='youtube-dl.exe -f "1080" -o "%(upload_date)s-%(title)s-twitch-%(id)s.%(ext)s"'
-alias tw-dl2='youtube-dl.exe -o "%(upload_date)s-%(title)s-twitch-%(id)s.%(ext)s"'
-alias tw-download-custom='dl_twitch_vid '
+alias tw='dl_twitch_vid "1080p" 0 0'
+alias tw-compressed='dl_twitch_vid "1080p" 0 25'
+alias tw-shortname='dl_twitch_vid "1080p" 1 0'
+alias tw-shortname-compressed='dl_twitch_vid "1080p" 1 25'
+alias tw-custom='dl_twitch_vid '
+alias tw-chat='dl_twitch_chat'
 
-alias tw-download='dl_twitch_vid "1080p" 0 0'
-alias tw-download-compressed='dl_twitch_vid "1080p" 0 25'
-alias tw-download-shortname='dl_twitch_vid "1080p" 1 0'
-alias tw-download-shortname-compressed='dl_twitch_vid "1080p" 1 25'
+alias tw-1080='dl_twitch_vid "1080" 0 0'
+alias tw-1080-compressed='dl_twitch_vid "1080" 0 25'
+alias tw-1080-shortname='dl_twitch_vid "1080" 1 0'
+alias tw-1080-shortname-compressed='dl_twitch_vid "1080" 1 25'
 
-alias tw-download-1080='dl_twitch_vid "1080" 0 0'
-alias tw-download-1080-compressed='dl_twitch_vid "1080" 0 25'
-alias tw-download-1080-shortname='dl_twitch_vid "1080" 1 0'
-alias tw-download-1080-shortname-compressed='dl_twitch_vid "1080" 1 25'
+alias tw-60='dl_twitch_vid "1080p60" 0 0'
+alias tw-60-compressed='dl_twitch_vid "1080p60" 0 25'
+alias tw-60-shortname='dl_twitch_vid "1080p60" 1 0'
+alias tw-60-shortname-compressed='dl_twitch_vid "1080p60" 1 25'
 
-alias tw-download-60='dl_twitch_vid "1080p60" 0 0'
-alias tw-download-60-compressed='dl_twitch_vid "1080p60" 0 25'
-alias tw-download-60-shortname='dl_twitch_vid "1080p60" 1 0'
-alias tw-download-60-shortname-compressed='dl_twitch_vid "1080p60" 1 25'
+alias tw-720='dl_twitch_vid "720p-1" 0 0'
+alias tw-720-shortname='dl_twitch_vid "720p-1" 1 0'
+alias tw-720-60='dl_twitch_vid "720p60" 0 0'
+alias tw-720-60-shortname='dl_twitch_vid "720p60" 1 0'
 
-alias tw-download-720='dl_twitch_vid "720p-1" 0 0'
-alias tw-download-720-shortname='dl_twitch_vid "720p-1" 1 0'
-alias tw-download-720-60='dl_twitch_vid "720p60" 0 0'
-alias tw-download-720-60-shortname='dl_twitch_vid "720p60" 1 0'
-
-alias tw-download-4k='dl_twitch_vid "2160p" 0 0'
-alias tw-download-4k-compressed='dl_twitch_vid "2160p" 0 25'
-alias tw-download-4k-shortname='dl_twitch_vid "2160p" 1 0'
-alias tw-download-4k-shortname-compressed='dl_twitch_vid "2160p" 1 25'
+alias tw-4k='dl_twitch_vid "2160p" 0 0'
+alias tw-4k-compressed='dl_twitch_vid "2160p" 0 25'
+alias tw-4k-shortname='dl_twitch_vid "2160p" 1 0'
+alias tw-4k-shortname-compressed='dl_twitch_vid "2160p" 1 25'
 
 ####################################################################################################
 # Git
