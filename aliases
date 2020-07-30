@@ -3,8 +3,6 @@
 # to remove those with: `sed -i 's/\r//' <file>` or with `dos2unix`.
 #
 
-platform=`uname`
-
 if which tput >/dev/null 2>&1; then
     ncolors=$(tput colors)
 fi
@@ -28,6 +26,8 @@ else
     NORMAL=""
 fi
 
+platform=`uname`
+
 ####################################################################################################
 # Helper Functions
 ####################################################################################################
@@ -49,9 +49,16 @@ reload() {
     fi
 }
 
+update-shell() {
+    if [[ '${platform,,}' == *'ming'* ]]; then
+        pacman -Syu
+        printf "\n${BOLD}${YELLOW}Close this shell, open a new one, and then run 'pacman -Su'${NORMAL}\n"
+    fi
+}
+
 # See top 10 bash commands
 hist() {
-    if [[ "${platform,,}" == *'ming'* ]]; then
+    if [[ '${platform,,}' == *'ming'* ]]; then
         hist_file=~/.bash_history
     else
         hist_file=~/.history
@@ -552,7 +559,7 @@ alias tw-4k-shortname-compressed='dl_twitch_vid "2160p" 1 25'
 # Git
 ####################################################################################################
 
-if [[ $platform != 'Darwin' && $platform != 'Linux' ]]; then
+if [[ '${platform,,}' == *'ming'* ]]; then
   # Fix a weird mingw 'not a valid identifierline' error.
   # Got the fix from https://github.com/Alexpux/MSYS2-packages/issues/735#issuecomment-328938800
   alias git="PATH=/usr/bin git"

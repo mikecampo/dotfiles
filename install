@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
-platform=`uname`
-
-if [[ $platform == 'Darwin' ]]; then
+if [[ $(uname) == 'Darwin' ]]; then
     if ! command -v brew &>/dev/null
     then
         # We need to update bash, so we'll start with setting up homebrew.
@@ -55,7 +53,7 @@ setup_zsh() {
         fi
     fi
 
-    setup_dir .dotfiles/zsh .zsh
+    setup_dir .dotfiles/zsh/core .zsh
 
     FILES=()
     FILES+=('zshrc')
@@ -64,7 +62,7 @@ setup_zsh() {
 
     for file in "${FILES[@]}"
     do
-        setup_file .dotfiles/$file .$file
+        setup_file .dotfiles/zsh/$file .$file
     done
 }
 
@@ -84,6 +82,7 @@ setup_dir .dotfiles/vim .vim
 # Setup root files
 #########################
 FILES=()
+FILES+=('common_env')
 FILES+=('aliases')
 FILES+=('gitconfig')
 FILES+=('vimrc')

@@ -3,12 +3,12 @@
 # Unbreak broken, non-colored terminal
 export TERM=xterm-256color
 
-# For Windows setup
-test -f ~/.aliases && . ~/.aliases
-test -f ~/.aliases.private && . ~/.aliases.private
-# Common env must come first.
+test -f ~/.common_env && . ~/.common_env
 test -f ~/.private-dotfiles.common/env && . ~/.private-dotfiles.common/env
 test -f ~/.private-dotfiles/env && . ~/.private-dotfiles/env
+
+test -f ~/.aliases && . ~/.aliases
+test -f ~/.aliases.private && . ~/.aliases.private
 
 if [[ -d "$HOME/bin" ]]; then
     export PATH=$HOME/bin/:$PATH

@@ -90,11 +90,12 @@ bindkey -e
 source $ZSH/lib/*.zsh
 
 # Source my custom files after oh-my-zsh so I can override things.
-test -f $HOME/.aliases && . $HOME/.aliases
-test -f $HOME/.aliases.private && . $HOME/.aliases.private
-# Common env must come first.
+test -f $HOME/.common_env && . $HOME/.common_env
 test -f $HOME/.private-dotfiles.common/env && . $HOME/.private-dotfiles.common/env
 test -f $HOME/.private-dotfiles/env && . $HOME/.private-dotfiles/env
+
+test -f $HOME/.aliases && . $HOME/.aliases
+test -f $HOME/.aliases.private && . $HOME/.aliases.private
 
 if [[ -d "$HOME/bin" ]]; then
     export PATH=$HOME/bin/:$PATH

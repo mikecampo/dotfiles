@@ -1,0 +1,15 @@
+# Common env for all shells.
+
+uname_s="$(uname -s)"
+case "${uname_s}" in
+    Linux*)   platform="LINUX"  platform_os="LINUX";;
+    Darwin*)  platform="MACOS"  platform_os="MACOS";;
+    CYGWIN*)  platform="CYGWIN" platform_os="WINDOWS";;
+    MINGW*)   platform="MINGW"  platform_os="WINDOWS";;
+    MSYS*)    platform="MINGW"  platform_os="WINDOWS";;
+    *)        platform="UNKNOWN:${uname_s} platform_os="UNKNOWN_OS""
+esac
+
+export PLATFORM=$platform
+export PLATFORM_OS=$platform_os
+
