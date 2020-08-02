@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# This is meant to be called from the main dotfiles install script.
+
 if which tput >/dev/null 2>&1; then
     ncolors=$(tput colors)
 fi

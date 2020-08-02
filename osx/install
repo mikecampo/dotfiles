@@ -1,41 +1,25 @@
 #!/usr/bin/env bash
 
-if which tput >/dev/null 2>&1; then
-    ncolors=$(tput colors)
-fi
-if [ -t 1 ] && [ -n "$ncolors" ] && [ "$ncolors" -ge 8 ]; then
-    RED="$(tput setaf 1)"
-    GREEN="$(tput setaf 2)"
-    YELLOW="$(tput setaf 3)"
-    BLUE="$(tput setaf 4)"
-    MAGENTA="$(tput setaf 5)"
-    CYAN="$(tput setaf 6)"
-    BOLD="$(tput bold)"
-    NORMAL="$(tput sgr0)"
-else
-    RED=""
-    GREEN=""
-    YELLOW=""
-    BLUE=""
-    MAGENTA=""
-    CYAN=""
-    BOLD=""
-    NORMAL=""
-fi
-
 set -e
 
-printf "Installing env...\n"
-ln -sf $HOME/.dotfiles/osx/env.platform $HOME/.env.platform
+source "$HOME/.dotfiles/script_helpers/printing.sh"
+source "$HOME/.dotfiles/script_helpers/core.sh"
+source "$HOME/.dotfiles/script_helpers/platform.sh"
+source "$HOME/.dotfiles/script_helpers/file_ops.sh"
 
-printf "Installing Git customizations...\n"
-ln -sf $HOME/.dotfiles/osx/gitconfig.platform $HOME/.gitconfig.platform
+printf "${BOLD}Installing env...${NORMAL}\n"
+setup_file $HOME/.dotfiles/osx/env.platform $HOME/.env.platform
+
+printf "\n${BOLD}Installing Git customizations...${NORMAL}\n"
+setup_file $HOME/.dotfiles/osx/gitconfig.platform $HOME/.gitconfig.platform
 
 #-----------------------------------
 # Homebrew packages
 #-----------------------------------
 
-printf "Installing Homebrew...\n"
+printf "\n${BOLD}Installing Homebrew packages...${NORMAL}\n\n"
+
+#brew tap homebrew/core
 
 brew_packages=(
     'openssl'
@@ -48,16 +32,33 @@ brew_packages=(
     'tree'
     'rmtrash'
 )
-brew tap homebrew/core
+
+brew_cask_packages=(
+    'rectangle'
+    'karabiner-elements'
+)
+
 for package in "${brew_packages[@]}"
 do
-    printf "Installing $package...\n"
+    printf "${BOLD}$package${NORMAL}\n"
     ret=$(brew list | awk /$package/)
     if [[ $ret == $package ]]; then
-        printf "${YELLOW}Already installed!${NORMAL}\n"
+        printf "${MAGENTA}==> ${NORMAL}${YELLOW}Already installed!${NORMAL}\n\n"
     else
         eval "brew install $package"
-        printf \n
+        printf "\n"
+    fi
+done
+
+for package in "${brew_cask_packages[@]}"
+do
+    printf "${BOLD}cask/$package${NORMAL}\n\n"
+    ret=$(brew list | awk /$package/)
+    if [[ $ret == $package ]]; then
+        printf "${MAGENTA}==> ${NORMAL}${YELLOW}Already installed!${NORMAL}\n\n"
+    else
+        eval "brew cask install $package"
+        printf "\n"
     fi
 done
 
