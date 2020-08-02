@@ -46,6 +46,7 @@ brew_packages=(
     'vim'
     'sdl'
     'tree'
+    'rmtrash'
 )
 brew tap homebrew/core
 for package in "${brew_packages[@]}"

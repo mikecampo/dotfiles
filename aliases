@@ -386,9 +386,9 @@ if [[ $platform == 'Linux' ]]; then
 
 elif [[ $platform == 'Darwin' ]]; then
   alias l='ls -laG'
-  alias ls='ls -laG'
   alias ll='ls -lG'
-  # TODO add a trash alias for trash-cli? or brew install rmtrash
+  alias trash='rmtrash'
+  alias tt='rmtrash'
 
 elif [[ "${platform,,}" == *'ming'* ]]; then # convert to lowercase then compare with wildcard
   alias python='winpty python.exe'
