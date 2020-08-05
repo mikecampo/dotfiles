@@ -126,8 +126,7 @@ dl_youtube_vid() {
     filename="${filename:0:4}-${filename:4:2}-${filename:6}"
 
     if [[ $format == "" ]]; then
-        printf "${BOLD}Getting best non-webm format${NORMAL}\n"
-        youtube-dl.exe -f "bestvideo[ext!=webm]" -o "$filename" $opts $url
+        youtube-dl.exe -o "$filename" $opts $url
     else
         youtube-dl.exe -f $format -o "$filename" $opts $url
     fi
@@ -158,8 +157,7 @@ dl_youtube_vid_and_hflip() {
     filename="${filename:0:4}-${filename:4:2}-${filename:6}"
 
     if [[ $format == "" ]]; then
-        printf "${BOLD}Getting best non-webm format${NORMAL}\n"
-        youtube-dl.exe -f "bestvideo[ext!=webm]" -o "$filename" $opts $url
+        youtube-dl.exe -o "$filename" $opts $url
     else
         youtube-dl.exe -f $format -o "$filename" $opts $url
     fi
@@ -194,8 +192,7 @@ dl_youtube_playlist() {
     local name_format="v%(playlist_index)s--%(upload_date)s-%(title)s-youtube-%(id)s.%(ext)s"
 
     if [[ $format == "" ]]; then
-        printf "${BOLD}Getting best non-webm format${NORMAL}\n"
-        youtube-dl.exe -f "bestvideo[ext!=webm]" -o "$name_format" $opts $url
+        youtube-dl.exe -o "$name_format" $opts $url
     else
         youtube-dl.exe -f $format -o "$name_format" $opts $url
     fi
