@@ -34,17 +34,6 @@ processor time and is generally useless.
 
 * Configure crash dump storage location for projects via the registry.
 
-* Enable security updates
-    *this may no longer be an issue*
-    * If you don't have an antivirus program, or you do but it's not verified by Microsoft, then you
-      will not receive security updates unless you set a key in the registry. Note that Windows
-      Defender counts as a valid antivirus program.
-    * Add the following registry key:
-
-        Key="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\QualityCompat"
-        Value="cadca5fe-87d3-4b96-b7fb-a231484277cc" Type="REG_DWORD”
-        Data="0x00000000”
-
 * Increase TDR setting for GPU Driver
     * TDR determines the length of time that a GPU can hang on a computation until the OS restarts
       the driver. By default this is set to a few seconds so you can experience app crashes when
