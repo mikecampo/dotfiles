@@ -35,34 +35,46 @@ set -e
 # Helpers
 ####################################################################################################
 
+use_shell() {
+    shell=$1
+    if hash chsh >/dev/null 2>&1; then
+        printf "\n${BLUE}Changing the default shell to $shell${NORMAL}\n"
+        chsh -s $(which $shell)
+    else
+        error "\nUnable to change the shell because this system does not have chsh.\n"
+    fi
+}
+
 setup_zsh() {
-    printf "Setting up zsh...\n"
+    printf "${MAGENTA}==> ${NORMAL}Setting up zsh...\n"
 
     if [[ $is_linux -eq 1 ]]; then
         sudo apt install zsh
-    fi
-
-    TEST_CURRENT_SHELL=$(expr "$SHELL" : '.*/\(.*\)')
-    if [ "$TEST_CURRENT_SHELL" != "zsh" ]; then
-        if hash chsh >/dev/null 2>&1; then
-            printf "\n${BLUE}Changing the default shell to zsh${NORMAL}\n"
-            chsh -s $(grep /zsh$ /etc/shells | tail -1)
-        else
-            printf "\n${RED}Unable to change the shell because this system does not have chsh.\n"
-            printf "${BLUE}If this is Windows then you probably want to run the bash installer.${NORMAL}\n"
-        fi
     fi
 
     setup_dir .dotfiles/zsh/core .zsh
 
     FILES=()
     FILES+=('zshrc')
-    FILES+=('zshenv')
     FILES+=('zlogin')
 
     for file in "${FILES[@]}"
     do
         setup_file .dotfiles/zsh/$file .$file
+    done
+}
+
+setup_bash() {
+    printf "${MAGENTA}==> ${NORMAL}Setting up bash...\n"
+
+    FILES=()
+    FILES+=('bashrc')
+    FILES+=('bash_profile')
+    FILES+=('inputrc')
+
+    for file in "${FILES[@]}"
+    do
+        setup_file .dotfiles/bash/$file .$file
     done
 }
 
@@ -72,17 +84,17 @@ setup_zsh() {
 
 pushd "$HOME" &>/dev/null
 
-#########################
-# Setup root dirs
-#########################
 setup_dir $cwd .dotfiles
-setup_dir .dotfiles/vim .vim
 
-#########################
-# Setup root files
-#########################
+if [[ $is_windows -eq 1 ]]; then
+    printf "${MAGENTA}==> ${NORMAL}Copy ${YELLOW}.dotfiles/vim${NORMAL} to ${YELLOW}$PWD/.vim${NORMAL}\n"
+    cp -r  .dotfiles/vim .vim
+else
+    setup_dir .dotfiles/vim .vim
+fi
+
 FILES=()
-FILES+=('common_env')
+FILES+=('env.common')
 FILES+=('aliases')
 FILES+=('gitconfig')
 FILES+=('vimrc')
@@ -93,25 +105,45 @@ do
     setup_file .dotfiles/$file .$file
 done
 
+set +e
+git_comp_filename=".git-completions.bash"
+printf "${MAGENTA}==> ${NORMAL}Download git completions list to ${YELLOW}$PWD/$git_comp_filename${NORMAL}\n"
+curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash -o $git_comp_filename
+set -e
+
 #########################
-# Setup non-root files
+# Setup platform files
 #########################
+
 if [[ $is_windows -eq 1 ]]; then
-    setup_file .dotfiles/bash/bashrc .bashrc
-    setup_file .dotfiles/bash/bash_profile .bash_profile
-    setup_file .dotfiles/bash/inputrc .inputrc
-    setup_file .dotfiles/windows/gitconfig.platform .gitconfig.platform
-fi
-
-curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash -o .git-completion.bash
-
-if [[ $is_windows -eq 0 ]]; then
+    printf "\n${BOLD}Setting up Windows${NORMAL}\n\n"
+    os_name="windows"
+    # Already using bash if running msys2.
+    setup_bash
+elif [[ $is_macos -eq 1 ]]; then
+    printf "\n${BOLD}Setting up MacOS${NORMAL}\n\n"
+    os_name="osx"
     setup_zsh
+    setup_bash
+    use_shell zsh
+elif [[ $is_linux -eq 1 ]]; then
+    printf "\n${BOLD}Setting up Linux${NORMAL}\n\n"
+    os_name="linux"
+    setup_zsh
+    setup_bash
+    use_shell bash
 fi
 
-if [[ $is_macos -eq 1 ]]; then
-    printf "\n${BOLD}Running the MacOS installer${NORMAL}\n"
-    $cwd/osx/install
+if [[ $os_name != "" ]]; then
+    if [ -f .dotfiles/$os_name/env.platform ]; then
+        setup_file .dotfiles/$os_name/env.platform .env.platform
+    fi
+
+    if [ -f .dotfiles/$os_name/gitconfig.platform ]; then
+        setup_file .dotfiles/$os_name/gitconfig.platform .gitconfig.platform
+    fi
+
+    $cwd/$os_name/install
 fi
 
 popd "$HOME" &>/dev/null

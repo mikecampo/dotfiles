@@ -47,7 +47,7 @@ fi
 
 # Autoload things before calling compinit
 autoload -Uz compinit
-compinit
+compinit -i
 
 # Never know when you're gonna need to popd!
 setopt AUTO_PUSHD
@@ -67,9 +67,32 @@ chpwd() {
 # Save a ton of history
 export HISTSIZE=20000
 export HISTFILE="$HOME/.history"
+export HISTCONTROL=ignoredups
 export SAVEHIST=$HISTSIZE
 setopt appendhistory autocd
 bindkey -e
+
+# Unbreak broken, non-colored terminal
+export TERM=xterm-256color
+
+# Use vim as the editor
+export EDITOR=vim
+
+# Homebrew setup
+export HOMEBREW_NO_ANALYTICS=1
+export HOMEBREW_NO_INSECURE_REDIRECT=1
+export HOMEBREW_CASK_OPTS=--require-sha
+
+# Ruby
+export RBENV_PATH="$HOME/.rbenv"
+
+# Clojure
+export LEIN_FAST_TRAMPOLINE=y
+
+if [ -d "$HOME/.rbenv" ]; then
+  # Start rbenv
+  eval "$(rbenv init -)"
+fi
 
 # Set to this to use case-sensitive completion
 # CASE_SENSITIVE="true"
@@ -90,20 +113,7 @@ bindkey -e
 source $ZSH/lib/*.zsh
 
 # Source my custom files after oh-my-zsh so I can override things.
-test -f $HOME/.common_env && . $HOME/.common_env
-test -f $HOME/.private-dotfiles.common/env && . $HOME/.private-dotfiles.common/env
-test -f $HOME/.private-dotfiles/env && . $HOME/.private-dotfiles/env
-
-test -f $HOME/.aliases && . $HOME/.aliases
-test -f $HOME/.aliases.private && . $HOME/.aliases.private
-
-if [[ -d "$HOME/bin" ]]; then
-    export PATH=$HOME/bin/:$PATH
-fi
-
-if [[ -d "$HOME/.dotfiles/bin" ]]; then
-    export PATH=$HOME/.dotfiles/bin/:$PATH
-fi
+test -f $HOME/.env.common && . $HOME/.env.common
 
 # Fix <c-h> in neovim
 infocmp $TERM | sed 's/kbs=^[hH]/kbs=\\177/' > $HOME/.$TERM.ti

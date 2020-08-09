@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+set -e
+
+source "$HOME/.dotfiles/script_helpers/printing.sh"
+source "$HOME/.dotfiles/script_helpers/core.sh"
+source "$HOME/.dotfiles/script_helpers/platform.sh"
+source "$HOME/.dotfiles/script_helpers/file_ops.sh"
+
+#-----------------------------------
+# Apt packages
+#-----------------------------------
+
+printf "\n${BOLD}Installing apt packages...${NORMAL}\n\n"
+
+apt_packages=(
+    'tree'
+    'powershell'
+)
+
+sudo apt update
+
+for package in "${apt_packages[@]}"
+do
+    printf "${BOLD}$package${NORMAL}\n"
+    eval "sudo apt install $package"
+    printf "\n"
+done
+
+printf "\n${BOLD}Finished setting up Linux${NORMAL}\n"

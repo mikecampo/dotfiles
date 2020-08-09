@@ -1,3 +1,0 @@
-#!/bin/bash
-
-LEIN_FAST_TRAMPOLINE=rlwrap lein trampoline figwheel "$@"

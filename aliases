@@ -56,16 +56,6 @@ update-shell() {
     fi
 }
 
-# See top 10 bash commands
-hist() {
-    if [[ '${platform,,}' == *'ming'* ]]; then
-        hist_file=~/.bash_history
-    else
-        hist_file=~/.history
-    fi
-    cat $hist_file|cut -d ';' -f 2- 2>/dev/null| awk '{a[$1]++ } END{for(i in a){print a[i] " " i}}'|sort -rn|head
-}
-
 remove_windows_file() {
     if [ -f "$1" ]; then
         recycle-bin.exe "$1"
@@ -364,11 +354,13 @@ git_nuke() {
 
 ####################################################################################################
 
+
+alias ls='ls --color'
+alias l='ls -lh'
+alias ll='ls -lha'
+
 # Handle the fact that this file will be used with multiple OSs
 if [[ $platform == 'Linux' ]]; then
-  alias l='ls -lhg --color'
-  alias ll='ls -lahg --color'
-
   # Arch
   alias flux='redshift'
   alias ipconfig='ip addr'
@@ -382,17 +374,12 @@ if [[ $platform == 'Linux' ]]; then
   # TODO add a trash alias for trash-cli?
 
 elif [[ $platform == 'Darwin' ]]; then
-  alias l='ls -laG'
-  alias ll='ls -lG'
   alias trash='rmtrash'
   alias tt='rmtrash'
 
 elif [[ "${platform,,}" == *'ming'* ]]; then # convert to lowercase then compare with wildcard
   alias python='winpty python.exe'
   alias python3='winpty python.exe'
-
-  alias l='ls -ahg --color'
-  alias ls='ls -ahg --color'
   #alias rm='echo "use trash command instead!"'
   #alias rmr='echo "use trash command instead!"'
   alias trash='remove_windows_file'
@@ -476,8 +463,8 @@ alias pdot='cd ~/.private-dotfiles'
 alias duh='du -csh'
 alias exp='explorer .'
 alias f='fg'
-alias grep='grep -n --color --exclude=tags '
-alias history='fc -l 1'
+alias grep='grep --color=auto --exclude=tags '
+alias hist='history'
 alias histroy='history'
 alias irb='irb --readline -r irb/completion'
 alias lcc='lein clean'

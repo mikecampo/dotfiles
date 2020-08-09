@@ -211,8 +211,8 @@ link_file() {
         echo Link cmd:: $link_cmd
     fi
 
-    printf "${BOLD}${GREEN}==> ${NORMAL}Linking ${BOLD}${YELLOW}'$source_path'${NORMAL} to ${BOLD}${YELLOW}'$dest_path'${NORMAL}\n"
-    eval $link_cmd
+    printf "${BOLD}${GREEN}==> ${NORMAL}Linking ${BOLD}${YELLOW}'$source_path'${NORMAL} to ${BOLD}${YELLOW}'$dest_path'${NORMAL}\n" 2>/dev/null
+    eval $link_cmd 1>/dev/null
 }
 
 function setup_file() {
@@ -228,6 +228,15 @@ function setup_file() {
 function setup_dir() {
     src=$1
     dest=$2
+    ignore_missing=$3
+    if [ ! -d $src ]; then
+        error "Source path '$src' doesn't exist!\n"
+        if [[ $ignore_missing != "1" ]]; then
+            abort
+        else
+            return
+        fi
+    fi
     if [ ! -d $dest ]; then
         link_file $src $dest $confirm_link
     else

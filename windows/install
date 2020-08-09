@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -e
+
+source "$HOME/.dotfiles/script_helpers/printing.sh"
+source "$HOME/.dotfiles/script_helpers/core.sh"
+source "$HOME/.dotfiles/script_helpers/platform.sh"
+source "$HOME/.dotfiles/script_helpers/file_ops.sh"
+
+# Nothing to do at the moment.
+
+printf "\n${BOLD}Finished setting up Windows${NORMAL}\n"

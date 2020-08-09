@@ -7,12 +7,6 @@ source "$HOME/.dotfiles/script_helpers/core.sh"
 source "$HOME/.dotfiles/script_helpers/platform.sh"
 source "$HOME/.dotfiles/script_helpers/file_ops.sh"
 
-printf "${BOLD}Installing env...${NORMAL}\n"
-setup_file $HOME/.dotfiles/osx/env.platform $HOME/.env.platform
-
-printf "\n${BOLD}Installing Git customizations...${NORMAL}\n"
-setup_file $HOME/.dotfiles/osx/gitconfig.platform $HOME/.gitconfig.platform
-
 printf "\n${BOLD}Installing key remap config...${NORMAL}\n"
 key_dest=$HOME/.config/karabiner/assets/complex_modifications/
 mkdir -p $key_dest
@@ -23,8 +17,6 @@ setup_file $HOME/.dotfiles/osx/capslock-to-ctrl-for-karabiner.json ${key_dest}/c
 #-----------------------------------
 
 printf "\n${BOLD}Installing Homebrew packages...${NORMAL}\n\n"
-
-#brew tap homebrew/core
 
 brew_packages=(
     'openssl'
