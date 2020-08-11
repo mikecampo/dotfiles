@@ -9,9 +9,9 @@ if [[ -d "/c/msys64" ]]; then
     shell_is_mingw is_mingw
     if [[ $is_mingw -eq 1 ]]; then
         printf "${BOLD}${YELLOW}Updating MSYS Shell${NORMAL}\n"
-        printf "${BOLD}Note: when this finishes, restart your shell and re-run this script in order to update applications, or manually run ${YELLOW}pacman -Su${NORMAL}\n"
         pacman -Syu
         printf "${BOLD}${GREEN}Done!${NORMAL}\n"
+        printf "\n${BOLD}If you've been asked to close the shell then once you reopen it, run ${YELLOW}pacman -Su${NORMAL} to finish updating.\n"
     else
         error "Please re-run this in a MinGW shell.\n"
         exit 1
