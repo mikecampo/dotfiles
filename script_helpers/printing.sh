@@ -11,6 +11,7 @@ if [ -t 1 ] && [ -n "$ncolors" ] && [ "$ncolors" -ge 8 ]; then
     MAGENTA="$(tput setaf 5)"
     CYAN="$(tput setaf 6)"
     BOLD="$(tput bold)"
+    DIM="\e[2m"
     NORMAL="$(tput sgr0)"
 else
     RED=""
