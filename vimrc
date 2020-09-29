@@ -183,6 +183,7 @@ Plug 'vim-ruby/vim-ruby'                " Ruby
 Plug 'fatih/vim-go'                     " Go
 Plug 'rust-lang/rust.vim'               " Rust
 Plug 'jdonaldson/vaxe'                  " Haxe
+Plug 'pprovost/vim-ps1'                 " PowerShell
 
 " Clojure -- Disabled since I'm not doing any Clojure work atm.
 "Plug 'tpope/vim-classpath' " For Java
@@ -359,7 +360,7 @@ augroup campoCmds
     endfun
     " Generate ctags on save.
     " Also Include local variables for C-like languages.
-    autocmd BufWritePost *.cs,*.js,*.py,*.c,*.cpp,*.h silent! :call <SID>RunCtags()
+    autocmd BufWritePost *.cs,*.js,*.py,*.c,*.cpp,*.h,*.asm silent! :call <SID>RunCtags()
 
     " Remove trailing whitespace when saving any file.
     function! s:StripTrailingWhitespaces()
