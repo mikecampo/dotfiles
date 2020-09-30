@@ -203,8 +203,8 @@ processor time and is generally useless.
 
 * Install Android platform tools to get adb.exe:
   * Download [Android commandline tools](https://developer.android.com/studio/#downloads)
-  * Unzip to some location.
-  * Inside the sdk dir, run `$ tools/bin/sdkmanager.bat platform-tools`.
+  * Unzip and place the contents into the folders `cmdline-tools/tools/`
+  * Run the sdkmanager.bat script to install the tools: `$ ./cmdline-tools/tools/bin/sdkmanager.bat "platform-tools"`
   * You can now add the platform-tools dir to your path if you want, or just symlink `adb` to `~/bin`.
 
 ### Youtube-DL

@@ -87,14 +87,27 @@ pushd "$HOME" &>/dev/null
 setup_dir $cwd .dotfiles
 
 if [[ $is_windows -eq 1 ]]; then
-    printf "${MAGENTA}==> ${NORMAL}Copy ${YELLOW}.dotfiles/vim${NORMAL} to ${YELLOW}$PWD/.vim${NORMAL}\n"
-    cp -r  .dotfiles/vim .vim
+    do_vim_copy=1
+    if [[ -d "$PWD/.vim" ]]; then
+        printf "\n${BOLD}Vim folder already found at destination. Overwrite? [1,0]\n> ${NORMAL}"
+        read -e copy_vim
+        if [[ $copy_vim != "0" && $copy_vim != "1" ]]; then
+            fatal "Invalid value '$copy_vim'"
+        elif [[ $copy_vim == "0" ]]; then
+            do_vim_copy=0
+            printf "\n"
+        fi
+    fi
+    if [[ $do_vim_copy -eq 1 ]]; then
+        printf "${MAGENTA}==> ${NORMAL}Copying ${YELLOW}.dotfiles/vim${NORMAL} to ${YELLOW}$PWD/.vim${NORMAL}\n"
+        cp -r .dotfiles/vim .vim
+    fi
 else
     setup_dir .dotfiles/vim .vim
 fi
 
 FILES=()
-FILES+=('env.common')
+FILES+=('env.loader')
 FILES+=('aliases')
 FILES+=('gitconfig')
 FILES+=('vimrc')
@@ -106,8 +119,8 @@ do
 done
 
 set +e
-git_comp_filename=".git-completions.bash"
-printf "${MAGENTA}==> ${NORMAL}Download git completions list to ${YELLOW}$PWD/$git_comp_filename${NORMAL}\n"
+git_comp_filename=".git-completion.bash"
+printf "${MAGENTA}==> ${NORMAL}Downloading Git completion list to ${YELLOW}$PWD/$git_comp_filename${NORMAL}\n"
 curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash -o $git_comp_filename
 set -e
 

@@ -9,7 +9,8 @@ esac
 # Unbreak broken, non-colored terminal
 export TERM=xterm-256color
 
-test -f ~/.env.common && . ~/.env.common
+# Load the shell environment.
+test -f ~/.env.loader && . ~/.env.loader
 
 # TMP and TEMP are defined in the Windows environment. Leaving them set to the default
 # Windows temporary directory can have unexpected consequences.
@@ -101,3 +102,4 @@ if ! shopt -oq posix; then
         . /etc/bash_completion
     fi
 fi
+

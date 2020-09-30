@@ -96,8 +96,9 @@ make_vid_dir_and_cd_into() {
 # Download YouTube videos
 dl_youtube_vid() {
     local format="$1"
-    local url="$2"
-    shift 2
+    local shortname="$2"
+    local url="$3"
+    shift 3
     local opts="$@"
 
     if [[ $url == "" ]]; then
@@ -112,7 +113,13 @@ dl_youtube_vid() {
         return
     fi
 
-    local filename=$(youtube-dl.exe --get-filename -o "%(upload_date)s-%(title)s-youtube-%(id)s.%(ext)s" $url)
+    if [[ $shortname -eq 0 ]]; then
+        local name_format="%(upload_date)s-%(title)s-youtube-%(id)s"
+    else
+        local name_format="%(upload_date)s-shortname-youtube-%(id)s"
+    fi
+
+    local filename=$(youtube-dl.exe --get-filename -o "$name_format.%(ext)s" $url)
     filename="${filename:0:4}-${filename:4:2}-${filename:6}"
 
     if [[ $format == "" ]]; then
@@ -354,26 +361,7 @@ git_nuke() {
 
 ####################################################################################################
 
-
-alias ls='ls --color'
-alias l='ls -lh'
-alias ll='ls -lha'
-
-# Handle the fact that this file will be used with multiple OSs
-if [[ $platform == 'Linux' ]]; then
-  # Arch
-  alias flux='redshift'
-  alias ipconfig='ip addr'
-  alias ifconfig='ip addr'
-  alias pi='yaourt -S' # wrapper around Arch Pacman
-  alias po='pacman -Qdt' # see orphaned packages
-  alias pr='yaourt -R' # giving me trouble now
-  alias prr='pacman -Rdd'
-  alias pss='sudo pacman -Syu'
-  alias pu='yaourt -U'
-  # TODO add a trash alias for trash-cli?
-
-elif [[ $platform == 'Darwin' ]]; then
+if [[ $platform == 'Darwin' ]]; then
   alias trash='rmtrash'
   alias tt='rmtrash'
 
@@ -396,6 +384,10 @@ alias cd..='cd ..'
 alias cd...='cd ../..'
 alias cd....='cd ../../..'
 alias cd.....='cd ../../../..'
+
+alias ls='ls -F --color'
+alias l='ls -lh'
+alias ll='ls -lha'
 
 alias aliases='vim ~/.dotfiles/aliases'
 alias al='aliases'
@@ -459,7 +451,6 @@ alias code='cd ~/code'
 alias cpr='cp -r'
 alias dc='gdc'
 alias dot='cd ~/.dotfiles'
-alias pdot='cd ~/.private-dotfiles'
 alias duh='du -csh'
 alias exp='explorer .'
 alias f='fg'
@@ -471,7 +462,7 @@ alias lcc='lein clean'
 alias lca='lein cljsbuild auto dev'
 alias ldi='lein deps install'
 alias lsd='lein start-dev'
-alias moon='curl wttr.in/moon'
+alias moon='curl wttr.in/moon -A "curl"'
 alias patch='git format-patch HEAD^ --stdout > patch.diff'
 alias reguard='killall -9 ruby ; guard'
 alias rb='rbenv'
@@ -491,18 +482,21 @@ alias stk='rlwrap stk-simply'
 alias t='tree'
 alias tag='ctags -R .'
 alias tmp='cd ~/tmp'
-alias u='cd ..'
 alias v='vim'
 alias vi='vim'
 alias vh='vagrant halt'
 alias vs='vagrant ssh'
 alias vu='vagrant up'
 alias vimrc='vim ~/.vimrc'
-alias weather='curl wttr.in/toronto'
+alias weather='curl wttr.in/toronto -A "curl"'
 
-alias yt='dl_youtube_vid ""'
-alias yt-1080='dl_youtube_vid "137+140"'
-alias yt-720='dl_youtube_vid "136+140"'
+alias yt='dl_youtube_vid "" 0'
+alias yt-shortname='dl_youtube_vid "" 1'
+alias yt-1080='dl_youtube_vid "137+140" 0'
+alias yt-1080-shortname='dl_youtube_vid "137+140" 1'
+alias yt-720='dl_youtube_vid "136+140" 0'
+alias yt-720-shortname='dl_youtube_vid "136+140" 1'
+
 alias yt-playlist='dl_youtube_playlist ""'
 alias yt-playlist-1080='dl_youtube_playlist "137+140"'
 alias yt-playlist-720='dl_youtube_playlist "136+140"'
@@ -562,8 +556,10 @@ alias gap='git add -Ap'
 alias gau='git add --update'
 alias gaup='git add --update -p'
 alias gb='git branch -v'
+alias gbb='git bisect bad'
 alias gbd='git branch -D'
 alias gbdr='git branch -Dr'
+alias gbg='git bisect good'
 alias gbl='git branch --all'
 alias gblm='git blame -wMC'
 alias gbm='git branch -m'
@@ -679,8 +675,5 @@ alias gwip="git add . && git commit -m \"WIP\""
 alias flow='haxelib run flow'
 alias snowfall='haxelib run snowfall'
 
-# Other aliases
-alias pal='vim ~/.private-dotfiles/aliases'
-test -f ~/.private-dotfiles/aliases && . ~/.private-dotfiles/aliases
-
 alias cmake-gen='cmake -D CMAKE_CXX_COMPILER="/Library/Developer/CommandLineTools/usr/bin/c++" CMAKE_C_COMPILER="/Library/Developer/CommandLineTools/usr/bin/cc" ..'
+

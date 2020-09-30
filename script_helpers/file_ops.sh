@@ -140,6 +140,7 @@ link_file() {
     dest_path=$2
     require_confirmation=$3
     expand_symlinks=$4
+    debug=0
 
     os_is_windows is_windows
     os_is_unix is_unix
@@ -152,7 +153,6 @@ link_file() {
     source_has_space=$(path_has_a_space "$source_path")
     dest_has_space=$(path_has_a_space "$dest_path")
 
-    debug=0
     if [[ $debug -eq 1 ]]; then
         echo source path: $source_path
         echo dest path: $dest_path
@@ -187,15 +187,15 @@ link_file() {
     test -e "$dest_path" && error "Dest file '$dest_path' already exists!\n" && return
 
     if [[ $is_windows -eq 1 ]]; then
-        source_path=$(unix_to_windows_path "$source_path")
-        dest_path=$(unix_to_windows_path "$dest_path")
-        if [[ $source_has_space -eq 1 ]]; then source_path="\"$source_path\""; fi
-        if [[ $dest_has_space -eq 1 ]];   then dest_path="\"$dest_path\""; fi
-        link_cmd="cmd //c 'mklink $dest_path $source_path'"
+        cmd_source_path=$(unix_to_windows_path "$source_path")
+        cmd_dest_path=$(unix_to_windows_path "$dest_path")
+        if [[ $source_has_space -eq 1 ]]; then cmd_source_path="\"$cmd_source_path\""; fi
+        if [[ $dest_has_space -eq 1 ]];   then cmd_dest_path="\"$cmd_dest_path\""; fi
+        link_cmd="cmd //c 'mklink $cmd_dest_path $cmd_source_path'"
     else
-        if [[ $source_has_space -eq 1 ]]; then source_path="\"$source_path\""; fi
-        if [[ $dest_has_space -eq 1 ]];   then dest_path="\"$dest_path\""; fi
-        link_cmd="ln -sf $source_path $dest_path"
+        if [[ $source_has_space -eq 1 ]]; then cmd_source_path="\"$cmd_source_path\""; fi
+        if [[ $dest_has_space -eq 1 ]];   then cmd_dest_path="\"$cmd_dest_path\""; fi
+        link_cmd="ln -sf $cmd_source_path $cmd_dest_path"
     fi
 
     if [[ $require_confirmation -eq 1 ]]; then
@@ -206,8 +206,8 @@ link_file() {
     fi
 
     if [[ $debug -eq 1 ]]; then
-        echo Final source: $source_path
-        echo Final dest: $dest_path
+        echo Final cmd source: $cmd_source_path
+        echo Final cmd dest: $cmd_dest_path
         echo Link cmd:: $link_cmd
     fi
 
