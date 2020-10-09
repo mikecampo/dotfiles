@@ -3,6 +3,15 @@
 * Turn off hibernation
   * Open admin cmd prompt: `powercfg.exe /hibernate off`
 
+* Disable power throttling:
+    * Start menu, search for `gpedit.msc`.
+    * Computer Configuration > Administrative Templates > System > Power Management > Power Throttling Settings.
+    * Double-click the `Turn off Power Throttling` policy.
+    * Select Enabled.
+
+* Disable `Enhance Pointer Precision`:
+    * Mouse Properties -> Pointer Options -> Motion section
+
 * Map caps to left-ctrl using sharpkeys
 
 * Run photo_viewer.reg from this folder to restore access to the Windows Photo Viewer app.
