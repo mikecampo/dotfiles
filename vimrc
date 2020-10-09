@@ -184,6 +184,7 @@ Plug 'fatih/vim-go'                     " Go
 Plug 'rust-lang/rust.vim'               " Rust
 Plug 'jdonaldson/vaxe'                  " Haxe
 Plug 'pprovost/vim-ps1'                 " PowerShell
+Plug 'fedorenchik/fasm.vim'             " Flat Assembler
 
 " Clojure -- Disabled since I'm not doing any Clojure work atm.
 "Plug 'tpope/vim-classpath' " For Java
@@ -345,6 +346,9 @@ augroup campoCmds
 
     " Properly indent schemes (scheme, racket, etc).
     autocmd bufread,bufnewfile *.{lisp,scm,rkt} setlocal equalprg=scmindent.rkt
+
+    " Fasm indent; uses the fedorenchik/fasm.vim plugin.
+    autocmd BufReadPre *.asm let g:asmsyntax = "fasm"
 
     " Auto reload VIM when settings changed.
     autocmd BufWritePost .vimrc so $MYVIMRC
