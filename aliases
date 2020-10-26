@@ -437,6 +437,17 @@ alias bbd='if [ -f build ]; then ./build -o 1 -data 1 ; else test -f build.sh &&
 #alias bl='brew link --overwrite'
 #lias bld='brew link --overwrite --dry-run'
 alias bower='noglob bower'
+
+if [[ "${platform,,}" == *'ming'* ]]; then
+    _checksum() {
+        local algo="$1"
+        local file="$2"
+        certutil -hashfile $file $algo
+    }
+    alias checksum='_checksum SHA1'
+    alias checksum-sha256='_checksum SHA256'
+fi
+
 alias cr='RUSTFLAGS="$RUSTFLAGS -A unused_variables -A dead_code -A unused_parens" cargo run'
 alias crr='cargo run --release'
 alias cb='RUSTFLAGS="$RUSTFLAGS -A unused_variables -A dead_code -A unused_parens" cargo build'
