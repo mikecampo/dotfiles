@@ -79,9 +79,14 @@ let s:rainbow_theme = s:default_bg
 " @note The following globals can be used to customize various functions in
 " this file. The easiest way to set them is in an .lvimrc file in the root
 " folder that you want it applied to.
-
+"
 " Set this to 0 if you want to stop the removal of trailing whitespaces.
 let g:campo_strip_trailing_whitespace = 1
+
+" If g:campo_strip_trailing_whitespace is 1 then you can stop this from
+" happening in specific files by setting this to a list of filenames.
+" e.g. let g:campo_files_to_ignore_when_stripping_trailing_whitespace = ['app.h', 'config.h']
+let g:campo_files_to_ignore_when_stripping_trailing_whitespace = []
 
 " This is included in the ripgrep args. You can use this to do things like
 " ignore folders in your project or limit the search to specific file types.
@@ -359,21 +364,32 @@ augroup campoCmds
         " The ampersand at the end is to make this run in the background. I had to
         " group the commands in parens to make the chained commands run in the
         " background.
-        let l:ctags_cmd = "!(ctags --c-types=+l --c++-types=+l --exclude=*.md --exclude=*.txt --exclude=*.config --exclude=*.css --exclude=*.html --exclude=*.htm --exclude=*.json --exclude=node_modules --exclude=.git --exclude=.cache " . g:campo_custom_ctags_args . " -R -o newtags; mv newtags tags) &"
+        let l:ctags_cmd = "!(ctags --c-types=+l --c++-types=+l --exclude=*.md --exclude=*.txt --exclude=*.config --exclude=*.css --exclude=*.html --exclude=*.htm --exclude=*.json --exclude=node_modules --exclude=.git --exclude=.cache " . g:campo_custom_ctags_args . " --recurse=yes -o newtags; mv newtags tags) &"
         exec l:ctags_cmd | redraw!
     endfun
+
     " Generate ctags on save.
     " Also Include local variables for C-like languages.
     autocmd BufWritePost *.cs,*.js,*.py,*.c,*.cpp,*.h,*.asm silent! :call <SID>RunCtags()
 
     " Remove trailing whitespace when saving any file.
     function! s:StripTrailingWhitespaces()
-        if g:campo_strip_trailing_whitespace
-            let l = line(".")
-            let c = col(".")
-            %s/\s\+$//e
-            call cursor(l, c)
+        if g:campo_strip_trailing_whitespace != 1
+            return
         endif
+        if len(g:campo_files_to_ignore_when_stripping_trailing_whitespace)
+            let filename = expand('%:t')
+            for ignore in g:campo_files_to_ignore_when_stripping_trailing_whitespace
+                if filename == ignore
+                    return
+                endif
+            endfor
+        endif
+
+        let l = line(".")
+        let c = col(".")
+        %s/\s\+$//e
+        call cursor(l, c)
     endfun
     autocmd BufWritePre * :call <SID>StripTrailingWhitespaces()
 
@@ -1041,3 +1057,4 @@ map <leader>n :call RenameFile()<cr>
 map <leader>pn :sp ~/.dev-scratchpad.md<cr>
 
 "let g:autotagStopAt = "$HOME"
+
