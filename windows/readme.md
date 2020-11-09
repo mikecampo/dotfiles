@@ -12,6 +12,10 @@
 * Disable `Enhance Pointer Precision`:
     * Mouse Properties -> Pointer Options -> Motion section
 
+* Laptop: change touchpad sensitivity to medium or high in order to prevent mouse movement when palm
+  touches the pad while typing.
+  * If using a Lenovo then disable touchpad lock in the Lenovo Vantage app.
+
 * Map caps to left-ctrl using sharpkeys
 
 * Run photo_viewer.reg from this folder to restore access to the Windows Photo Viewer app.
