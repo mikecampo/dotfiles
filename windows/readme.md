@@ -1,6 +1,6 @@
 # Windows Setup
 
-* Turn off hibernation
+* Desktop: turn off hibernation
   * Open admin cmd prompt: `powercfg.exe /hibernate off`
 
 * Disable power throttling:
@@ -8,6 +8,19 @@
     * Computer Configuration > Administrative Templates > System > Power Management > Power Throttling Settings.
     * Double-click the `Turn off Power Throttling` policy.
     * Select Enabled.
+
+* Optional: disable Windows Defender real-time protection:
+    * This can speed up compilation times since Defender will scan every file written to disk. I was
+      able to shave off ~2-5 seconds in a particular project.
+        * If you'd rather keep real-time protection active then you can add specific files or
+          folders to the Defender exclusion list in the Windows Security settings, however I did
+          some testing and didn't see any speedup when excluding a project folder.
+    * Go into the Windows security settings and disable `Tamper Protection`.
+    * Start menu, search for `gpedit.msc`.
+    * Computer Configuration > Administrative Templates > Windows Components > Microsoft Defender Antivirus -> Real-time Protection
+    * Double-click the `Turn off real-time protection` policy.
+    * Select Enabled (you may have to restart PC).
+    * If you want to re-enable then change the policy to `Not configured` and re-enable tamper protection.
 
 * Disable `Enhance Pointer Precision`:
     * Mouse Properties -> Pointer Options -> Motion section
@@ -18,8 +31,8 @@
 
 * Map caps to left-ctrl using sharpkeys
 
-* Run photo_viewer.reg from this folder to restore access to the Windows Photo Viewer app.
-  The default Win10 photos app is fucking awful.
+* Restore classic Windows Photo Viewer app (the default Win10 photos app is fucking awful):
+    * Run photo_viewer.reg from this folder.
     * You'll need to change the default app for the various image extensions. Don't change gif types
       though because photo viewer doesn't support animations.
     * Now run disable-are-you-sure-you-want-to-open-with-the-default-program-dialog.reg to stop it
