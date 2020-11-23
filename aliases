@@ -280,10 +280,15 @@ dl_twitch_chat() {
     cd ..
 }
 
-# Download video.
+# Download MP4 video.
 dl_mp4() {
     local url="$1"
     local filename="$2"
+
+    if [[ $url == "" || $filename == "" ]]; then
+        error "Format: cmd <url> <filename>\n"
+        return
+    fi
 
     temp_name="temp_${RANDOM}.mp4"
 
@@ -298,10 +303,36 @@ dl_mp4() {
     mv $temp_name "$filename.mp4"
 }
 
+# Download from m3u8 stream to mp4.
+dl_from_m3u8() {
+    local m3u8_path="$1"
+    local filename="$2"
+
+    if [[ $m3u8_path == "" || $filename == "" ]]; then
+        error "Format: cmd <m3u8 path> <filename>\n"
+        return
+    fi
+
+    printf "${BOLD}Downloading: ${YELLOW}$filename${NORMAL}\n"
+    ffmpeg.exe -protocol_whitelist file,https,crypto,tls,tcp -i $m3u8_path -acodec copy -vcodec copy "${filename}.mp4"
+
+    if [[ $? -ne 0 ]]; then
+        error "Error: failed to download.\n"
+        return
+    fi
+
+    printf "${BOLD}Finished downloading ${YELLOW}$filename${NORMAL}\n"
+}
+
 # Download Instagram video and flip horizontally.
 dl_instagram_vid_and_hflip() {
     local url="$1"
     local filename="$2"
+
+    if [[ $url == "" || $filename == "" ]]; then
+        error "Format: cmd <url> <filename>\n"
+        return
+    fi
 
     temp_name="temp_${RANDOM}.mp4"
 
@@ -444,7 +475,9 @@ if [[ "${platform,,}" == *'ming'* ]]; then
         local file="$2"
         certutil -hashfile $file $algo
     }
-    alias checksum='_checksum SHA1'
+    alias checksum='certutil -hashfile'
+    alias checksum-md5='_checksum MD5'
+    alias checksum-sha1='_checksum SHA1'
     alias checksum-sha256='_checksum SHA256'
 fi
 
@@ -513,10 +546,8 @@ alias yt-playlist-1080='dl_youtube_playlist "137+140"'
 alias yt-playlist-720='dl_youtube_playlist "136+140"'
 alias yt-playlist-tiny='dl_youtube_playlist "160+140"'
 alias yt-audio='youtube-dl.exe -f "140"'
-
 alias yt-and-hflip='dl_youtube_vid_and_hflip "137+140"' # 1080p
 alias ig-download-and-hflip='dl_instagram_vid_and_hflip '
-alias download-mp4='dl_mp4'
 
 alias tw='dl_twitch_vid "1080p" 0 0'
 alias tw-compressed='dl_twitch_vid "1080p" 0 25'
@@ -536,6 +567,7 @@ alias tw-60-shortname='dl_twitch_vid "1080p60" 1 0'
 alias tw-60-shortname-compressed='dl_twitch_vid "1080p60" 1 25'
 
 alias tw-720='dl_twitch_vid "720p-1" 0 0'
+alias tw-720-compressed='dl_twitch_vid "720p-1" 0 25'
 alias tw-720-shortname='dl_twitch_vid "720p-1" 1 0'
 alias tw-720-60='dl_twitch_vid "720p60" 0 0'
 alias tw-720-60-shortname='dl_twitch_vid "720p60" 1 0'
@@ -544,6 +576,11 @@ alias tw-4k='dl_twitch_vid "2160p" 0 0'
 alias tw-4k-compressed='dl_twitch_vid "2160p" 0 25'
 alias tw-4k-shortname='dl_twitch_vid "2160p" 1 0'
 alias tw-4k-shortname-compressed='dl_twitch_vid "2160p" 1 25'
+
+alias tw-source='dl_twitch_vid "Source" 0 0'
+
+alias download-mp4='dl_mp4'
+alias download-from-m3u8='dl_from_m3u8'
 
 ####################################################################################################
 # Git
