@@ -20,9 +20,11 @@ os_is_windows is_windows
 os_is_macos is_macos
 os_is_linux is_linux
 
+# Check for admin permissions when running on Windows.
 if [[ $is_windows -eq 1 ]]; then
-    # Check for admin permissions.
-    net session &>/dev/null
+    # `openfiles` is a command present on all supported Windows versions,
+    # requires admin privileges, and has no side effects.
+    openfiles &>/dev/null
     admin_error=$?
     if [[ ! $admin_error -eq 0 ]]; then
         fatal "You need to run this in an admin shell!"

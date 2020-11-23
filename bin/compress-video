@@ -45,18 +45,17 @@ function encode() {
         output="${output_name}.$extension"
     fi
 
-    printf "\n${YELLOW}${BOLD}Encoding with crf $crf | output: $output${NORMAL}\n"
+    printf "\n${YELLOW}${BOLD}Encoding '$filename.$extension' with CRF $crf | output: $output${NORMAL}\n"
     ffmpeg -i "$filename.$extension" -c:v libx264 -crf $crf -preset veryfast -profile:v baseline -level 3.0 -strict -2 "$output"
-    printf "\n${GREEN}${BOLD}Done encoding with crf $crf${NORMAL}\n\n"
+    printf "\n${GREEN}${BOLD}Done encoding '$filename.$extension' with CRF $crf${NORMAL}\n\n"
 }
-
 
 if [[ $use_crf == "" ]]; then
     use_crf=$default_crf
 fi
 
 if [[ $use_crf == -1 ]]; then
-    printf "\n${YELLOW}${BOLD}Encoding using a range of crf values.${NORMAL}\n"
+    printf "\n${YELLOW}${BOLD}Encoding using a range of CRF values.${NORMAL}\n"
 
     # Bigger crf values == bigger compression.
     for crf in {25..28}
