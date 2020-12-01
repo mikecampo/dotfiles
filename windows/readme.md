@@ -9,6 +9,16 @@
     * Double-click the `Turn off Power Throttling` policy.
     * Select Enabled.
 
+* Enable ultimate power plan (alternatively make a new plan and set the min/max processor speed to 100%)
+    * Open cmd as admin, run `powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61`
+    * Can now select the ultimate power plan in power options.
+
+* Create a power plan for software benchmarking
+    * This will disable turbo boost and general lock the frequency to base-ish clock. This can help
+    keep cpu temps stable (hot temps affect clock) and it avoids variable clock changes.
+    * AFAIK this only works for Intel CPUs; not sure how to do the same thing on AMD.
+    * In the power plan set the processor min/max speed to 99%.
+
 * Optional: disable Windows Defender real-time protection:
     * This can speed up compilation times since Defender will scan every file written to disk. I was
       able to shave off ~2-5 seconds in a particular project.
