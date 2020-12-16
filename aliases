@@ -228,6 +228,14 @@ dl_twitch_vid() {
         local name_format="%(upload_date)s-shortname-twitch-%(id)s"
     fi
 
+    # Download Twitch chat transcript
+    local chat_file=$(youtube-dl.exe --get-filename -o "$name_format" $url)
+    rechat.exe -d $url "$chat_file.json"
+    rechat.exe -p "$chat_file.json" "$chat_file.txt" -b -o
+    mv "$chat_file.txt" "${chat_file:0:4}-${chat_file:4:2}-${chat_file:6}.txt"
+    rm "$chat_file.json"
+
+    # Download the video.
     local filename=$(youtube-dl.exe --get-filename -o "$name_format.%(ext)s" $url)
     filename="${filename:0:4}-${filename:4:2}-${filename:6}"
 
@@ -235,13 +243,6 @@ dl_twitch_vid() {
 
     error=$?
     if [[ $error -eq 0 ]]; then
-        # Download Twitch chat transcript
-        local chat_file=$(youtube-dl.exe --get-filename -o "$name_format" $url)
-        rechat.exe -d $url "$chat_file.json"
-        rechat.exe -p "$chat_file.json" "$chat_file.txt" -b -o
-        mv "$chat_file.txt" "${chat_file:0:4}-${chat_file:4:2}-${chat_file:6}.txt"
-        rm "$chat_file.json"
-
         if [[ $compression_level -ne 0 ]]; then
             compress-video "$filename" $compression_level "temp"
             extension="${filename##*.}"
@@ -549,33 +550,35 @@ alias yt-audio='youtube-dl.exe -f "140"'
 alias yt-and-hflip='dl_youtube_vid_and_hflip "137+140"' # 1080p
 alias ig-download-and-hflip='dl_instagram_vid_and_hflip '
 
+compression_quality=27 # 27 for gpu; 25 for cpu
+
 alias tw='dl_twitch_vid "1080p" 0 0'
-alias tw-compressed='dl_twitch_vid "1080p" 0 25'
+alias tw-compressed='dl_twitch_vid "1080p" 0 $compression_quality'
 alias tw-shortname='dl_twitch_vid "1080p" 1 0'
-alias tw-shortname-compressed='dl_twitch_vid "1080p" 1 25'
+alias tw-shortname-compressed='dl_twitch_vid "1080p" 1 $compression_quality'
 alias tw-custom='dl_twitch_vid '
 alias tw-chat='dl_twitch_chat'
 
 alias tw-1080='dl_twitch_vid "1080" 0 0'
-alias tw-1080-compressed='dl_twitch_vid "1080" 0 25'
+alias tw-1080-compressed='dl_twitch_vid "1080" 0 $compression_quality'
 alias tw-1080-shortname='dl_twitch_vid "1080" 1 0'
-alias tw-1080-shortname-compressed='dl_twitch_vid "1080" 1 25'
+alias tw-1080-shortname-compressed='dl_twitch_vid "1080" 1 $compression_quality'
 
-alias tw-60='dl_twitch_vid "1080p60" 0 0'
-alias tw-60-compressed='dl_twitch_vid "1080p60" 0 25'
-alias tw-60-shortname='dl_twitch_vid "1080p60" 1 0'
-alias tw-60-shortname-compressed='dl_twitch_vid "1080p60" 1 25'
+alias tw-1080p60='dl_twitch_vid "1080p60" 0 0'
+alias tw-1080p60-compressed='dl_twitch_vid "1080p60" 0 $compression_quality'
+alias tw-1080p60-shortname='dl_twitch_vid "1080p60" 1 0'
+alias tw-1080p60-shortname-compressed='dl_twitch_vid "1080p60" 1 $compression_quality'
 
 alias tw-720='dl_twitch_vid "720p" 0 0'
-alias tw-720-compressed='dl_twitch_vid "720p-1" 0 25'
+alias tw-720-compressed='dl_twitch_vid "720p-1" 0 $compression_quality'
 alias tw-720-shortname='dl_twitch_vid "720p-1" 1 0'
 alias tw-720-60='dl_twitch_vid "720p60" 0 0'
 alias tw-720-60-shortname='dl_twitch_vid "720p60" 1 0'
 
 alias tw-4k='dl_twitch_vid "2160p" 0 0'
-alias tw-4k-compressed='dl_twitch_vid "2160p" 0 25'
+alias tw-4k-compressed='dl_twitch_vid "2160p" 0 $compression_quality'
 alias tw-4k-shortname='dl_twitch_vid "2160p" 1 0'
-alias tw-4k-shortname-compressed='dl_twitch_vid "2160p" 1 25'
+alias tw-4k-shortname-compressed='dl_twitch_vid "2160p" 1 $compression_quality'
 
 alias tw-source='dl_twitch_vid "Source" 0 0'
 
