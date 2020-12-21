@@ -35,7 +35,9 @@ unix_to_windows_path() {
             # Fix the drive name, e.g. c\foo becomes c:\foo
             ret=$(sed 's,\([a-zA-Z]*\),\1:,' <<< "$ret")
         fi
-        ret="${ret////\\}" # replace unix path with windows path
+        ret="${ret////\\}"    # Replace Unix slashes.
+        ret="${ret//\\\(/\(}" # Remove backslash before (.
+        ret="${ret//\\\)/\)}" # Remove backslash before ).
         echo $ret
     fi
 }
@@ -45,6 +47,8 @@ windows_to_unix_path() {
     ret="/${ret/:/}"     # Remove drive ':'.
     ret="${ret//\\//}"   # Replace Windows slashes.
     ret="${ret// /\\ }"  # Add a backslash before spaces.
+    ret="${ret//\(/\\(}" # Add a backslash before (.
+    ret="${ret//\)/\\)}" # Add a backslash before ).
     echo "$ret"
 }
 
