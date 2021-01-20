@@ -173,16 +173,18 @@ dl_youtube_playlist() {
     shift 3
     local opts="$@"
 
-    if [[ $url == "" || $dir_name == "" ]]; then
-        error "Format: cmd <url> <directory name> <optional args>\n"
+    if [[ $url == "" ]]; then
+        error "Format: cmd <url> <directory name (optional)> <optional args>\n"
         return
     fi
 
     opts+=" --all-subs --embed-subs"
 
-    make_vid_dir_and_cd_into $url "$dir_name"
-    if [[ $? -ne 0 ]]; then
-        return
+    if [[ $dir_name != "" ]]; then
+        make_vid_dir_and_cd_into $url "$dir_name"
+        if [[ $? -ne 0 ]]; then
+            return
+        fi
     fi
 
     printf "${BOLD}Downloading playlist${NORMAL}\n"
@@ -351,14 +353,6 @@ dl_instagram_vid_and_hflip() {
     rm $temp_name
 }
 
-activate_virtualenv() {
-    if [ -f venv/bin/activate ]; then . venv/bin/activate;
-        elif [ -f ../venv/bin/activate ]; then . ../venv/bin/activate;
-        elif [ -f ../../venv/bin/activate ]; then . ../../venv/bin/activate;
-        elif [ -f ../../../venv/bin/activate ]; then . ../../../venv/bin/activate;
-    fi
-}
-
 ###################################
 # Git Functions
 ###################################
@@ -463,12 +457,6 @@ r() {
 br() {
   b $@ ; r
 }
-
-alias bd='if [ -f build ]; then ./build -data 1 ; else test -f build.sh && ./build.sh -data 1 ; fi'
-alias bbd='if [ -f build ]; then ./build -o 1 -data 1 ; else test -f build.sh && ./build.sh -o 1 -data 1 ; fi'
-#alias bl='brew link --overwrite'
-#lias bld='brew link --overwrite --dry-run'
-alias bower='noglob bower'
 
 if [[ "${platform,,}" == *'ming'* ]]; then
     _checksum() {
