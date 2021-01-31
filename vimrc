@@ -364,6 +364,9 @@ augroup campoCmds
         " The ampersand at the end is to make this run in the background. I had to
         " group the commands in parens to make the chained commands run in the
         " background.
+        " @improve: don't run a bunch of ctags for the same project when mass
+        " saving files. They all try to write and move newtags which tends to
+        " lock up vim and/or spew errors.
         let l:ctags_cmd = "!(ctags --c-types=+l --c++-types=+l --exclude=*.md --exclude=*.txt --exclude=*.config --exclude=*.css --exclude=*.html --exclude=*.htm --exclude=*.json --exclude=node_modules --exclude=.git --exclude=.cache " . g:campo_custom_ctags_args . " --recurse=yes -o newtags; mv newtags tags) &"
         exec l:ctags_cmd | redraw!
     endfun
@@ -1015,7 +1018,7 @@ function! GlobalReplaceIt(confirm_replacement)
         endif
 
         execute 'Ggrep '.l:term
-        execute 'Qargs | argdo %s/'.l:term.'/'.l:replacement.'/g'.l:confirm_opt.' | update'
+        execute 'Qargs | argdo %s/'.l:term.'/'.l:replacement.'/g'.l:confirm_opt
     else
         echo "Unable to search since you're not in a git repo"
     endif
