@@ -13,3 +13,4 @@ Abolish darw draw
 Abolish transfered transferred
 Abolish transfering transferring
 Abolish haev have
+Abolish intialize initialize
