@@ -468,7 +468,23 @@ if [[ "${platform,,}" == *'ming'* ]]; then
     alias checksum-md5='_checksum MD5'
     alias checksum-sha1='_checksum SHA1'
     alias checksum-sha256='_checksum SHA256'
+    alias checksum-sha512='_checksum SHA512'
 fi
+
+check_signature() {
+    local algo="$1"
+    local hashes_file="$2"
+    local pem_file="$3"
+    local sig_file="$4"
+
+    if [[ $hashes_file == "" || $pem_file == "" || $sig_file == "" ]]; then
+        error "Format: cmd <hashes file (e.g. sha512 hashes)> <pem file> <sig file>\n"
+        return
+    fi
+
+    openssl dgst -$algo -verify $pem_file -signature $sig_file $hashes_file
+}
+alias check-signature256='check_signature sha256 '
 
 alias cr='RUSTFLAGS="$RUSTFLAGS -A unused_variables -A dead_code -A unused_parens" cargo run'
 alias crr='cargo run --release'
@@ -487,7 +503,46 @@ alias dot='cd ~/.dotfiles'
 alias duh='du -csh'
 alias exp='explorer .'
 alias f='fg'
-alias grep='grep --color=auto --exclude=tags -n '
+
+####################################################################################################
+# Grep
+####################################################################################################
+
+custom_grep() {
+    local term="$1"
+    shift 1
+    local include_list=("$@")
+    local include_arg=""
+    if [[ $include_list != "" ]]; then
+        for i in "${include_list[@]}"; do
+            include_arg+="--include=\*${i} "
+        done
+    fi
+    eval grep -nri --color=auto $include_arg --exclude=tags --exclude=newtags --exclude-dir=.git \"$term\"
+}
+
+# Search c/cpp/txt files. Only supports a single search term arg or a quoted search term.
+grep_dev() {
+    custom_grep "$@" .h .c .cpp .inc .def .txt .md
+}
+
+# Search c/cpp files. Only supports a single search term arg or a quoted search term.
+grep_c() {
+    custom_grep "$@" .h .c .cpp .inc .def
+}
+
+# Search txt/md files. Only supports a single search term arg or a quoted search term.
+grep_txt() {
+    custom_grep "$@" .txt .md
+}
+
+alias grepp='grep -n --color=auto --exclude=tags --exclude=newtags --exclude-dir=.git '
+alias grep-c='grep_c '
+alias grep-txt='grep_txt'
+alias grep-dev='grep_dev'
+
+####################################################################################################
+
 alias hist='history'
 alias histroy='history'
 alias irb='irb --readline -r irb/completion'
