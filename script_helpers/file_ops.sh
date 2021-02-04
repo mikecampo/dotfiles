@@ -219,7 +219,7 @@ link_file() {
     eval $link_cmd 1>/dev/null
 }
 
-function setup_file() {
+setup_file() {
     src=$1
     dest=$2
     if [ ! -f $dest ]; then
@@ -229,13 +229,14 @@ function setup_file() {
     fi
 }
 
-function setup_dir() {
+setup_dir() {
     src=$1
     dest=$2
-    ignore_missing=$3
+    abort_if_src_not_found=$3
+
     if [ ! -d $src ]; then
         error "Source path '$src' doesn't exist!\n"
-        if [[ $ignore_missing != "1" ]]; then
+        if [[ $abort_if_src_not_found != "1" ]]; then
             abort
         else
             return
@@ -246,5 +247,15 @@ function setup_dir() {
     else
         printf "${BOLD}${MAGENTA}==> ${NORMAL}${BOLD}${YELLOW}'$dest'${NORMAL} already linked to ${BOLD}${YELLOW}'$src'${NORMAL}\n"
     fi
+}
+
+create_dir() {
+    path=$1
+    if [ -d $path ]; then
+        printf "${BOLD}${MAGENTA}==> ${NORMAL}${BOLD}${YELLOW}'$path'${NORMAL} already exists${NORMAL}\n"
+        return
+    fi
+    mkdir $path
+    printf "${BOLD}${GREEN}==> ${NORMAL}Created ${BOLD}${YELLOW}'$path'${NORMAL}\n"
 }
 
