@@ -392,8 +392,6 @@ if [[ $platform == 'Darwin' ]]; then
   alias tt='rmtrash'
 
 elif [[ "${platform,,}" == *'ming'* ]]; then # convert to lowercase then compare with wildcard
-  alias python='winpty python.exe'
-  alias python3='winpty python.exe'
   #alias rm='echo "use trash command instead!"'
   #alias rmr='echo "use trash command instead!"'
   alias trash='remove_windows_file'
@@ -401,8 +399,6 @@ elif [[ "${platform,,}" == *'ming'* ]]; then # convert to lowercase then compare
   alias cgrep='cgrep.exe'
 fi
 
-alias c='cd'
-alias c-='cd -'
 alias cd-='echo "Use c- instead"'
 alias ..='cd ../'
 alias ...='cd ../..'
