@@ -8,7 +8,7 @@
 #---------------------------------------------------------------------------------------------------
 
 
-# Will return a symlink path in its expanded form.  If the path's root is the
+# Will return a symlink path in its expanded form. If the path's root is the
 # home directory symbol "~" then it'll be replaced by the full home path.
 expand_path() {
     local ret="$1"
@@ -25,12 +25,11 @@ expand_path() {
     echo $ret
 }
 
+# Returned value does not have a trailing '\'.
 unix_to_windows_path() {
-    ret=$1
-    if [[ $(is_windows_path $ret) -eq 1 ]]; then
-        echo $ret
-    else
-        if [[ $(is_absolute_unix_path $ret) -eq 1 ]]; then
+    ret="$1"
+    if [[ $(is_windows_path "$ret") -eq 0 ]]; then
+        if [[ $(is_absolute_unix_path "$ret") -eq 1 ]]; then
             ret="${ret/\//}"
             # Fix the drive name, e.g. c\foo becomes c:\foo
             ret=$(sed 's,\([a-zA-Z]*\),\1:,' <<< "$ret")
@@ -38,72 +37,119 @@ unix_to_windows_path() {
         ret="${ret////\\}"    # Replace Unix slashes.
         ret="${ret//\\\(/\(}" # Remove backslash before (.
         ret="${ret//\\\)/\)}" # Remove backslash before ).
-        echo $ret
     fi
+
+    # Strip trailing slashes.
+    shopt -s extglob
+    ret=$(echo "${ret%%+(\\)}")
+
+    echo $ret
 }
 
+# Returned value does not have a trailing '/'.
 windows_to_unix_path() {
-    ret=$1
+    ret="$1"
     ret="/${ret/:/}"     # Remove drive ':'.
     ret="${ret//\\//}"   # Replace Windows slashes.
     ret="${ret// /\\ }"  # Add a backslash before spaces.
     ret="${ret//\(/\\(}" # Add a backslash before (.
     ret="${ret//\)/\\)}" # Add a backslash before ).
+
+    # If the passed in path was a unix path then we'll have two leading '/'; strip if it exists.
+    ret="${ret/\/\//\/}"
+
+    # Strip trailing slashes.
+    shopt -s extglob
+    ret=$(echo "${ret%%+(/)}")
+
     echo "$ret"
+}
+
+# Returns a Unix path without escaped spaces, e.g. "/x/some folder" instead of "/x/some\ folder"
+windows_to_unix_path_unescaped() {
+    ret=$(windows_to_unix_path "$1")
+    ret="${ret/\\ / }" # Remove '\' that appears before spaces.
+    echo "$ret"
+}
+
+# Returns a Unix path with spaces escaped with a '\'.
+escape_unix_path() {
+    ret="$1"
+    ret="${ret/ /\\ }"
+    echo "$ret"
+}
+
+strip_path() {
+    local result=$(basename "${1}")
+    echo "$result"
+}
+
+strip_filename() {
+    local result=$(dirname "${1}")
+    echo "$result"
 }
 
 move_file() {
     local src="$1"
-    local src_path=$(dirname "${src}")
-    local src_name=$(basename "${src}")
-    local dest=$2
-    local src_type=$3 # e.g. "script", "dependency", etc
+    local src_expanded=$(expand_path "$src")
 
-    if [[ $src_type != '' ]]; then
-        src_type="$src_type "
+    local dest_path=$(windows_to_unix_path_unescaped "$2")
+    local dest_filename="$3"
+
+    if [[ $dest_filename == "" ]]; then
+        dest_filename=$(strip_path "$src")
     fi
 
-    if [[ -e "$src" ]]; then
-        mkdir -p "$dest"
-        mv "$src" "$dest"
-        printf "${BOLD}${GREEN}Moved $src_type$src to $dest${NORMAL}\n"
+    if [[ -e "$src_expanded" ]]; then
+        mkdir -p "$dest_path"
+
+        local dest="$dest_path/$dest_filename"
+        mv "$src_expanded" "$dest"
+        printf "${BOLD}${GREEN}==> ${NORMAL}Moved ${BOLD}${YELLOW}'$src'${NORMAL} to ${BOLD}${YELLOW}'$dest'${NORMAL}\n" 2>/dev/null
     else
-        error "Unable to find $src_type$src!\n"
+        error "Unable to find $src_expanded!\n"
     fi
 }
 
 copy_file() {
     local src="$1"
-    local src_path=$(dirname "${src}")
-    local src_name=$(basename "${src}")
-    local dest=$2
-    local src_type=$3 # e.g. "script", "dependency", etc
+    local src_expanded=$(expand_path "$src")
 
-    if [[ $src_type != '' ]]; then
-        src_type="$src_type "
+    local dest_path=$(windows_to_unix_path_unescaped "$2")
+    local dest_filename="$3"
+
+    if [[ $dest_filename == "" ]]; then
+        dest_filename=$(strip_path "$src_expanded")
     fi
 
-    if [[ -e "$src" ]]; then
-        # @fixme If $dest is a file then strip the file name from the path and mkdir on that instead
-        echo "MAKE DIR $src $dest"
-        #mkdir -p "$dest"
-        cp "$src" "$dest"
-        printf "${BOLD}${GREEN}Copied $src_type$src to $dest${NORMAL}\n"
+    if [[ -e "$src_expanded" ]]; then
+        mkdir -p "$dest_path"
+
+        local dest="$dest_path/$dest_filename"
+        cp "$src_expanded" "$dest"
+        printf "${BOLD}${GREEN}==> ${NORMAL}Copied ${BOLD}${YELLOW}'$src'${NORMAL} to ${BOLD}${YELLOW}'$dest'${NORMAL}\n" 2>/dev/null
     else
-        error "Unable to find $src_type$src!\n"
+        error "Unable to find $src_expanded!\n"
     fi
 }
 
 copy_dir_files() {
-    local src="$1"
-    local dest=$2
+    local src=$(expand_path "$1")
+    local src_expanded=$(expand_path "$src")
 
-    if [[ -d "$src" ]]; then
-        mkdir -p "$dest"
-        cp -r $src/* $dest
-        printf "${BOLD}${GREEN}Copied contents of $src into $dest${NORMAL}\n"
+    local dest_path=$(windows_to_unix_path_unescaped "$2")
+
+    if [[ -d $src_expanded ]]; then
+        mkdir -p $dest_path
+
+        # Need to escape in order to use the wildcard and we have to eval in order to retain the backslash.
+        local src_escaped=$(escape_unix_path "$src_expanded")
+        cmd="cp -r $src_escaped/* \"$dest_path\""
+        eval $cmd
+
+        printf "${BOLD}${GREEN}==> ${NORMAL}Copied contents of ${BOLD}${YELLOW}'$src'${NORMAL} into ${BOLD}${YELLOW}'$dest_path'${NORMAL}\n" 2>/dev/null
     else
-        error "Unable to find $src!\n"
+        error "Unable to find $src_expanded!\n"
     fi
 }
 
@@ -129,7 +175,7 @@ path_has_a_space() {
 }
 
 # Expands a path when it's not a symbolic link or an absolute drive path.
-_clean_link_file_path() {
+clean_link_file_path() {
     path=$1
     if [[ $(is_absolute_unix_path "$path") -eq 0 && $(is_sym_file "$path") -eq 0 ]]; then
         path=$(expand_path "$path")
@@ -173,8 +219,8 @@ link_file() {
             source_path=$(expand_path "$source_path")
             dest_path=$(expand_path "$dest_path")
         else
-            source_path=$(_clean_link_file_path "$source_path")
-            dest_path=$(_clean_link_file_path "$dest_path")
+            source_path=$(clean_link_file_path "$source_path")
+            dest_path=$(clean_link_file_path "$dest_path")
         fi
     fi
 
