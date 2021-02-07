@@ -56,14 +56,72 @@ update-shell() {
     fi
 }
 
-remove_windows_file() {
-    if [ -f "$1" ]; then
-        recycle-bin.exe "$1"
-    elif [ -d "$1" ]; then
-        recycle-bin.exe "$1"
-    else
-        echo "'$1' does not exist!"
+# Will return a symlink path in its expanded form. If the path's root is the
+# home directory symbol "~" then it'll be replaced by the full home path.
+expand_path() {
+    local ret="$1"
+
+    IFS="/" read -ra parts <<< "$ret"
+    if [[ "${parts[0]}" == "~" ]]; then
+        ret="$HOME"
+        for ((i=1; i < ${#parts[@]}; i++))
+        do
+            ret="$ret/${parts[$i]}"
+        done
     fi
+    ret=$(readlink -m "$ret")
+    echo $ret
+}
+is_absolute_unix_path() {
+    if [[ $1 =~ ^/ ]]; then echo 1; else echo 0; fi
+}
+
+is_windows_path() {
+    if [[ ! $1 =~ \/+ ]]; then echo 1; else echo 0; fi
+}
+
+# Returns a Unix path with spaces escaped with a '\'.
+escape_unix_path() {
+    ret="$1"
+    ret="${ret/ /\\ }"
+    echo "$ret"
+}
+
+# Returned value does not have a trailing '\'.
+unix_to_windows_path() {
+    ret="$1"
+    if [[ $(is_windows_path "$ret") -eq 0 ]]; then
+        if [[ $(is_absolute_unix_path "$ret") -eq 1 ]]; then
+            ret="${ret/\//}"
+            # Fix the drive name, e.g. c\foo becomes c:\foo
+            ret=$(sed 's,\([a-zA-Z]*\),\1:,' <<< "$ret")
+        fi
+        ret="${ret////\\}"    # Replace Unix slashes.
+        ret="${ret//\\\(/\(}" # Remove backslash before (.
+        ret="${ret//\\\)/\)}" # Remove backslash before ).
+    fi
+
+    # Strip trailing slashes.
+    shopt -s extglob
+    ret=$(echo "${ret%%+(\\)}")
+
+    echo $ret
+}
+
+remove_windows_file() {
+    local path=$(expand_path "$1")
+    if [[ -f "$path" || -d "$path" ]]; then
+        local dest=$(unix_to_windows_path "$path")
+        recycle-bin.exe $dest
+    else
+        echo "'$path' does not exist!"
+    fi
+}
+
+open_explorer_here() {
+    local path_expanded=$(expand_path "$1")
+    local path=$(unix_to_windows_path "$path_expanded")
+    explorer.exe "$path"
 }
 
 make_vid_dir_and_cd_into() {
@@ -497,7 +555,8 @@ alias cpr='cp -r'
 alias dc='gdc'
 alias dot='cd ~/.dotfiles'
 alias duh='du -csh'
-alias exp='explorer .'
+alias exp='open_explorer_here "$PWD"'
+
 alias f='fg'
 
 ####################################################################################################
