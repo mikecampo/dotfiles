@@ -6,13 +6,13 @@
 " The config is chopped up into sections. These are the headings, which you
 " can use to quickly jump to a particular section:
 
-" #0. GLOBALS
-" #1. PLUGINS
-" #2. BASE CONFIG
-" #3. PLUGIN CONFIGS
-" #4. VISUALS
-" #5. HELPER FUNCTIONS
-" #6. PERSONAL
+" #0 GLOBALS
+" #1 PLUGINS
+" #2 BASE CONFIG
+" #3 PLUGIN CONFIGS
+" #4 VISUALS
+" #5 CUSTOM FUNCTIONS / COMMANDS
+" #6 PERSONAL
 "
 "###################################################################################################
 
@@ -63,7 +63,7 @@ source ~/.vimrc.private
 "################################################################
 "################################################################
 "################################################################
-"#0. GLOBALS
+"#0 GLOBALS
 "################################################################
 "################################################################
 "################################################################
@@ -107,7 +107,7 @@ let g:campo_custom_ctags_args = ""
 "################################################################
 "################################################################
 "################################################################
-"#1. PLUGINS
+"#1 PLUGINS
 "################################################################
 "################################################################
 "################################################################
@@ -208,11 +208,10 @@ filetype plugin indent on
 "################################################################
 "################################################################
 "################################################################
-"#2. BASE CONFIG
+"#2 BASE CONFIG
 "################################################################
 "################################################################
 "################################################################
-
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " BASIC EDITING CONFIGURATION
@@ -572,7 +571,7 @@ inoremap <s-tab> <c-n>
 "################################################################
 "################################################################
 "################################################################
-"#3. PLUGIN CONFIGS
+"#3 PLUGIN CONFIGS
 "################################################################
 "################################################################
 "################################################################
@@ -665,6 +664,7 @@ let g:ctrlp_clear_cache_on_exit = 1 " No need to keep cache for now since I most
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " GIT
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
 map <leader>gb :Gblame -w<cr>
 " Ignore whitespace changes; follow renames and copies.
 command! -bar -bang -nargs=* Blame :Gblame<bang> -wCM <args>
@@ -735,7 +735,7 @@ set tags+=tags;$HOME
 "################################################################
 "################################################################
 "################################################################
-"#4. VISUALS
+"#4 VISUALS
 "################################################################
 "################################################################
 "################################################################
@@ -867,11 +867,17 @@ augroup END
 "################################################################
 "################################################################
 "################################################################
-"#5. HELPER FUNCTIONS
+"#5 CUSTOM FUNCTIONS / COMMANDS
 "################################################################
 "################################################################
 "################################################################
 
+function! PrintError(msg) abort
+    execute 'normal! \<Esc>'
+    echohl ErrorMsg
+    echomsg a:msg
+    echohl None
+endfunction
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " BUILD COMMANDS
@@ -888,6 +894,7 @@ let errormarker_warningtext = "W"
 
 " Thanks to https://forums.handmadehero.org/index.php/forum?view=topic&catid=4&id=704#3982
 " for the error message formats
+"
 " Microsoft MSBuild errors
 set errorformat+=\\\ %#%f(%l\\\,%c):\ %m
 " Microsoft compiler: cl.exe
@@ -1020,7 +1027,7 @@ function! GlobalReplaceIt(confirm_replacement)
         execute 'Ggrep '.l:term
         execute 'Qargs | argdo %s/'.l:term.'/'.l:replacement.'/g'.l:confirm_opt
     else
-        echo "Unable to search since you're not in a git repo"
+        PrintError "Unable to search since you're not in a git repo!"
     endif
 endfunction
 map <leader>r :call GlobalReplaceIt(0)<cr>
@@ -1048,7 +1055,7 @@ map <leader>n :call RenameFile()<cr>
 "################################################################
 "################################################################
 "################################################################
-"#6. PERSONAL
+"#6 PERSONAL
 "################################################################
 "################################################################
 "################################################################
@@ -1060,4 +1067,46 @@ map <leader>n :call RenameFile()<cr>
 map <leader>pn :sp ~/.dev-scratchpad.md<cr>
 
 "let g:autotagStopAt = "$HOME"
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" PLAN FILE
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+function! OpenPlanFile(day = 0, month = 0, year = 0)
+    let l:year = a:year
+    let l:month = a:month
+    let l:day = a:day
+    if l:year == 0
+        let l:year = '' . strftime("%Y")
+    endif
+    if l:month == 0
+        let l:month = '' . strftime("%m")
+    endif
+    if l:day == 0
+        let l:day = '' . strftime("%d")
+    endif
+
+    let l:name = l:year . '-' . l:month . '-' . l:day . '.plan'
+    let l:path_base = ''
+
+    if !filereadable(l:name)
+        if isdirectory(l:year)
+            let l:path_base = l:year . '/'
+        elseif isdirectory('plan/' . l:year)
+            let l:path_base = 'plan/' . l:year . '/'
+        elseif isdirectory('notes/plan/' . l:year)
+            let l:path_base = 'notes/plan/' . l:year . '/'
+        elseif isdirectory('../plan/' . l:year)
+            let l:path_base = '../plan/' . l:year . '/'
+        elseif isdirectory('../notes/plan/' . l:year)
+            let l:path_base = '../notes/plan/' . l:year . '/'
+        else
+            call PrintError("Failed to find plan folder!")
+            return
+        endif
+    endif
+    execute 'tabe ' . l:path_base . l:name
+endfunction
+
+command -nargs=* Plan call OpenPlanFile(<f-args>)
 
