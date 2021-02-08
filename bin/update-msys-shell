@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# If you're getting signature errors, check out https://www.msys2.org/news/#2020-06-29-new-packagers
+# and/or other news posts.
+
 source "$HOME/.dotfiles/script_helpers/printing.sh"
 source "$HOME/.dotfiles/script_helpers/platform.sh"
 
