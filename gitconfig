@@ -1,6 +1,8 @@
 [include]
   path = ~/.gitconfig.platform
   path = ~/.gitconfig.private
+[init]
+  defaultBranch = master
 [merge]
   summary = true
   tool = vimdiff
