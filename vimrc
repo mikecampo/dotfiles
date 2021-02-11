@@ -1072,10 +1072,102 @@ map <leader>pn :sp ~/.dev-scratchpad.md<cr>
 " PLAN FILE
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-function! OpenPlanFile(day = 0, month = 0, year = 0)
-    let l:year = a:year
+function! FindPlanFileParentDir(year)
+    let l:result = ''
+    if isdirectory(a:year)
+        let l:result = a:year . '/'
+    elseif isdirectory('plan/' . a:year)
+        let l:result = 'plan/' . a:year . '/'
+    elseif isdirectory('notes/plan/' . a:year)
+        let l:result = 'notes/plan/' . a:year . '/'
+    elseif isdirectory('../plan/' . a:year)
+        let l:result = '../plan/' . a:year . '/'
+    elseif isdirectory('../notes/plan/' . a:year)
+        let l:result = '../notes/plan/' . a:year . '/'
+    else
+        call PrintError("Failed to find plan root dir for year " . a:year . "!")
+    endif
+    return l:result
+endfunction
+
+function! GetPlanFilePath(short_name)
+    let l:parent_dir = ""
+    let l:year = a:short_name[0:3]
+    if !filereadable(a:short_name)
+        let l:parent_dir = FindPlanFileParentDir(l:year)
+        if l:parent_dir == ""
+            call PrintError("Failed to find path for " . a:short_name . ".plan")
+            return ""
+        endif
+    endif
+    return l:parent_dir . a:short_name . ".plan"
+endfunction
+
+function! FindLastPlanFile()
+    " Starts by checking the current year for the last plan file. If found it
+    " opens it, otherwise it checks the previous year and so on until
+    " max_years_back is hit.
+    let l:max_years_back = 2
+
+    let l:year_index = 0
+    while l:year_index <= l:max_years_back
+        let l:year = str2nr(system('echo -n $(date -d "$x -' . l:year_index .  ' years" "+%Y")'))
+        echo "Checking " . l:year . "..."
+
+        let l:parent_dir = FindPlanFileParentDir(l:year)
+        if l:parent_dir != ""
+            let l:files = systemlist('ls ' . l:parent_dir . '*.plan 2>/dev/null')
+            if len(l:files) > 0
+                return l:files[-1]
+            else
+                echo "No plan files found.\n\n"
+            endif
+        endif
+        let l:year_index += 1
+    endwhile
+
+    call PrintError("No plan files found!")
+    return ""
+endfunction
+
+function! NewPlanFileFromLast()
+    let l:last_path = FindLastPlanFile()
+    if l:last_path != ""
+        " Isolate the file name from the full path.
+        let l:last_name_parts = split(l:last_path, "/")
+        let l:last_short_name = l:last_name_parts[-1]
+        let l:last_file_year  = str2nr(l:last_short_name[0:3])
+        let l:parent_dir      = join(l:last_name_parts[0:-2], "/") . "/"
+
+        let l:current_year = str2nr(strftime("%Y"))
+        if l:current_year > l:last_file_year
+            " The last file was in the previous year. Need to make a new folder for the plan copy.
+            let l:parent_dir = l:parent_dir . "../" . l:current_year . "/"
+            system('mkdir -p ' . l:parent_dir)
+        endif
+
+        let l:copy_path = l:parent_dir . strftime("%Y-%m-%d") . ".plan"
+        if !filereadable(l:copy_path)
+            execute 'tabe ' . l:copy_path . '|%d|r ' . l:last_path . '|1d|split|e ' . l:last_path
+        else
+            execute 'tabe ' . l:copy_path
+            call PrintError("There's already a plan file for today. Aborting the copy.")
+        endif
+    endif
+endfunction
+
+function! OpenLastPlanFile()
+    let l:path = FindLastPlanFile()
+    if l:path != ""
+        execute 'tabe ' . l:path
+    endif
+endfunction
+
+function! OpenSpecificPlanFile(day = 0, month = 0, year = 0)
+    let l:year  = a:year
     let l:month = a:month
-    let l:day = a:day
+    let l:day   = a:day
+
     if l:year == 0
         let l:year = '' . strftime("%Y")
     endif
@@ -1086,27 +1178,30 @@ function! OpenPlanFile(day = 0, month = 0, year = 0)
         let l:day = '' . strftime("%d")
     endif
 
-    let l:name = l:year . '-' . l:month . '-' . l:day . '.plan'
-    let l:path_base = ''
-
-    if !filereadable(l:name)
-        if isdirectory(l:year)
-            let l:path_base = l:year . '/'
-        elseif isdirectory('plan/' . l:year)
-            let l:path_base = 'plan/' . l:year . '/'
-        elseif isdirectory('notes/plan/' . l:year)
-            let l:path_base = 'notes/plan/' . l:year . '/'
-        elseif isdirectory('../plan/' . l:year)
-            let l:path_base = '../plan/' . l:year . '/'
-        elseif isdirectory('../notes/plan/' . l:year)
-            let l:path_base = '../notes/plan/' . l:year . '/'
-        else
-            call PrintError("Failed to find plan folder!")
-            return
-        endif
+    let l:name = l:year . '-' . l:month . '-' . l:day
+    let l:path = GetPlanFilePath(l:name)
+        execute 'tabe ' . l:path
     endif
-    execute 'tabe ' . l:path_base . l:name
 endfunction
 
-command -nargs=* Plan call OpenPlanFile(<f-args>)
+function! OpenTodayPlanFile()
+    let l:path = GetPlanFilePath(strftime("%Y-%m-%d"))
+    if l:path != ''
+        execute 'tabe ' . l:path
+    endif
+endfunction
+
+function! OpenPrevPlanFile()
+    let l:prev_date = system('echo -n $(date -d "$x -1 days" "+%Y-%m-%d")') " -n to strip trailing newline.
+    let l:path = GetPlanFilePath(l:prev_date)
+    if l:path != ''
+        execute 'tabe ' . l:path
+    endif
+endfunction
+
+command -nargs=0 Plan call OpenTodayPlanFile()
+command -nargs=0 PlanY call OpenPrevPlanFile()
+command -nargs=0 PlanL call OpenLastPlanFile()
+command -nargs=* PlanD call OpenSpecificPlanFile(<f-args>)
+command -nargs=0 PlanN call NewPlanFileFromLast()
 
