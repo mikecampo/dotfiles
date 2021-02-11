@@ -6,8 +6,11 @@ case $- in
       *) return;;
 esac
 
-# Unbreak broken, non-colored terminal
+cd ~
+
+# Unbreak broken, non-colored terminal.
 export TERM=xterm-256color
+color_prompt=yes
 
 # Load the shell environment.
 test -f ~/.env.loader && . ~/.env.loader
@@ -18,11 +21,10 @@ export TMP=/tmp
 export TEMP=/tmp
 export TMPDIR=/tmp
 
-# Customize the shell prompt
+# Customize the shell prompt.
 in_git_work_tree() {
     git rev-parse --is-inside-work-tree &> /dev/null
 }
-
 parse_git_branch() {
     if in_git_work_tree; then
         git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
@@ -30,11 +32,9 @@ parse_git_branch() {
 }
 export PS1='\[\033[0;32m\]\[\033[0m\033[0;32m\]\u\[\033[0;36m\] @ \w\[\033[33m\]\n$(parse_git_branch)\[\033[0;32m\]\[\033[0m\033[0;32m\] \$\[\033[0m\033[0;32m\]\[\033[0m\] '
 
-# Git autocompletion
-# Git bash file can be downloaded with: `curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash -o ~/.git-completion.bash`
+# Git autocompletion.
 if [ -f ~/.git-completion.bash ]; then
   . ~/.git-completion.bash
-
   # Git autocompletion fixes for bash aliases
   __git_complete g     __git_main
   __git_complete gco   _git_checkout
@@ -49,51 +49,37 @@ if [ -f ~/.git-completion.bash ]; then
   __git_complete gmnff _git_merge
 fi
 
-cd ~
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
-# Don't use ^D to exit
+# Don't use ^D to exit.
 set -o ignoreeof
 
-# don't put duplicate lines or lines starting with space in the history.
-# See bash(1) for more options
-# don't put duplicate lines or lines starting with space in the history.
-# See bash(1) for more options
+# Don't put duplicate lines or lines starting with space in the history. See bash(1) for more options.
 HISTCONTROL=ignoreboth
 
-# append to the history file, don't overwrite it
+# Append to the history file.
 shopt -s histappend
 
+# Customize history.
 HISTSIZE=20000
 HISTFILESIZE=20000
 HISTIGNORE="&:ls:l:ll:[bf]g:less:clear:cls:exit:history:hist"
 HISTTIMEFORMAT='%F %T '
 
-# check the window size after each command and, if necessary,
-# update the values of LINES and COLUMNS.
+# Check the window size after each command and, if necessary, update the values of LINES and COLUMNS.
 shopt -s checkwinsize
 
-# make less more friendly for non-text input files, see lesspipe(1)
+# Make `less` more friendly for non-text input files, see lesspipe(1).
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
-# set a fancy prompt (non-color, unless we know we "want" color)
-case "$TERM" in
-    xterm-color) color_prompt=yes;;
-esac
-
-# colored GCC warnings and errors
+# Colored GCC warnings and errors.
 export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
 
-# enable color support of ls and also add handy aliases
+# Enable color support in ls.
 if [ -x /usr/bin/dircolors ]; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
 fi
 
-# enable programmable completion features (you don't need to enable
-# this, if it's already enabled in /etc/bash.bashrc and /etc/profile
+# Enable programmable completion features (you don't need to enable
+# this if it's already enabled in /etc/bash.bashrc and /etc/profile
 # sources /etc/bash.bashrc).
 if ! shopt -oq posix; then
     if [ -f /usr/share/bash-completion/bash_completion ]; then
@@ -101,5 +87,10 @@ if ! shopt -oq posix; then
     elif [ -f /etc/bash_completion ]; then
         . /etc/bash_completion
     fi
+fi
+
+# Enable direnv if it exists.
+if [ -x $GOPATH/bin/direnv.exe ]; then
+    eval "$(direnv.exe hook bash)"
 fi
 
