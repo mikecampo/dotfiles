@@ -54,6 +54,8 @@
     * Add contents of the hosts file from this directory
     * Restart PC
 
+* Change explorer options so that file extensions are always displayed.
+
 * Disable the WinSAT task which is used to figure out your Windows performance score. It eats up
 processor time and is generally useless.
     * Open task scheduler.
@@ -80,7 +82,7 @@ processor time and is generally useless.
 
 * Enable clear text
 * Disable Win 7 Fault Tolerant Heap
-    * I don't see why you want to spend large amounts of CPU time to hide application instability.
+    * I know know why anyone would want to spend large amounts of CPU time to hide application instability.
     * https://docs.microsoft.com/en-us/windows/desktop/Win7AppQual/fault-tolerant-heap
       * Disable on system via regedit: set the REG_DWORD value `HKLM\\Software\\Microsoft\\FTH\\Enabled` to `0`.
 
@@ -89,15 +91,7 @@ processor time and is generally useless.
 * Disable the Windows Customer Experience Improvement program via group policy
   https://www.ghacks.net/2016/10/26/turn-off-the-windows-customer-experience-program/
 * Install the Windows SDK https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk
-
-## Setting up Visual Studio
-
-* Use an install path with no spaces in it `/x/programs/vs15`
-* Select custom install and check off the C++ language support.
-* Once installed, open Visual Studio and go to `Tools` -> `Options`. Open `Debugging` -> `Symbols`
-  and add the path to the cached symbols directory that you set up above under `Setup a symbol server`.
-* Open the `Visual Studio Layout` folder in this directory and copy the file to `%LOCALAPPDATA%/Microsoft/VisualStudio/{VisualStudioInstanceID}`.
-  You can now apply the custom layout in VS: `Window -> Apply Window Layout -> Campo`
+* Download [O&O ShutUp10](https://www.oo-software.com/en/shutup10) and disable things.
 
 ## Setup up Unix-like Shell
 * Install [MSYS2 w/ MinGW-w64](http://www.msys2.org/) to `C:\msys64`
@@ -111,7 +105,7 @@ processor time and is generally useless.
   * To patch, cd into `/mingw64/bin` and run `mv envsubst.exe envsubst.exe_backup`. Now run `pacman -S gettext`
     and verify that `which envsubst` reports back `/usr/bin/envsubst`.
   * Bug report is at https://github.com/Alexpux/MSYS2-packages/issues/735
-* Switch to the shell `C:\msys64\msys2.exe` going forward.
+* Use `C:\msys64\mingw64.exe` if you want to compile native binaries and `C:\msys64\msys2.exe` to build msys binaries.
   * You can also load the shell with a batch file. This allows you to do some setup work, like run `vcvarsall.bat`, eg.
     ```batch
     REM saved as shell-64.bat
@@ -195,6 +189,15 @@ processor time and is generally useless.
 
 * Install the latest Universal ctags build: https://github.com/universal-ctags/ctags-win32/releases
 * Place it in `~/bin`.
+
+## Setting up Visual Studio
+
+* Use an install path with no spaces in it `/x/programs/vs15`
+* Select custom install and check off the C++ language support.
+* Once installed, open Visual Studio and go to `Tools` -> `Options`. Open `Debugging` -> `Symbols`
+  and add the path to the cached symbols directory that you set up above under `Setup a symbol server`.
+* Open the `Visual Studio Layout` folder in this directory and copy the file to `%LOCALAPPDATA%/Microsoft/VisualStudio/{VisualStudioInstanceID}`.
+  You can now apply the custom layout in VS: `Window -> Apply Window Layout -> Campo`
 
 ## Setting up Cygwin
 
