@@ -555,7 +555,8 @@ alias cpr='cp -r'
 alias dc='gdc'
 alias dot='cd ~/.dotfiles'
 alias duh='du -csh'
-alias exp='open_explorer_here "$PWD"'
+alias e='open_explorer_here "$PWD"'
+alias exp='echo "Use e instead."'
 
 alias f='fg'
 
