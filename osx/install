@@ -10,7 +10,7 @@ source "$HOME/.dotfiles/script_helpers/file_ops.sh"
 printf "\n${BOLD}Installing key remap config...${NORMAL}\n"
 key_dest=$HOME/.config/karabiner/assets/complex_modifications/
 mkdir -p $key_dest
-setup_file $HOME/.dotfiles/osx/capslock-to-ctrl-for-karabiner.json ${key_dest}/custom-capslock.json
+make_link $HOME/.dotfiles/osx/capslock-to-ctrl-for-karabiner.json ${key_dest}/custom-capslock.json
 
 #-----------------------------------
 # Homebrew packages

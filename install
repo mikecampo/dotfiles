@@ -14,7 +14,7 @@ source "script_helpers/core.sh"
 source "script_helpers/platform.sh"
 source "script_helpers/file_ops.sh"
 
-cwd=$PWD
+dotfiles_dir=$PWD
 confirm_link=0
 os_is_windows is_windows
 os_is_macos is_macos
@@ -54,7 +54,7 @@ setup_zsh() {
         sudo apt install zsh
     fi
 
-    setup_dir .dotfiles/zsh/core .zsh
+    make_link .dotfiles/zsh/core .zsh
 
     FILES=()
     FILES+=('zshrc')
@@ -62,7 +62,7 @@ setup_zsh() {
 
     for file in "${FILES[@]}"
     do
-        setup_file .dotfiles/zsh/$file .$file
+        make_link .dotfiles/zsh/$file .$file
     done
 }
 
@@ -76,7 +76,7 @@ setup_bash() {
 
     for file in "${FILES[@]}"
     do
-        setup_file .dotfiles/bash/$file .$file
+        make_link .dotfiles/bash/$file .$file
     done
 }
 
@@ -86,7 +86,7 @@ setup_bash() {
 
 pushd "$HOME" &>/dev/null
 
-setup_dir $cwd .dotfiles
+make_link $dotfiles_dir .dotfiles 1 # expand source path in case we're reinstalling and the cwd is a symlink.
 
 if [[ $is_windows -eq 1 ]]; then
     do_vim_copy=1
@@ -105,7 +105,7 @@ if [[ $is_windows -eq 1 ]]; then
         cp -r .dotfiles/vim .vim
     fi
 else
-    setup_dir .dotfiles/vim .vim
+    make_link .dotfiles/vim .vim
 fi
 
 FILES=()
@@ -117,7 +117,7 @@ FILES+=('curlrc')
 
 for file in "${FILES[@]}"
 do
-    setup_file .dotfiles/$file .$file
+    make_link .dotfiles/$file .$file
 done
 
 set +e
@@ -151,14 +151,14 @@ fi
 
 if [[ $os_name != "" ]]; then
     if [ -f .dotfiles/$os_name/env.platform ]; then
-        setup_file .dotfiles/$os_name/env.platform .env.platform
+        make_link .dotfiles/$os_name/env.platform .env.platform
     fi
 
     if [ -f .dotfiles/$os_name/gitconfig.platform ]; then
-        setup_file .dotfiles/$os_name/gitconfig.platform .gitconfig.platform
+        make_link .dotfiles/$os_name/gitconfig.platform .gitconfig.platform
     fi
 
-    $cwd/$os_name/install
+    $dotfiles_dir/$os_name/install
 fi
 
 popd "$HOME" &>/dev/null

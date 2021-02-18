@@ -7,6 +7,12 @@
 # API
 #---------------------------------------------------------------------------------------------------
 
+strip_trailing_slashes() {
+    local ret="$1"
+    shopt -s extglob
+    ret=$(echo "${ret%%+(/)}")
+    echo $ret
+}
 
 # Will return a symlink path in its expanded form. If the path's root is the
 # home directory symbol "~" then it'll be replaced by the full home path.
@@ -27,7 +33,7 @@ expand_path() {
 
 # Returned value does not have a trailing '\'.
 unix_to_windows_path() {
-    ret="$1"
+    local ret="$1"
     if [[ $(is_windows_path "$ret") -eq 0 ]]; then
         if [[ $(is_absolute_unix_path "$ret") -eq 1 ]]; then
             ret="${ret/\//}"
@@ -38,55 +44,147 @@ unix_to_windows_path() {
         ret="${ret//\\\(/\(}" # Remove backslash before (.
         ret="${ret//\\\)/\)}" # Remove backslash before ).
     fi
-
-    # Strip trailing slashes.
-    shopt -s extglob
-    ret=$(echo "${ret%%+(\\)}")
-
+    ret=$(strip_trailing_slashes "$ret")
     echo $ret
 }
 
 # Returned value does not have a trailing '/'.
 windows_to_unix_path() {
-    ret="$1"
+    local ret="$1"
     ret="/${ret/:/}"     # Remove drive ':'.
     ret="${ret//\\//}"   # Replace Windows slashes.
     ret="${ret// /\\ }"  # Add a backslash before spaces.
     ret="${ret//\(/\\(}" # Add a backslash before (.
     ret="${ret//\)/\\)}" # Add a backslash before ).
-
-    # If the passed in path was a unix path then we'll have two leading '/'; strip if it exists.
-    ret="${ret/\/\//\/}"
-
-    # Strip trailing slashes.
-    shopt -s extglob
-    ret=$(echo "${ret%%+(/)}")
-
+    ret="${ret/\/\//\/}" # If the passed in path was a unix path then we'll have two leading '/'; strip if it exists.
+    ret=$(strip_trailing_slashes "$ret")
     echo "$ret"
 }
 
 # Returns a Unix path without escaped spaces, e.g. "/x/some folder" instead of "/x/some\ folder"
 windows_to_unix_path_unescaped() {
-    ret=$(windows_to_unix_path "$1")
+    local ret=$(windows_to_unix_path "$1")
     ret="${ret/\\ / }" # Remove '\' that appears before spaces.
     echo "$ret"
 }
 
 # Returns a Unix path with spaces escaped with a '\'.
 escape_unix_path() {
-    ret="$1"
+    local ret="$1"
     ret="${ret/ /\\ }"
     echo "$ret"
 }
 
+# Returns a Windows path with backslashes escaped so that you can print the path and see the slashes.
+escape_backslashes() {
+    local ret="$1"
+    ret="${ret/\\/\\\\}"
+    echo "$ret"
+}
+
+# Returns the last part of a path without leading or trailing slashes.
 strip_path() {
-    local result=$(basename "${1}")
+    local result=$(basename "$1")
     echo "$result"
 }
 
+# Returns a path without the last part. Does not end in a slash.
 strip_filename() {
-    local result=$(dirname "${1}")
+    local result=$(dirname "$1")
     echo "$result"
+}
+
+is_absolute_unix_path() {
+    if [[ $1 =~ ^/ ]]; then echo 1; else echo 0; fi
+}
+
+# Check if the first part of a path is a symlink.
+is_first_dir_a_sym_link() {
+    local path="$1"
+    IFS="/" parts=( ${path//\/" "} )
+    local first_dir="${parts[0]}" # will be empty string if path started with slash.
+    if [[ $first_dir == "" || $first_dir == "." || ! -L $first_dir ]]; then
+        echo 0
+    else
+        echo 1
+    fi
+}
+
+# Check if any part of the path is a symlink. Stops at the first symlink that is found.
+is_any_part_of_path_a_symlink() {
+    local path="$1"
+
+    if [[ $(is_absolute_unix_path "$path") -eq 1 ]]; then
+        echo 0
+        return
+    fi
+
+    IFS="/" parts=( ${path//\/" "} )
+
+    if [[ ${parts[0]} == "" ]]; then
+        echo 0
+        return
+    fi
+
+    local at=0
+    local len=${#parts[@]}
+
+    if [[ ${parts[0]} == "." ]]; then
+        if [[ $len -gt 1 ]]; then
+            at=1 # Skip the period.
+        else
+            echo 0
+            return
+        fi
+    fi
+
+    local test_path="${parts[$at]}"
+    if [[ -L "$test_path" ]]; then
+        echo 1
+        return
+    fi
+
+    ((at=at+1))
+
+    until [ $at -eq $len ]
+    do
+        local part=${parts[$at]}
+        test_path="$test_path/$part"
+        if [[ -L $test_path ]]; then
+            echo 1
+            return
+        fi
+        ((at=at+1))
+    done
+    echo 0
+}
+
+# Check if the first part of a path is a dotfile.
+is_dotfile() {
+    if [[ $1 =~ ^\.{1} ]]; then echo 1; else echo 0; fi
+}
+
+# We're treating symlinks as Unix paths. This may give us trouble but we'll
+# deal with it later should an edge case come up.
+is_windows_path() {
+    if [[ $(is_any_part_of_path_a_symlink "$1") -eq 0 && $1 =~ \\+ ]]; then echo 1; else echo 0; fi
+}
+
+is_unix_path() {
+    echo $(! is_windows_path "$1")
+}
+
+path_has_a_space() {
+    local regexp="[[:blank:]]+"
+    if [[ $1 =~ $regexp ]]; then echo 1; else echo 0; fi
+}
+
+expand_path_if_not_symlink_or_absolute() {
+    local path="$1"
+    if [[ $(is_absolute_unix_path "$path") -eq 0 && $(is_any_part_of_path_a_symlink "$path") -eq 0 ]]; then
+        path=$(expand_path "$path")
+    fi
+    echo $path
 }
 
 move_file() {
@@ -105,9 +203,10 @@ move_file() {
 
         local dest="$dest_path/$dest_filename"
         mv "$src_expanded" "$dest"
-        printf "${BOLD}${GREEN}==> ${NORMAL}Moved ${BOLD}${YELLOW}'$src'${NORMAL} to ${BOLD}${YELLOW}'$dest'${NORMAL}\n" 2>/dev/null
+        printf "${BOLD}${GREEN}==> ${NORMAL}${BOLD}move:    ${YELLOW}'$src'${NORMAL}${BOLD} to ${YELLOW}'$dest'${NORMAL}\n" 2>/dev/null
     else
-        error "Unable to find $src_expanded!\n"
+        printf "${BOLD}${RED}==> move:    ${YELLOW}'$src' ${RED}doesn't exists${NORMAL}\n"
+        return
     fi
 }
 
@@ -127,14 +226,15 @@ copy_file() {
 
         local dest="$dest_path/$dest_filename"
         cp "$src_expanded" "$dest"
-        printf "${BOLD}${GREEN}==> ${NORMAL}Copied ${BOLD}${YELLOW}'$src'${NORMAL} to ${BOLD}${YELLOW}'$dest'${NORMAL}\n" 2>/dev/null
+        printf "${BOLD}${GREEN}==> ${NORMAL}${BOLD}copy:    ${YELLOW}'$src'${NORMAL}${BOLD} to\n             ${YELLOW}'$dest'${NORMAL}\n" 2>/dev/null
     else
-        error "Unable to find $src_expanded!\n"
+        printf "${BOLD}${RED}==> copy:    ${YELLOW}'$src' ${RED}doesn't exists${NORMAL}\n"
+        return
     fi
 }
 
 copy_dir_files() {
-    local src=$(expand_path "$1")
+    local src="$1"
     local src_expanded=$(expand_path "$src")
 
     local dest_path=$(windows_to_unix_path_unescaped "$2")
@@ -147,98 +247,105 @@ copy_dir_files() {
         cmd="cp -r $src_escaped/* \"$dest_path\""
         eval $cmd
 
-        printf "${BOLD}${GREEN}==> ${NORMAL}Copied contents of ${BOLD}${YELLOW}'$src'${NORMAL} into ${BOLD}${YELLOW}'$dest_path'${NORMAL}\n" 2>/dev/null
+        printf "${BOLD}${GREEN}==> ${NORMAL}${BOLD}copy *:  ${BOLD}${YELLOW}'$src/*'${NORMAL}${BOLD} into ${YELLOW}'$dest_path'${NORMAL}\n" 2>/dev/null
     else
-        error "Unable to find $src_expanded!\n"
+        printf "${BOLD}${RED}==> copy *:  ${YELLOW}'$src' ${RED}doesn't exists${NORMAL}\n"
+        return
     fi
 }
 
-is_absolute_unix_path() {
-    if [[ $1 =~ ^/ ]]; then echo 1; else echo 0; fi
-}
+# Only works with Unix paths.
+make_link() {
+    local src=$1
+    local dest=$2
 
-is_sym_file() {
-    if [[ $1 =~ ^\.{1} ]]; then echo 1; else echo 0; fi
-}
-
-is_windows_path() {
-    if [[ ! $1 =~ \/+ ]]; then echo 1; else echo 0; fi
-}
-
-is_unix_path() {
-    echo $(! is_windows_path "$1")
-}
-
-path_has_a_space() {
-    regexp="[[:blank:]]+"
-    if [[ $1 =~ $regexp ]]; then echo 1; else echo 0; fi
-}
-
-# Expands a path when it's not a symbolic link or an absolute drive path.
-clean_link_file_path() {
-    path=$1
-    if [[ $(is_absolute_unix_path "$path") -eq 0 && $(is_sym_file "$path") -eq 0 ]]; then
-        path=$(expand_path "$path")
-    fi
-    echo $path
-}
-
-# Creates a symlink.
-# Requires an admin shell when running under Windows.
-link_file() {
-    source_path=$1
-    dest_path=$2
-    require_confirmation=$3
-    expand_symlinks=$4
-    debug=0
+    local debug=0
 
     os_is_windows is_windows
     os_is_unix is_unix
 
-    # @INSTEAD ESCAPE THE SPACES IN THE FINAL WINDOWS PATH:
-    # e.g. path="${path// /\\ }" # Add a backslash before spaces.
-    # https://stackoverflow.com/questions/1473981/how-to-check-if-a-string-has-spaces-in-bash-shell
-    # https://stackoverflow.com/questions/28256178/how-can-i-match-spaces-with-a-regexp-in-bash
-
-    source_has_space=$(path_has_a_space "$source_path")
-    dest_has_space=$(path_has_a_space "$dest_path")
-
-    if [[ $debug -eq 1 ]]; then
-        echo source path: $source_path
-        echo dest path: $dest_path
-        echo source has space: $source_has_space
-        echo dest has space: $dest_has_space
-        echo abs unix source: $(is_absolute_unix_path "$source_path")
-        echo abs unix dest: $(is_absolute_unix_path "$dest_path")
-        echo "require_confirmation? $require_confirmation"
-        echo "expand_symlinks? $expand_symlinks"
-    fi
-
     if [[ $is_windows -eq 1 ]]; then
-        if [[ $expand_symlinks -eq 1 ]]; then
-            source_path=$(expand_path "$source_path")
-            dest_path=$(expand_path "$dest_path")
-        else
-            source_path=$(clean_link_file_path "$source_path")
-            dest_path=$(clean_link_file_path "$dest_path")
+        if [[ $(is_windows_path "$src") -eq 1 ]]; then
+            local escaped_path=$(escape_backslashes "$src")
+            error "Expected a Unix source path, but got '$escaped_path instead.\n"
+            return
+        fi
+        if [[ $(is_windows_path "$dest") -eq 1 ]]; then
+            local escaped_path=$(escape_backslashes "$dest")
+            error "Expected a Unix dest path, but got '$escaped_path' instead.\n"
+            return
         fi
     fi
 
+    local expand_source_symlink=$3
+    local overwrite_existing=$4
+    local require_confirmation=$5
+
+    if [[ $overwrite_existing -ne 1 || $overwrite_existing -ne 0 ]]; then
+        overwrite_existing=$MC_OVERWRITE_EXISTING_SYMLINK
+    fi
+
     if [[ $debug -eq 1 ]]; then
-        echo "after source: $source_path"
-        echo "after dest: $dest_path"
+        echo source path: $src
+        echo dest path: $dest
+        echo abs unix source: $(is_absolute_unix_path "$src")
+        echo abs unix dest: $(is_absolute_unix_path "$dest")
+        echo "overwrite existing? $overwrite_existing"
+        echo "require_confirmation? $require_confirmation"
+        echo "expand source symlink? $expand_source_symlink"
+    fi
+
+    local final_src=$src
+    local final_dest=$dest
+
+    if [[ $is_windows -eq 1 ]]; then
+        if [[ $expand_source_symlink -eq 1 ]]; then
+            final_src=$(expand_path "$final_src")
+        else
+            final_src=$(expand_path_if_not_symlink_or_absolute "$final_src")
+
+            # Having issues with mingw symlinking a path in the cwd to a dest that's not in the cwd.
+            # We prepend the cwd when it's not an absolute path in order to work around the issue.
+            if [[ $(is_absolute_unix_path "$final_dest") -ne 1 && $(is_dotfile "$final_dest") -ne 1 ]]; then
+                if [[ $(is_absolute_unix_path "$final_src") -eq 0 ]]; then
+                    final_src="$PWD/$final_src"
+                fi
+            fi
+        fi
+        final_dest=$(expand_path_if_not_symlink_or_absolute "$final_dest")
+    fi
+
+    local source_has_space=$(path_has_a_space "$final_src")
+    local dest_has_space=$(path_has_a_space "$final_dest")
+
+    if [[ $debug -eq 1 ]]; then
+        echo "final source: $final_src"
+        echo "final dest: $final_dest"
+        echo source has space: $source_has_space
+        echo dest has space: $dest_has_space
     fi
 
     # Verify that the source path exists.
-    ! test -d "$source_path" && ! test -e "$source_path" && error "Source path '$source_path' doesn't exist!" && abort
+    ! test -e "$final_src" && printf "${BOLD}${RED}==> symlink: ${YELLOW}'$src' ${RED}doesn't exists${NORMAL}\n" && return
 
-    # Verify that the dest path doesn't already exist.
-    test -d "$dest_path" && error "Dest folder '$dest_path' already exists!\n" && return
-    test -e "$dest_path" && error "Dest file '$dest_path' already exists!\n" && return
+    # Verify that the dest path doesn't already exist unless we're overwriting.
+    if [[ -e "$final_dest" ]]; then
+        if [[ $overwrite_existing -eq 1 ]]; then
+            echo "DELETING FINAL DEST: $final_dest | orig: $dest  ||| final src: $final_src"
+            rm "$final_dest"
+        else
+            printf "==> symlink: ${BOLD}${YELLOW}'$dest'${NORMAL} already linked to ${BOLD}${YELLOW}'$src'${NORMAL}\n"
+            return
+        fi
+    fi
+
+    local cmd_source_path=""
+    local cmd_dest_path=""
+    local link_cmd=""
 
     if [[ $is_windows -eq 1 ]]; then
-        cmd_source_path=$(unix_to_windows_path "$source_path")
-        cmd_dest_path=$(unix_to_windows_path "$dest_path")
+        cmd_source_path=$(unix_to_windows_path "$final_src")
+        cmd_dest_path=$(unix_to_windows_path "$final_dest")
         if [[ $source_has_space -eq 1 ]]; then cmd_source_path="\"$cmd_source_path\""; fi
         if [[ $dest_has_space -eq 1 ]];   then cmd_dest_path="\"$cmd_dest_path\""; fi
         link_cmd="cmd //c 'mklink $cmd_dest_path $cmd_source_path'"
@@ -249,7 +356,7 @@ link_file() {
     fi
 
     if [[ $require_confirmation -eq 1 ]]; then
-        echo "${BOLD}${BLUE}Will attempt to link ${YELLOW}$source_path${BLUE} to ${YELLOW}$dest_path${BLUE}"
+        echo "${BOLD}${BLUE}Will attempt to link ${YELLOW}'$src'${BLUE} to ${YELLOW}'$dest'${BLUE}"
         printf "${BOLD}Enter 1 to proceed\n${YELLOW}> ${NORMAL}"
         read confirm
         if [[ $confirm != 1 ]]; then abort; fi
@@ -261,47 +368,15 @@ link_file() {
         echo Link cmd:: $link_cmd
     fi
 
-    printf "${BOLD}${GREEN}==> ${NORMAL}Linking ${BOLD}${YELLOW}'$source_path'${NORMAL} to ${BOLD}${YELLOW}'$dest_path'${NORMAL}\n" 2>/dev/null
+    printf "${BOLD}${GREEN}==> ${NORMAL}${BOLD}symlink: ${YELLOW}'$src'${NORMAL}${BOLD} to ${YELLOW}'$dest'${NORMAL}\n" 2>/dev/null
     eval $link_cmd 1>/dev/null
 }
 
-setup_file() {
-    src=$1
-    dest=$2
-    if [ ! -f $dest ]; then
-        link_file $src $dest $confirm_link
-    else
-        printf "${BOLD}${MAGENTA}==> ${NORMAL}${BOLD}${YELLOW}'$dest'${NORMAL} already linked to ${BOLD}${YELLOW}'$src'${NORMAL}\n"
-    fi
-}
-
-setup_dir() {
-    src=$1
-    dest=$2
-    abort_if_src_not_found=$3
-
-    if [ ! -d $src ]; then
-        error "Source path '$src' doesn't exist!\n"
-        if [[ $abort_if_src_not_found != "1" ]]; then
-            abort
-        else
-            return
-        fi
-    fi
-    if [ ! -d $dest ]; then
-        link_file $src $dest $confirm_link
-    else
-        printf "${BOLD}${MAGENTA}==> ${NORMAL}${BOLD}${YELLOW}'$dest'${NORMAL} already linked to ${BOLD}${YELLOW}'$src'${NORMAL}\n"
-    fi
-}
-
 create_dir() {
-    path=$1
-    if [ -d $path ]; then
-        printf "${BOLD}${MAGENTA}==> ${NORMAL}${BOLD}${YELLOW}'$path'${NORMAL} already exists${NORMAL}\n"
-        return
+    local path=$(strip_trailing_slashes "$1")
+    if [ ! -d $path ]; then
+        mkdir $path
     fi
-    mkdir $path
-    printf "${BOLD}${GREEN}==> ${NORMAL}Created ${BOLD}${YELLOW}'$path'${NORMAL}\n"
+    printf "${BOLD}${GREEN}==> ${NORMAL}${BOLD}mkdir:   ${NORMAL}${BOLD}${YELLOW}'$path'${NORMAL}\n"
 }
 
