@@ -236,8 +236,6 @@ processor time and is generally useless.
 
 ## Software
 
-* Install `tree`: `pacman -S tree`
-
 * Install [Desktop Restore](http://www.midiox.com/index.htm?http://midiox.com/desktoprestore.htm)
 
 * Install Android platform tools to get adb.exe:
