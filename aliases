@@ -116,8 +116,12 @@ remove_windows_file() {
 
 open_explorer_here() {
     local path_expanded=$(expand_path "$1")
-    local path=$(unix_to_windows_path "$path_expanded")
-    explorer.exe "$path"
+    if [[ -d $path_expanded ]]; then
+        local path=$(unix_to_windows_path "$path_expanded")
+        explorer.exe "$path"
+    else
+        echo "Folder no longer exists"
+    fi
 }
 
 make_vid_dir_and_cd_into() {
@@ -660,9 +664,13 @@ alias tw-1080-shortname='dl_twitch_vid "1080" 1 0'
 alias tw-1080-shortname-compressed='dl_twitch_vid "1080" 1 $compression_quality'
 
 alias tw-1080p60='dl_twitch_vid "1080p60" 0 0'
+alias tw-1080p50='dl_twitch_vid "1080p50" 0 0'
 alias tw-1080p60-compressed='dl_twitch_vid "1080p60" 0 $compression_quality'
+alias tw-1080p50-compressed='dl_twitch_vid "1080p50" 0 $compression_quality'
 alias tw-1080p60-shortname='dl_twitch_vid "1080p60" 1 0'
+alias tw-1080p50-shortname='dl_twitch_vid "1080p50" 1 0'
 alias tw-1080p60-shortname-compressed='dl_twitch_vid "1080p60" 1 $compression_quality'
+alias tw-1080p50-shortname-compressed='dl_twitch_vid "1080p50" 1 $compression_quality'
 
 alias tw-720='dl_twitch_vid "720p" 0 0'
 alias tw-720-compressed='dl_twitch_vid "720p-1" 0 $compression_quality'

@@ -366,7 +366,7 @@ augroup campoCmds
         " @improve: don't run a bunch of ctags for the same project when mass
         " saving files. They all try to write and move newtags which tends to
         " lock up vim and/or spew errors.
-        let l:ctags_cmd = "!(ctags --c-types=+l --c++-types=+l --exclude=*.md --exclude=*.txt --exclude=*.config --exclude=*.css --exclude=*.html --exclude=*.htm --exclude=*.json --exclude=node_modules --exclude=.git --exclude=.cache " . g:campo_custom_ctags_args . " --recurse=yes -o newtags; mv newtags tags) &"
+        let l:ctags_cmd = "!(ctags --c-types=+l --c++-types=+l --exclude=*.md --exclude=*.txt --exclude=*.config --exclude=*.css --exclude=*.js --exclude=*.html --exclude=*.htm --exclude=*.json --exclude=node_modules --exclude=.git --exclude=.cache " . g:campo_custom_ctags_args . " --recurse=yes -o newtags; mv newtags tags) &"
         exec l:ctags_cmd | redraw!
     endfun
 
