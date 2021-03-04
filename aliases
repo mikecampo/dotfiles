@@ -42,11 +42,7 @@ abort() {
 }
 
 reload() {
-    if [[ $platform == 'Linux' || $platform == 'Darwin' ]]; then
-        test -f ~/.aliases && . ~/.aliases
-    else
-        test -f ~/.aliases && . ~/.aliases
-    fi
+    test -f ~/.env.loader && . ~/.env.loader
 }
 
 update-shell() {
