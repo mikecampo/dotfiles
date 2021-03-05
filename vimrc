@@ -334,6 +334,114 @@ imap <right> <nop>
 " CUSTOM AUTOCMDS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
+" C/C++ template.
+function! s:CFileTemplate()
+    let s:env = {
+        \ 'filename': expand('%:t'),
+        \ 'creation_date': strftime('%Y-%m-%d'),
+        \ 'year': strftime('%Y'),
+        \ 'copyright_owner': 'Jelly Pixel, Inc. All Rights Reserved.'
+        \}
+
+     let l:template =<< trim EOS
+        /*==================================================================================================
+        File: ${filename}
+        Creation Date: ${creation_date}
+        Creator: Michael Campagnaro
+        Notice!: (C) Copyright ${year} by ${copyright_owner}
+        ================================================================================================*/
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        // # Defines
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        // # Globals
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        // # Structs
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        // # Macros
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        // # Private API
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        // # Public API
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+EOS
+    return map(l:template, { _, line -> substitute(line, '${\(.\{-}\)}', '\=get(s:env, submatch(1), submatch(1))', 'g') } )
+endfunction
+
+function! s:InsertCHeaderGates()
+    let l:gatename = substitute(toupper(expand("%:t")), "\\.", "_", "g")
+    call append(0, '#ifndef '. l:gatename)
+    call append(line('$'), '#define '. l:gatename)
+    call append(line('$'), '#endif')
+endfunction
+
+" sh template
+function! s:ShellScriptTemplate()
+     let l:template =<< trim EOS
+        #!/usr/bin/env bash
+
+        if which tput >/dev/null 2>&1; then
+          ncolors=$(tput colors)
+        fi
+        if [ -t 1 ] && [ -n "$ncolors" ] && [ "$ncolors" -ge 8 ]; then
+            RED="$(tput setaf 1)"
+            GREEN="$(tput setaf 2)"
+            YELLOW="$(tput setaf 3)"
+            BLUE="$(tput setaf 4)"
+            MAGENTA="$(tput setaf 5)"
+            CYAN="$(tput setaf 6)"
+            BOLD="$(tput bold)"
+            DIM="\e[2m"
+            NORMAL="$(tput sgr0)"
+        else
+            RED=""
+            GREEN=""
+            YELLOW=""
+            BLUE=""
+            MAGENTA=""
+            CYAN=""
+            BOLD=""
+            NORMAL=""
+        fi
+
+        error() {
+            printf "${BOLD}${RED}$1${NORMAL}\n"
+        }
+
+        abort() {
+            error "\nAborting..."
+            exit 1
+        }
+
+        set -e
+
+        cwd=$PWD
+
+        uname_s="$(uname -s)"
+        case "${uname_s}" in
+            Linux*)   machine=Linux;;
+            Darwin*)  machine=MacOS;;
+            CYGWIN*)  machine=Cygwin;;
+            MINGW*)   machine=MinGw;;
+            *)        machine="UNKNOWN:${uname_s}"
+        esac
+
+        printf "${YELLOW}Platform: $machine${NORMAL}\n"
+EOS
+    return l:template
+endfunction
+
 augroup campoCmds
     " Clear all autocmds in the group.
     autocmd!
@@ -352,7 +460,7 @@ augroup campoCmds
     autocmd FileType html,eruby if g:html_indent_tags !~ '\\|p\>' | let g:html_indent_tags .= '\|p\|li\|dt\|dd' | endif
 
     " Properly indent schemes (scheme, racket, etc).
-    autocmd bufread,bufnewfile *.{lisp,scm,rkt} setlocal equalprg=scmindent.rkt
+    autocmd BufRead,BufNewFile *.{lisp,scm,rkt} setlocal equalprg=scmindent.rkt
 
     " Fasm indent; uses the fedorenchik/fasm.vim plugin.
     autocmd BufReadPre *.asm let g:asmsyntax = "fasm"
@@ -375,7 +483,7 @@ augroup campoCmds
 
     " Generate ctags on save.
     " Also Include local variables for C-like languages.
-    autocmd BufWritePost *.cs,*.js,*.py,*.c,*.cpp,*.h,*.asm silent! :call <SID>RunCtags()
+    autocmd BufWritePost *.cs,*.js,*.py,*.c,*.cpp,*.h,*.asm silent! call s:RunCtags()
 
     " Remove trailing whitespace when saving any file.
     function! s:StripTrailingWhitespaces()
@@ -396,31 +504,18 @@ augroup campoCmds
         %s/\s\+$//e
         call cursor(l, c)
     endfun
-    autocmd BufWritePre * :call <SID>StripTrailingWhitespaces()
+    autocmd BufWritePre * call s:StripTrailingWhitespaces()
 
     "////////////////////////////////////////////////////////////////
     " FILE TEMPLATES
     "////////////////////////////////////////////////////////////////
 
     " Shell script template.
-    autocmd BufNewFile *.sh 0r ~/.vim/templates/skeleton.sh
-    autocmd BufNewFile *.plan 0r ~/.vim/templates/skeleton.plan
+    autocmd BufNewFile *.sh call append(0, s:ShellScriptTemplate())
 
-    " C/C++ template.
-    autocmd bufnewfile *.{c,cc,cpp,h,hpp} 0r ~/.vim/templates/c_header_notice
-    autocmd bufnewfile *.{c,cc,cpp,h,hpp} exe "2," . 6 . "g/File:.*/s//File: " .expand("%")
-    autocmd bufnewfile *.{c,cc,cpp,h,hpp} exe "2," . 6 . "g/Creation Date:.*/s//Creation Date: " .strftime("%Y-%m-%d")
-    autocmd bufnewfile *.{c,cc,cpp,h,hpp} exe "2," . 6 . "g/$year/s//" .strftime("%Y")
-    function! s:InsertHeaderGates()
-        let gatename = substitute(toupper(expand("%:t")), "\\.", "_", "g")
-        execute "normal! ggO#ifndef " . gatename
-        normal! Go
-        normal! Go
-        execute "normal! Go#define " . gatename . " "
-        execute "normal! o#endif"
-        normal! kkk
-    endfunction
-    autocmd bufnewfile *.{h,hpp} call <SID>InsertHeaderGates()
+    " C/C++ file.
+    autocmd BufNewFile *.{c,cc,cpp,h,hpp} call append(0, s:CFileTemplate())
+    autocmd BufNewFile *.{h,hpp} call s:InsertCHeaderGates()
 augroup END
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
