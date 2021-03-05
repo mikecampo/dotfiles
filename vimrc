@@ -272,7 +272,10 @@ set cursorcolumn
 " And make sure those directories exist before opening vim.
 set backup
 set backupcopy=yes
-:au BufWritePre * let &bex = '.' . strftime("%Y-%m-%d-%T") . '.bak'
+augroup backupCmds
+    autocmd!
+    autocmd BufWritePre * let &bex = '.' . strftime("%Y-%m-%d-%T") . '.bak'
+augroup END
 set writebackup                   " Make buckup before overwriting the current buffer.
 
 " Keep undo history across sessions by storing it in a file.  The undo save
@@ -603,7 +606,12 @@ nmap <leader>ha <Plug>GitGutterStageHunk
 nmap <leader>hh :GitGutterToggle<cr>
 nmap [h <Plug>GitGutterNextHunk
 nmap ]h <Plug>GitGutterPrevHunk
-autocmd BufWritePost * GitGutter " Update marks on save
+
+augroup gitGutterPluginCmds
+    autocmd!
+    " Update marks on save
+    autocmd BufWritePost * GitGutter
+augroup END
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " SYNTASTIC
@@ -829,36 +837,36 @@ endif
 " working...
 
 augroup vimrc_bugs
-    au!
-    au Syntax * syn match MyBugs /\v<(FIXME|BUG|DEPRECATED):/
+    autocmd!
+    autocmd Syntax * syn match MyBugs /\v<(FIXME|BUG|DEPRECATED):/
           \ containedin=.*Comment,vimCommentTitle
 augroup END
 hi def link MyBugs Bugs
 
 augroup vimrc_notes
-    au!
-    au Syntax * syn match MyNotes /\v<(IDEA|NOTE|QUESTION|WARNING|IMPORTANT):/
+    autocmd!
+    autocmd Syntax * syn match MyNotes /\v<(IDEA|NOTE|QUESTION|WARNING|IMPORTANT):/
           \ containedin=.*Comment,vimCommentTitle
 augroup END
 hi def link MyNotes Notes
 
 augroup vimrc_notices
     au!
-    au Syntax * syn match MyNotices /\v<(WARNING|IMPORTANT):/
+    autocmd Syntax * syn match MyNotices /\v<(WARNING|IMPORTANT):/
           \ containedin=.*Comment,vimCommentTitle
 augroup END
 hi def link MyNotices Notices
 
 augroup vimrc_annotated_todo
-    au!
+    autocmd!
     " This was a major pain in the ass to get working...
-    au Syntax * syn match cTodo /@\S\+/
+    autocmd Syntax * syn match cTodo /@\S\+/
           \ containedin=.*Comment,vimCommentTitle
 augroup END
 
 augroup vimrc_annotated_notes
-    au!
-    au Syntax * syn match cTodo /#\+ .\+$/
+    autocmd!
+    autocmd Syntax * syn match cTodo /#\+ .\+$/
           \ containedin=.*Comment,vimCommentTitle
 augroup END
 
@@ -930,7 +938,8 @@ function! SilentBuild()
 endfunction
 
 " Show results window the moment the async job starts
-augroup vimrc
+augroup asyncPluginCmds
+    autocmd!
     autocmd User AsyncRunStart call asyncrun#quickfix_toggle(g:quickfix_window_height, 1)
 augroup END
 
