@@ -651,6 +651,8 @@ alias ig-download-and-hflip='dl_instagram_vid_and_hflip '
 
 compression_quality=27 # 27 for gpu; 25 for cpu
 
+alias tw-src='dl_twitch_vid "Source" 0 0'
+
 alias tw='dl_twitch_vid "1080p" 0 0'
 alias tw-compressed='dl_twitch_vid "1080p" 0 $compression_quality'
 alias tw-shortname='dl_twitch_vid "1080p" 1 0'

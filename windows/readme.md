@@ -35,6 +35,17 @@
 * Disable `Enhance Pointer Precision`:
     * Mouse Properties -> Pointer Options -> Motion section
 
+* Disable various Window features:
+    * Go to Add/Remove Programs -> Turn Windows features on or off
+    * Disable:
+        * Internet Explorer 11
+        * Legacy Components - DirectPlay
+        * Media Features - Windows Media Player
+        * Microsoft Print to PDF
+        * Microsoft XPS Document Writer (and any other XPS components)
+        * Print and Document Services - Internet Printing Client & Windows Fax and Scan
+        * Windows PowerShell 2.0 (current version is 5+ as of 2021-03-05)
+
 * Laptop: change touchpad sensitivity to medium or high in order to prevent mouse movement when palm
   touches the pad while typing.
   * If using a Lenovo then disable touchpad lock in the Lenovo Vantage app.
