@@ -15,7 +15,6 @@ source "script_helpers/platform.sh"
 source "script_helpers/file_ops.sh"
 
 dotfiles_dir=$PWD
-confirm_link=0
 os_is_windows is_windows
 os_is_macos is_macos
 os_is_linux is_linux
