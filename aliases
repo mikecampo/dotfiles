@@ -127,11 +127,13 @@ open_explorer_here() {
 make_vid_dir_and_cd_into() {
     local url="$1"
     local dir_name="$2"
+    shift 2
+    local opts="$@"
 
     if [[ $dir_name == "" ]]; then
         # @note If the filename contains symbols that are incompatible with
         # Windows' directory names then add --restrict-filenames to the command.
-        dir_name=$(youtube-dl.exe --get-filename -o "%(upload_date)s - %(title)s" $url)
+        dir_name=$(youtube-dl.exe --get-filename -o "%(upload_date)s - %(title)s" $opts $url)
         if [[ $dir_name == "" ]]; then
             return 1
         fi
@@ -160,11 +162,11 @@ dl_youtube_vid() {
     local opts="$@"
 
     if [[ $url == "" ]]; then
-        error "Format: cmd <url> <optional args>\n"
+        error "Format: $0 <url> <optional args>\n"
         return
     fi
 
-    opts+=" --all-subs --embed-subs"
+    opts+=" --write-sub --sub-lang en --embed-subs"
 
     make_vid_dir_and_cd_into $url
     if [[ $? -ne 0 ]]; then
@@ -197,11 +199,11 @@ dl_youtube_vid_and_hflip() {
     local opts="$@"
 
     if [[ $url == "" ]]; then
-        error "Format: cmd <url> <optional args>\n"
+        error "Format: $0 <url> <optional args>\n"
         return
     fi
 
-    opts+=" --all-subs --embed-subs"
+    opts+=" --write-sub --sub-lang en --embed-subs"
 
     make_vid_dir_and_cd_into $url
     if [[ $? -ne 0 ]]; then
@@ -232,11 +234,11 @@ dl_youtube_playlist() {
     local opts="$@"
 
     if [[ $url == "" ]]; then
-        error "Format: cmd <url> <directory name (optional)> <optional args>\n"
+        error "Format: $0 <url> <directory name (optional)> <optional args>\n"
         return
     fi
 
-    opts+=" --all-subs --embed-subs"
+    opts+=" --write-sub --sub-lang en --embed-subs"
 
     if [[ $dir_name != "" ]]; then
         make_vid_dir_and_cd_into $url "$dir_name"
@@ -257,7 +259,37 @@ dl_youtube_playlist() {
     cd ..
 }
 
-# Download Twitch videos
+dl_twitch_chat() {
+    local url="$1"
+    shift 1
+    local opts="$@"
+
+    if [[ $url == "" ]]; then
+        error "Format: $0 <url>\n"
+        return
+    fi
+
+    make_vid_dir_and_cd_into $url "" $opts
+    if [[ $? -ne 0 ]]; then
+        return
+    fi
+
+    # Download Twitch chat transcript
+    local name_format="%(upload_date)s-%(title)s-twitch-%(id)s"
+    local chat_file=$(youtube-dl.exe --get-filename -o "$name_format" $opts $url)
+    rechat.exe -d $url "$chat_file.json"
+    rechat.exe -p "$chat_file.json" "$chat_file.txt" -b -o
+    mv "$chat_file.txt" "${chat_file:0:4}-${chat_file:4:2}-${chat_file:6}.txt"
+    rm "$chat_file.json"
+
+    cd ..
+}
+
+# Download Twitch videos.
+# If you want to download a sub-only vid then extract your twitch cookies to a file (can use cookies.txt addon)
+# and then pass it as an option, using the full path to the cookies file, e.g.
+#   `tw-1080p60 <url> --cookies /c/<cookie_path>/twitch_cookies.txt`
+#
 dl_twitch_vid() {
     local format="$1"
     local shortname="$2"
@@ -267,7 +299,7 @@ dl_twitch_vid() {
     local opts="$@"
 
     if [[ $url == "" ]]; then
-        error "Format: cmd <url> <optional args>\n"
+        error "Format: $0 <url> <optional args>\n"
         return
     fi
 
@@ -277,7 +309,7 @@ dl_twitch_vid() {
         printf "${BOLD}Downloading Twitch vid with compression level ${YELLOW}$compression_level${NORMAL}.\n"
     fi
 
-    make_vid_dir_and_cd_into $url
+    make_vid_dir_and_cd_into $url "" $opts
     if [[ $? -ne 0 ]]; then
         return
     fi
@@ -289,14 +321,14 @@ dl_twitch_vid() {
     fi
 
     # Download Twitch chat transcript
-    local chat_file=$(youtube-dl.exe --get-filename -o "$name_format" $url)
+    local chat_file=$(youtube-dl.exe --get-filename -o "$name_format" $opts $url)
     rechat.exe -d $url "$chat_file.json"
     rechat.exe -p "$chat_file.json" "$chat_file.txt" -b -o
     mv "$chat_file.txt" "${chat_file:0:4}-${chat_file:4:2}-${chat_file:6}.txt"
     rm "$chat_file.json"
 
     # Download the video.
-    local filename=$(youtube-dl.exe --get-filename -o "$name_format.%(ext)s" $url)
+    local filename=$(youtube-dl.exe --get-filename -o "$name_format.%(ext)s" $opts $url)
     filename="${filename:0:4}-${filename:4:2}-${filename:6}"
 
     youtube-dl.exe -f "$format" -o "$filename" $opts $url
@@ -317,37 +349,13 @@ dl_twitch_vid() {
     cd ..
 }
 
-dl_twitch_chat() {
-    local url="$1"
-
-    if [[ $url == "" ]]; then
-        error "Format: cmd <url>\n"
-        return
-    fi
-
-    make_vid_dir_and_cd_into $url
-    if [[ $? -ne 0 ]]; then
-        return
-    fi
-
-    # Download Twitch chat transcript
-    local name_format="%(upload_date)s-%(title)s-twitch-%(id)s"
-    local chat_file=$(youtube-dl.exe --get-filename -o "$name_format" $url)
-    rechat.exe -d $url "$chat_file.json"
-    rechat.exe -p "$chat_file.json" "$chat_file.txt" -b -o
-    mv "$chat_file.txt" "${chat_file:0:4}-${chat_file:4:2}-${chat_file:6}.txt"
-    rm "$chat_file.json"
-
-    cd ..
-}
-
 # Download MP4 video.
 dl_mp4() {
     local url="$1"
     local filename="$2"
 
     if [[ $url == "" || $filename == "" ]]; then
-        error "Format: cmd <url> <filename>\n"
+        error "Format: $0 <url> <filename>\n"
         return
     fi
 
@@ -370,7 +378,7 @@ dl_from_m3u8() {
     local filename="$2"
 
     if [[ $m3u8_path == "" || $filename == "" ]]; then
-        error "Format: cmd <m3u8 path> <filename>\n"
+        error "Format: $0 <m3u8 path> <filename>\n"
         return
     fi
 
@@ -391,7 +399,7 @@ dl_instagram_vid_and_hflip() {
     local filename="$2"
 
     if [[ $url == "" || $filename == "" ]]; then
-        error "Format: cmd <url> <filename>\n"
+        error "Format: $0 <url> <filename>\n"
         return
     fi
 
@@ -532,7 +540,7 @@ check_signature() {
     local sig_file="$4"
 
     if [[ $hashes_file == "" || $pem_file == "" || $sig_file == "" ]]; then
-        error "Format: cmd <hashes file (e.g. sha512 hashes)> <pem file> <sig file>\n"
+        error "Format: $0 <hashes file (e.g. sha512 hashes)> <pem file> <sig file>\n"
         return
     fi
 

@@ -64,6 +64,8 @@
     * Open C:/Windows/System32/Drivers/etc/hosts
     * Add contents of the hosts file from this directory
     * Restart PC
+    * Note: POS Windows may periodically reset this file to the default state so you'll want to
+      check it every so often.
 
 * Change explorer options so that file extensions are always displayed.
 

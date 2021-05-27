@@ -44,12 +44,13 @@ if has('termguicolors')
     let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
 endif
 
-let g:campo_dark_theme = 'campo-simple-dark'
+let g:campo_dark_theme = 'campo-dark-simple'
 "let g:campo_dark_theme = 'campo-dark-blue'
 "let g:campo_dark_theme = 'campo-dark-grey-blue'
 "let g:campo_dark_theme = 'campo-dark-greyscale'
 
-let g:campo_light_theme = 'campo-simple-light'
+let g:campo_light_theme = 'campo-light-simple'
+"let g:campo_light_theme = 'campo-light-greyscale'
 "let g:campo_light_theme = 'campo-light'
 
 let g:campo_theme_use_rainbow_parens = 1
