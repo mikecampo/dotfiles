@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+
+# Use this to normalize the audio of a video using the average loudness, or RMS-based normalization.
+# This does not re-encode the video.
+#
+# Inspired by https://superuser.com/a/323127 and https://superuser.com/a/1312885
+
+if which tput >/dev/null 2>&1; then
+    ncolors=$(tput colors)
+fi
+if [ -t 1 ] && [ -n "$ncolors" ] && [ "$ncolors" -ge 8 ]; then
+    RED="$(tput setaf 1)"
+    GREEN="$(tput setaf 2)"
+    YELLOW="$(tput setaf 3)"
+    BLUE="$(tput setaf 4)"
+    MAGENTA="$(tput setaf 5)"
+    CYAN="$(tput setaf 6)"
+    BOLD="$(tput bold)"
+    NORMAL="$(tput sgr0)"
+else
+    RED=""
+    GREEN=""
+    YELLOW=""
+    BLUE=""
+    MAGENTA=""
+    CYAN=""
+    BOLD=""
+    NORMAL=""
+fi
+
+if [[ $1 == "" ]]; then
+    printf "\n${BOLD}Usage: $0 <filename> <optional output name>${NORMAL}\n"
+    exit 1
+fi
+
+filename=$(basename -- "$1")
+extension="${filename##*.}"
+filename="${filename%.*}"
+
+output_name="$2"
+
+if [[ $output_name == "" ]]; then
+    output="${filename}_normalized_audio.$extension"
+else
+    output="${output_name}.$extension"
+fi
+
+printf "\n${YELLOW}${BOLD}Normalizing audio in $filename.$extension | output: $output${NORMAL}\n"
+
+# This is done in two passes. The first pass will compute the mean loudness and
+# the second pass will normalize the audio using the mean as the target.
+
+# -vn, -sn,  and -dn tells ffmpeg to ignore non-audio streams during the analysis. This speeds things up.
+ffmpeg -i "$filename.$extension" -af "volumedetect" -vn -sn -dn -f null /dev/null
+
+#ffmpeg -i "$filename.$extension" -c:v copy -ac 1 "$output"
+
+printf "\n${GREEN}${BOLD}Done normalizing audio in $filename.$extension | output: $output${NORMAL}\n\n"
+
+
+
+#---------------------------------------
+# This seems better. 2 pass using loudnorm filter.
+
+# 1st pass: ffmpeg -i "$filename.$extension" -pass 1 -filter:a loudnorm=print_format=json -vn -sn -dn -f null /dev/null
+# 2nd pass: ffmpeg -i "$filename.$extension" -c:v copy -pass 2 -filter:a loudnorm=linear=true:measured_I=$input_i:measured_LRA=$input_lra:measured_tp=$input_tp:measured_thresh=$input_thresh "$output"
+
+# TODO: extract the $input_i, input_lra, etc from the 1st pass output so that this can be automated.
+# TODO: stackoverflow said if there are subtitles or multiple vid streams then add "-map 0" before the output name. Test this.
+# TODO: disable the log file or just delete it after normalizing.

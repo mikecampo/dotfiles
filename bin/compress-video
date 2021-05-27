@@ -51,8 +51,7 @@ function encode() {
         ffmpeg -i "$filename.$extension" -c:v libx264 -crf $crf -preset veryfast -profile:v baseline -level 3.0 -strict -2 "$output"
     else
         # File will be slightly larger than CPU encoding, but it's much faster to transcode and doesn't max out the CPU cores.
-        ffmpeg -y -vsync 0 -hwaccel cuvid -c:v h264_cuvid -i "$filename.$extension" -c:a copy -c:v h264_nvenc \
-            -profile:v high -rc:v vbr_hq -cq:v $crf -b:v 5M -maxrate 5M -max_muxing_queue_size 9999 "$output"
+        ffmpeg -y -vsync 0 -hwaccel cuvid -c:v h264_cuvid -i "$filename.$extension" -c:a copy -c:v h264_nvenc -profile:v high -rc:v vbr_hq -cq:v $crf -b:v 5M -maxrate 5M -max_muxing_queue_size 9999 "$output"
     fi
     printf "\n${GREEN}${BOLD}Done encoding '$filename.$extension' with CRF $crf${NORMAL}\n\n"
 }

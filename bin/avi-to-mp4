@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+# This is for reencoding an AVI video. I wasn't able to play the encoded videos
+# on my phone when using libx264 and libx265 encoders, but mpeg4 works. Also
+# I'm using the aac codec because some old avi's were using a codec that's not
+# supported in the mp4 container.
+
+if which tput >/dev/null 2>&1; then
+    ncolors=$(tput colors)
+fi
+if [ -t 1 ] && [ -n "$ncolors" ] && [ "$ncolors" -ge 8 ]; then
+    RED="$(tput setaf 1)"
+    GREEN="$(tput setaf 2)"
+    YELLOW="$(tput setaf 3)"
+    BLUE="$(tput setaf 4)"
+    MAGENTA="$(tput setaf 5)"
+    CYAN="$(tput setaf 6)"
+    BOLD="$(tput bold)"
+    NORMAL="$(tput sgr0)"
+else
+    RED=""
+    GREEN=""
+    YELLOW=""
+    BLUE=""
+    MAGENTA=""
+    CYAN=""
+    BOLD=""
+    NORMAL=""
+fi
+
+if [[ $1 == "" || $2 == "" ]]; then
+    printf "${BOLD}${RED}Format: $0 <filename> <bitrate, e.g. \"4000k\"> <optional output name>${NORMAL}\n"
+    exit 1
+fi
+
+filename=$(basename -- "$1")
+extension="${filename##*.}"
+filename="${filename%.*}"
+
+bitrate="$2"
+
+output_name="$3"
+if [[ $output_name == "" ]]; then
+    output="${filename}_CONVERTED-${bitrate}.mp4"
+else
+    output="${output_name}.mp4"
+fi
+
+printf "\n${YELLOW}${BOLD}Encoding '$filename.$extension' with target bitrate $bitrate | output: $output${NORMAL}\n"
+ffmpeg -i "$filename.$extension" -c:a aac -c:v mpeg4 -b:v $bitrate "$output"
+printf "\n${GREEN}${BOLD}Done encoding '$filename.$extension' to '$output'${NORMAL}\n\n"
