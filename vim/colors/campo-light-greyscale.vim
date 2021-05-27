@@ -1,8 +1,6 @@
-" A simple light colorscheme.
+" A very simple light colorscheme.
 " Maintainer: Michael Campagnaro <mikecampo@gmail.com>
 " Version: 1.0
-"
-" Adapted from https://github.com/tek256/simple-dark
 
 if has('termguicolors')
   " Supports 24-bit color range
@@ -18,7 +16,7 @@ if exists("syntax_on")
     syntax reset
 endif
 
-let g:colors_name = "campo-simple-light"
+let g:colors_name = "campo-light-greyscale"
 
 if has("gui_running") || &t_Co == 256
     hi NonText cterm=NONE ctermfg=black ctermbg=black gui=NONE guifg=#263238 guibg=#fbfbfb
@@ -27,7 +25,7 @@ if has("gui_running") || &t_Co == 256
     hi Constant cterm=NONE ctermfg=252 ctermbg=black gui=NONE guifg=#263238 guibg=#fbfbfb
     hi String cterm=NONE ctermfg=245 ctermbg=black gui=NONE guifg=#263238 guibg=#fbfbfb
     hi Comment cterm=NONE ctermfg=240 ctermbg=black gui=NONE guifg=#7c7c7c guibg=#fbfbfb
-    hi Number cterm=NONE ctermfg=255  ctermbg=black gui=NONE guifg=#0000ff guibg=#fbfbfb
+    hi Number cterm=NONE ctermfg=255  ctermbg=black gui=NONE guifg=#263238 guibg=#fbfbfb
     hi Error cterm=NONE ctermfg=255 ctermbg=DarkGray gui=NONE guifg=#263238 guibg=#fbfbfb " Should match the text colors
     hi ErrorMsg cterm=bold ctermfg=255 ctermbg=DarkGray gui=NONE guifg=#ff0000 guibg=#fbfbfb
     hi Search cterm=NONE ctermfg=255 ctermbg=245 gui=reverse guifg=#263238 guibg=#cccccc

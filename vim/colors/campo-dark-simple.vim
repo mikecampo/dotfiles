@@ -18,7 +18,7 @@ if exists("syntax_on")
     syntax reset
 endif
 
-let g:colors_name = "campo-simple-dark"
+let g:colors_name = "campo-dark-simple"
 
 if has("gui_running") || &t_Co == 256
     hi NonText cterm=NONE ctermfg=black ctermbg=black gui=NONE guifg=bg guibg=#0a0a0a
