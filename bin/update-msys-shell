@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-# If you're getting signature errors, check out https://www.msys2.org/news/#2020-06-29-new-packagers
-# and/or other news posts.
+# If you're getting signature errors, check out https://www.msys2.org/news/#2020-06-29-new-packagers and/or other news posts.
 
 source "$HOME/.dotfiles/script_helpers/printing.sh"
 source "$HOME/.dotfiles/script_helpers/platform.sh"
@@ -11,15 +10,15 @@ set -e
 if [[ -d "/c/msys64" ]]; then
     shell_is_mingw is_mingw
     if [[ $is_mingw -eq 1 ]]; then
-        printf "${BOLD}${YELLOW}Updating MSYS Shell${NORMAL}\n"
+        printf "${BOLD}${YELLOW}Updating MinGW Shell${NORMAL}\n"
         pacman -Syu
         printf "${BOLD}${GREEN}Done!${NORMAL}\n"
-        printf "\n${BOLD}If you've been asked to close the shell then once you reopen it, run ${YELLOW}pacman -Su${NORMAL} to finish updating.\n"
+        printf "\n${BOLD}Re-run this in a new shell if the updater requires the shells to be closed.\n"
     else
-        error "Please re-run this in a MinGW shell.\n"
+        error "Re-run this in an MinGW shell.\n"
         exit 1
     fi
 else
-    error "Unable to find C:\msys64 - make sure the shell is installed and then re-run this in the MinGW shell.\n"
+    error "Unable to find C:\msys64 - make sure the shell is installed and then re-run this in a MinGW shell.\n"
     exit 1
 fi

@@ -124,6 +124,206 @@ open_explorer_here() {
     fi
 }
 
+##################
+# Building code
+##################
+
+# Dev build
+b() {
+  if [ -f build ]; then ./build $@ ; else test -f build.sh && ./build.sh $@ ; fi
+}
+
+# fast dev build
+bl() {
+  if [ -f build ]; then ./build $@ -fast ; else test -f build.sh && ./build.sh $@ -fast ; fi
+}
+
+# Optimized dev build
+bb() {
+  if [ -f build ]; then ./build -o 1 $@ ; else test -f build.sh && ./build.sh -o 1 $@ ; fi
+}
+
+# Production build
+bp() {
+  if [ -f build ]; then ./build -p p $@ ; else test -f build.sh && ./build.sh -p p $@ ; fi
+}
+
+# Profiling build
+bf() {
+  if [ -f build ]; then ./build -p pf $@ ; else test -f build.sh && ./build.sh -p pf $@ ; fi
+}
+
+# GPU profiling build
+bg() {
+  if [ -f build ]; then ./build -p gpu $@ ; else test -f build.sh && ./build.sh -p gpu $@ ; fi
+}
+
+# Run build
+r() {
+  if [ -f run ]; then ./run $@ ; else test -f run.sh && ./run.sh $@ ; fi
+}
+
+# Build then run
+br() {
+  b $@ ; r
+}
+
+####################################################################################################
+
+if [[ $platform == 'Darwin' ]]; then
+  alias trash='rmtrash'
+  alias tt='rmtrash'
+
+elif [[ "${platform,,}" == *'ming'* ]]; then # convert to lowercase then compare with wildcard
+  #alias rm='echo "use trash command instead!"'
+  #alias rmr='echo "use trash command instead!"'
+  alias trash='remove_windows_file'
+  alias tt='remove_windows_file'
+  alias cgrep='cgrep.exe'
+fi
+
+alias cd-='echo "Use c- instead"'
+alias ..='cd ../'
+alias ...='cd ../..'
+alias cd..='cd ..'
+alias cd...='cd ../..'
+alias cd....='cd ../../..'
+alias cd.....='cd ../../../..'
+
+alias ls='ls -F --color'
+alias l='ls -lh'
+alias ll='ls -lha'
+
+alias aliases='vim ~/.dotfiles/aliases'
+alias al='aliases'
+
+if [[ "${platform,,}" == *'ming'* ]]; then
+    _checksum() {
+        local algo="$1"
+        local file="$2"
+        certutil -hashfile $file $algo
+    }
+    alias checksum='certutil -hashfile'
+    alias checksum-md5='_checksum MD5'
+    alias checksum-sha1='_checksum SHA1'
+    alias checksum-sha256='_checksum SHA256'
+    alias checksum-sha512='_checksum SHA512'
+fi
+
+check_signature() {
+    local algo="$1"
+    local hashes_file="$2"
+    local pem_file="$3"
+    local sig_file="$4"
+
+    if [[ $hashes_file == "" || $pem_file == "" || $sig_file == "" ]]; then
+        error "Format: $0 <hashes file (e.g. sha512 hashes)> <pem file> <sig file>\n"
+        return
+    fi
+
+    openssl dgst -$algo -verify $pem_file -signature $sig_file $hashes_file
+}
+alias check-signature256='check_signature sha256 '
+
+alias cr='RUSTFLAGS="$RUSTFLAGS -A unused_variables -A dead_code -A unused_parens" cargo run'
+alias crr='cargo run --release'
+alias cb='RUSTFLAGS="$RUSTFLAGS -A unused_variables -A dead_code -A unused_parens" cargo build'
+alias cbr='cargo build --release'
+alias clrtmp='trash ~/tmp/*.bak && trash ~/tmp/*.swp'
+alias clrtemp='clrtmp'
+alias clipboard='xclip -selection c'
+# Cloc alias may be overridden by a private alias
+alias cloc='cloc --no3 --by-file-by-lang --skip-win-hidden'
+alias cls=clear
+alias code='cd ~/code'
+alias cpr='cp -r'
+alias dc='gdc'
+alias dot='cd ~/.dotfiles'
+alias duh='du -csh'
+alias e='open_explorer_here "$PWD"'
+alias exp='echo "Use e instead."'
+alias f='fg'
+alias hist='history'
+alias histroy='history'
+alias irb='irb --readline -r irb/completion'
+alias lcc='lein clean'
+alias lca='lein cljsbuild auto dev'
+alias ldi='lein deps install'
+alias lsd='lein start-dev'
+alias moon='curl wttr.in/moon -A "curl"'
+alias patch='git format-patch HEAD^ --stdout > patch.diff'
+alias reguard='killall -9 ruby ; guard'
+alias rb='rbenv'
+alias rbg='rbenv gemset active'
+alias rbp='cd $RBENV_PATH/versions/$(rbenv version | sed -e "s/ (set.*$//")'
+alias rbl='cd $RBENV_PATH/versions/$(rbenv version | sed -e "s/ (set.*$//")/lib/ruby'
+alias rc='rclone'
+alias rcc='rclone copy'
+alias restart='sudo shutdown now -r'
+alias rl='reload'
+alias rmr='rm -r'
+alias rmrf='rm -rf'
+alias s='cd ~/.ssh'
+alias sc='vim ~/.ssh/config'
+alias shutdown='sudo shutdown now'
+alias stk='rlwrap stk-simply'
+alias t='tree'
+alias tag='ctags -R .'
+alias tmp='cd ~/tmp'
+alias v='vim'
+alias vi='vim'
+alias vh='vagrant halt'
+alias vs='vagrant ssh'
+alias vu='vagrant up'
+alias vimrc='vim ~/.vimrc'
+alias weather='curl wttr.in/toronto -A "curl"'
+
+####################################################################################################
+# Grep
+####################################################################################################
+
+custom_grep() {
+    local term="$1"
+    shift 1
+    local include_list=("$@")
+    local include_arg=""
+    if [[ $include_list != "" ]]; then
+        for i in "${include_list[@]}"; do
+            include_arg+="--include=\*${i} "
+        done
+    fi
+    eval grep -nri --color=auto $include_arg --exclude=tags --exclude=newtags --exclude-dir=.git \"$term\"
+}
+
+# Search c/cpp/txt files. Only supports a single search term arg or a quoted search term.
+grep_dev() {
+    custom_grep "$@" .h .c .cpp .inc .def .txt .md
+}
+
+# Search c/cpp files. Only supports a single search term arg or a quoted search term.
+grep_c() {
+    custom_grep "$@" .h .c .cpp .inc .def
+}
+
+# Search txt/md files. Only supports a single search term arg or a quoted search term.
+grep_txt() {
+    custom_grep "$@" .txt .md
+}
+
+alias grepp='grep -n --color=auto --exclude=tags --exclude=newtags --exclude-dir=.git '
+alias grep-c='grep_c '
+alias grep-txt='grep_txt'
+alias grep-dev='grep_dev'
+
+####################################################################################################
+# Downloading Vids and Audio
+####################################################################################################
+
+COMPRESSION_ON=1
+COMPRESSION_OFF=0
+SHORTNAME_ON=1
+SHORTNAME_OFF=0
+
 make_vid_dir_and_cd_into() {
     local url="$1"
     local dir_name="$2"
@@ -503,238 +703,6 @@ dl_instagram_vid_and_hflip() {
     rm $temp_name
 }
 
-###################################
-# Git Functions
-###################################
-
-git_cmd_wrapper() {
-  # If no args are provided then run `git status -s`
-  if [[ $# > 0 ]]; then
-    git $@
-  else
-    git status -s
-  fi
-}
-
-git_commit() {
-    cmd="git commit -m \"$*\""
-    eval "$cmd"
-}
-
-git_commit_signed() {
-    cmd="git commit -S -m \"$*\""
-    eval "$cmd"
-}
-
-git_branch_name() {
-    val=`git branch 2>/dev/null | grep '^*' | colrm 1 2`
-    echo "$val"
-}
-
-git_nuke() {
-  git checkout master && git branch -D $1 && git push origin :$1
-}
-
-####################################################################################################
-
-if [[ $platform == 'Darwin' ]]; then
-  alias trash='rmtrash'
-  alias tt='rmtrash'
-
-elif [[ "${platform,,}" == *'ming'* ]]; then # convert to lowercase then compare with wildcard
-  #alias rm='echo "use trash command instead!"'
-  #alias rmr='echo "use trash command instead!"'
-  alias trash='remove_windows_file'
-  alias tt='remove_windows_file'
-  alias cgrep='cgrep.exe'
-fi
-
-alias cd-='echo "Use c- instead"'
-alias ..='cd ../'
-alias ...='cd ../..'
-alias cd..='cd ..'
-alias cd...='cd ../..'
-alias cd....='cd ../../..'
-alias cd.....='cd ../../../..'
-
-alias ls='ls -F --color'
-alias l='ls -lh'
-alias ll='ls -lha'
-
-alias aliases='vim ~/.dotfiles/aliases'
-alias al='aliases'
-
-# Dev build
-b() {
-  if [ -f build ]; then ./build $@ ; else test -f build.sh && ./build.sh $@ ; fi
-}
-
-# fast dev build
-bl() {
-  if [ -f build ]; then ./build $@ -fast ; else test -f build.sh && ./build.sh $@ -fast ; fi
-}
-
-# Optimized dev build
-bb() {
-  if [ -f build ]; then ./build -o 1 $@ ; else test -f build.sh && ./build.sh -o 1 $@ ; fi
-}
-
-# Production build
-bp() {
-  if [ -f build ]; then ./build -p p $@ ; else test -f build.sh && ./build.sh -p p $@ ; fi
-}
-
-# Profiling build
-bf() {
-  if [ -f build ]; then ./build -p pf $@ ; else test -f build.sh && ./build.sh -p pf $@ ; fi
-}
-
-# GPU profiling build
-bg() {
-  if [ -f build ]; then ./build -p gpu $@ ; else test -f build.sh && ./build.sh -p gpu $@ ; fi
-}
-
-# Run build
-r() {
-  if [ -f run ]; then ./run $@ ; else test -f run.sh && ./run.sh $@ ; fi
-}
-
-# Build then run
-br() {
-  b $@ ; r
-}
-
-if [[ "${platform,,}" == *'ming'* ]]; then
-    _checksum() {
-        local algo="$1"
-        local file="$2"
-        certutil -hashfile $file $algo
-    }
-    alias checksum='certutil -hashfile'
-    alias checksum-md5='_checksum MD5'
-    alias checksum-sha1='_checksum SHA1'
-    alias checksum-sha256='_checksum SHA256'
-    alias checksum-sha512='_checksum SHA512'
-fi
-
-check_signature() {
-    local algo="$1"
-    local hashes_file="$2"
-    local pem_file="$3"
-    local sig_file="$4"
-
-    if [[ $hashes_file == "" || $pem_file == "" || $sig_file == "" ]]; then
-        error "Format: $0 <hashes file (e.g. sha512 hashes)> <pem file> <sig file>\n"
-        return
-    fi
-
-    openssl dgst -$algo -verify $pem_file -signature $sig_file $hashes_file
-}
-alias check-signature256='check_signature sha256 '
-
-alias cr='RUSTFLAGS="$RUSTFLAGS -A unused_variables -A dead_code -A unused_parens" cargo run'
-alias crr='cargo run --release'
-alias cb='RUSTFLAGS="$RUSTFLAGS -A unused_variables -A dead_code -A unused_parens" cargo build'
-alias cbr='cargo build --release'
-alias clrtmp='trash ~/tmp/*.bak && trash ~/tmp/*.swp'
-alias clrtemp='clrtmp'
-alias clipboard='xclip -selection c'
-# Cloc alias may be overridden by a private alias
-alias cloc='cloc --no3 --by-file-by-lang --skip-win-hidden'
-alias cls=clear
-alias code='cd ~/code'
-alias cpr='cp -r'
-alias dc='gdc'
-alias dot='cd ~/.dotfiles'
-alias duh='du -csh'
-alias e='open_explorer_here "$PWD"'
-alias exp='echo "Use e instead."'
-
-alias f='fg'
-
-####################################################################################################
-# Grep
-####################################################################################################
-
-custom_grep() {
-    local term="$1"
-    shift 1
-    local include_list=("$@")
-    local include_arg=""
-    if [[ $include_list != "" ]]; then
-        for i in "${include_list[@]}"; do
-            include_arg+="--include=\*${i} "
-        done
-    fi
-    eval grep -nri --color=auto $include_arg --exclude=tags --exclude=newtags --exclude-dir=.git \"$term\"
-}
-
-# Search c/cpp/txt files. Only supports a single search term arg or a quoted search term.
-grep_dev() {
-    custom_grep "$@" .h .c .cpp .inc .def .txt .md
-}
-
-# Search c/cpp files. Only supports a single search term arg or a quoted search term.
-grep_c() {
-    custom_grep "$@" .h .c .cpp .inc .def
-}
-
-# Search txt/md files. Only supports a single search term arg or a quoted search term.
-grep_txt() {
-    custom_grep "$@" .txt .md
-}
-
-alias grepp='grep -n --color=auto --exclude=tags --exclude=newtags --exclude-dir=.git '
-alias grep-c='grep_c '
-alias grep-txt='grep_txt'
-alias grep-dev='grep_dev'
-
-####################################################################################################
-
-alias hist='history'
-alias histroy='history'
-alias irb='irb --readline -r irb/completion'
-alias lcc='lein clean'
-alias lca='lein cljsbuild auto dev'
-alias ldi='lein deps install'
-alias lsd='lein start-dev'
-alias moon='curl wttr.in/moon -A "curl"'
-alias patch='git format-patch HEAD^ --stdout > patch.diff'
-alias reguard='killall -9 ruby ; guard'
-alias rb='rbenv'
-alias rbg='rbenv gemset active'
-alias rbp='cd $RBENV_PATH/versions/$(rbenv version | sed -e "s/ (set.*$//")'
-alias rbl='cd $RBENV_PATH/versions/$(rbenv version | sed -e "s/ (set.*$//")/lib/ruby'
-alias rc='rclone'
-alias rcc='rclone copy'
-alias restart='sudo shutdown now -r'
-alias rl='reload'
-alias rmr='rm -r'
-alias rmrf='rm -rf'
-alias s='cd ~/.ssh'
-alias sc='vim ~/.ssh/config'
-alias shutdown='sudo shutdown now'
-alias stk='rlwrap stk-simply'
-alias t='tree'
-alias tag='ctags -R .'
-alias tmp='cd ~/tmp'
-alias v='vim'
-alias vi='vim'
-alias vh='vagrant halt'
-alias vs='vagrant ssh'
-alias vu='vagrant up'
-alias vimrc='vim ~/.vimrc'
-alias weather='curl wttr.in/toronto -A "curl"'
-
-#
-# Downloading
-#
-
-COMPRESSION_ON=1
-COMPRESSION_OFF=0
-SHORTNAME_ON=1
-SHORTNAME_OFF=0
-
 # YouTube Vid DL
 alias yt='dl_youtube_vid "" $SHORTNAME_OFF'
 alias yt-shortname='dl_youtube_vid "" $SHORTNAME_ON'
@@ -796,7 +764,9 @@ alias vimeo-compressed='dl_vimeo_vid "Original" $SHORTNAME_OFF $COMPRESSION_ON'
 alias download-mp4='dl_mp4'
 alias download-from-m3u8='dl_from_m3u8'
 
+####################################################################################################
 # Video Compression
+####################################################################################################
 
 function _compress_video_hard() {
     local crf=35
@@ -812,7 +782,6 @@ function _compress_video_hard() {
 
 alias compress-video-hard='_compress_video_hard'
 
-
 ####################################################################################################
 # Git
 ####################################################################################################
@@ -822,6 +791,34 @@ if [[ '${platform,,}' == *'ming'* ]]; then
   # Got the fix from https://github.com/Alexpux/MSYS2-packages/issues/735#issuecomment-328938800
   alias git="PATH=/usr/bin git"
 fi
+
+git_cmd_wrapper() {
+  # If no args are provided then run `git status -s`
+  if [[ $# > 0 ]]; then
+    git $@
+  else
+    git status -s
+  fi
+}
+
+git_commit() {
+    cmd="git commit -m \"$*\""
+    eval "$cmd"
+}
+
+git_commit_signed() {
+    cmd="git commit -S -m \"$*\""
+    eval "$cmd"
+}
+
+git_branch_name() {
+    val=`git branch 2>/dev/null | grep '^*' | colrm 1 2`
+    echo "$val"
+}
+
+git_nuke() {
+  git checkout master && git branch -D $1 && git push origin :$1
+}
 
 alias am='git commit --amend'
 alias ama='git commit --amend -C head --author'
@@ -850,10 +847,6 @@ alias gcm='git_commit'
 alias gcms='git_commit_signed' # signed
 alias gco='git checkout'
 alias gco-='git checkout -'
-git_checkout_build() {
-  git checkout "$1" ; b
-}
-alias gcoo=git_checkout_build
 alias gcob='git checkout -b'
 alias gcon='vi .git/config'
 alias gcp='git cherry-pick'
@@ -950,9 +943,14 @@ alias gxom='git reset --hard origin/master'
 alias gstats='echo "Total commits: $(git rev-list HEAD --count)"; echo "\nAuthor breakdown:"; git shortlog | grep -E "^[^ ]"'
 alias gwip="git add . && git commit -m \"WIP\""
 
+####################################################################################################
 # Haxe
+####################################################################################################
 alias flow='haxelib run flow'
 alias snowfall='haxelib run snowfall'
 
+####################################################################################################
+# CMake
+####################################################################################################
 alias cmake-gen='cmake -D CMAKE_CXX_COMPILER="/Library/Developer/CommandLineTools/usr/bin/c++" CMAKE_C_COMPILER="/Library/Developer/CommandLineTools/usr/bin/cc" ..'
 
