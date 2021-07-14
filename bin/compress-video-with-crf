@@ -24,22 +24,18 @@ else
 fi
 
 if [[ $1 == "" ]]; then
-    printf "${BOLD}${RED}Usage: $0 <use-gpu (1|0)> <filename> <optional output name>${NORMAL}\n"
+    printf "${BOLD}${RED}Usage: $0 <use-gpu (1|0)> <crf value> <filename> <optional output name>\n\nIf you want to encode a range of CRF values then use -1 as the crf value.${NORMAL}\n"
     exit 1
 fi
 
 use_gpu=$1
+use_crf=$2
 
-filename=$(basename -- "$2")
+filename=$(basename -- "$3")
 extension="${filename##*.}"
 filename="${filename%.*}"
 
-output_name="$3"
-
-use_crf=25 # Found the following to work best with vids containing text (e.g. programming vid): 25 for CPU encoding and 27 for GPU.
-if [[ $use_gpu -eq 1 ]]; then
-    use_crf=27
-fi
+output_name="$4"
 
 function encode() {
     crf=$1
@@ -60,12 +56,14 @@ function encode() {
     printf "\n${GREEN}${BOLD}Done encoding '$filename.$extension' (CRF $crf) | output name '$output'${NORMAL}\n\n"
 }
 
-encode $use_crf
+if [[ $use_crf -ne -1 ]]; then
+    encode $use_crf
+else
+    printf "\n${YELLOW}${BOLD}Encoding using a range of CRF values.${NORMAL}\n"
 
-#printf "\n${YELLOW}${BOLD}Encoding using a range of CRF values.${NORMAL}\n"
-## Bigger crf values == bigger compression.
-#for crf in {25..28}
-#do
-#    encode $crf
-#done
-
+    # Bigger crf values == bigger compression.
+    for crf in {25..28}
+    do
+        encode $crf
+    done
+fi

@@ -1,0 +1,10 @@
+/* Hide the top tabs toolbar. 
+   To install this: 
+       * Go to your Firefox profile folder (look in %appdata%/Mozilla/Firefox/Profiles)
+       * Create a 'chrome' folder and place this there.
+       * In Firefox, go to about:config and set `toolkit.legacyUserProfileCustomizations.stylesheets` to true. 
+       * Restart the browser.
+*/
+#TabsToolbar {
+	display: none !important;
+}

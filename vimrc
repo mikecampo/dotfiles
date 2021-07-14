@@ -56,10 +56,11 @@ let g:campo_light_theme = 'campo-light-simple'
 let g:campo_theme_use_rainbow_parens = 1
 "--------------------------------------------
 
-" You can further customize things in a private vimrc. I use this
-" for things that I don't want included in my public dotfiles repo
-" such as temp file settings.
-source ~/.vimrc.private
+" You can further customize things in a private vimrc. I use this for things
+" that I don't want included in my public dotfiles repo such as temp file settings.
+if filereadable($HOME . "/.vimrc.private")
+    source $HOME/.vimrc.private
+endif
 
 "################################################################
 "################################################################
@@ -467,9 +468,12 @@ augroup campoCmds
     autocmd BufReadPre *.asm let g:asmsyntax = "fasm"
 
     " Auto reload VIM when settings changed.
-    autocmd BufWritePost .vimrc so $MYVIMRC
-    autocmd BufWritePost *.vim so $MYVIMRC
-    autocmd BufWritePost ~/.vimrc.private so $MYVIMRC
+    " @fixme Reload lvimrc after sourcing this file on a save. I tried calling
+    " a function that does the source and a call to lvimrc's API but got an
+    " error complaining that the function cannot be created while it's in use.
+    autocmd BufWritePost .vimrc source $MYVIMRC
+    autocmd BufWritePost *.vim source $MYVIMRC
+    autocmd BufWritePost ~/.vimrc.private source $MYVIMRC
 
     function! s:RunCtags()
         " The ampersand at the end is to make this run in the background. I had to
@@ -532,7 +536,7 @@ nmap <leader>z <c-z>
 " Open the vimrc file for editing / reload vimrc file.
 nmap <silent> <leader>ev :vsp $MYVIMRC<cr>
 nmap <silent> <leader>pv :vsp ~/.vimrc.private<cr>
-nmap <silent> <leader>rv :so $MYVIMRC<cr>
+nmap <silent> <leader>rv :source $MYVIMRC<cr>
 
 " Type %/ in the command bar to have it replaced with the current buffer's
 " path if the file is on disk. One thing I noticed is that you have to type
@@ -1070,8 +1074,8 @@ nnoremap <C-p> :cp<CR>
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 " Search using ripgrep (first install with Rust: cargo install ripgrep).
-function! Search(case_sensitive)
-    let l:helper = "[" . (a:case_sensitive ? "case-sensitive" : "case-insensitive") . "] search: "
+function! Search(case_sensitive, search_args)
+    let l:helper = "Search [" . a:search_args . " | " . (a:case_sensitive ? "case-sensitive" : "case-insensitive") . "]: "
     let l:term = input(l:helper)
     if empty(l:term)
         return
@@ -1079,7 +1083,7 @@ function! Search(case_sensitive)
 
     "@note --pretty (i.e. colors) is not enabled in vim-ripgrep because the
     "quickfix window doesn't seem to parse the ansi color codes.
-    let l:rg_args = "--column --line-number --no-heading --fixed-strings --no-ignore --hidden --follow --trim -g \"!tags\" " . g:campo_custom_search_args
+    let l:rg_args = "--column --line-number --no-heading --fixed-strings --no-ignore --hidden --follow --trim -g \"!tags\" " . a:search_args
 
     if !a:case_sensitive
         let l:rg_args .= " --ignore-case"
@@ -1087,8 +1091,14 @@ function! Search(case_sensitive)
 
     exec 'Rg ' . l:rg_args . ' "' . l:term . '"'
 endfunction
-map <leader>s :call Search(0)<cr>
-map <leader>ss :call Search(1)<cr>
+
+" Case insensitive
+map <leader>s :call Search(0, g:campo_custom_search_args)<cr>
+noremap <F2> :call Search(0, g:campo_custom_search_args_2)<cr>
+
+" Case sensitive
+map <leader>ss :call Search(1, g:campo_custom_search_args)<cr>
+noremap <F3> :call Search(1, g:campo_custom_search_args_2)<cr>
 
 " Navigation for the vim-ripgrep search results.
 " Hit o on a result line to open the file at that line.

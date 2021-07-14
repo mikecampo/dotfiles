@@ -19,6 +19,9 @@
     * AFAIK this only works for Intel CPUs; not sure how to do the same thing on AMD.
     * In the power plan set the processor min/max speed to 99%.
 
+* Disable Windows error reporting dialog so that when stuff crashes you can get to a debugger faster.
+    * Open an admin cmd prompt and run the file `disable-windows-error-reporting-dialog.bat` from this directory.
+
 * Optional: disable Windows Defender real-time protection:
     * This can speed up compilation times since Defender will scan every file written to disk. I was
       able to shave off ~2-5 seconds in a particular project.
@@ -106,8 +109,11 @@ processor time and is generally useless.
 * Install the Windows SDK https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk
 * Download [O&O ShutUp10](https://www.oo-software.com/en/shutup10) and disable things.
 
-## Setup up Unix-like Shell
+## Setup Terminal
 * Install [MSYS2 w/ MinGW-w64](http://www.msys2.org/) to `C:\msys64`
+  * MinGW is intended for developing native Windows applications. MSYS is for developing software
+    that runs inside of the MSYS2 posix-like env with FHS style filesystem naming (i.e. MSYS2
+    tools/packages).
   * Open `C:\msys64\mingw64.exe`
   * Run `pacman -Syu`, then restart the terminal and run `pacman -Su`.
   * Run `pacman -S base-devel mingw-w64-x86_64-toolchain git bc`

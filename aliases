@@ -134,6 +134,7 @@ make_vid_dir_and_cd_into() {
         # @note If the filename contains symbols that are incompatible with
         # Windows' directory names then add --restrict-filenames to the command.
         dir_name=$(youtube-dl.exe --get-filename -o "%(upload_date)s - %(title)s" $opts $url)
+
         if [[ $dir_name == "" ]]; then
             return 1
         fi
@@ -157,20 +158,23 @@ make_vid_dir_and_cd_into() {
 dl_youtube_vid() {
     local format="$1"
     local shortname="$2"
-    local url="$3"
-    shift 3
+    local make_folder="$3"
+    local url="$4"
+    shift 4
     local opts="$@"
 
     if [[ $url == "" ]]; then
-        error "Format: $0 <url> <optional args>\n"
+        error "Format: $0 <make folder?> <url> <optional args>\n"
         return
     fi
 
     opts+=" --write-sub --sub-lang en --embed-subs"
 
-    make_vid_dir_and_cd_into $url
-    if [[ $? -ne 0 ]]; then
-        return
+    if [[ $make_folder == "1" ]]; then
+        make_vid_dir_and_cd_into $url ""
+        if [[ $? -ne 0 ]]; then
+            return
+        fi
     fi
 
     if [[ $shortname -eq 0 ]]; then
@@ -188,26 +192,31 @@ dl_youtube_vid() {
         youtube-dl.exe -f $format -o "$filename" $opts $url
     fi
 
-    cd ..
+    if [[ $make_folder == "1" ]]; then
+        cd ..
+    fi
 }
 
 # Download YouTube video and flip horizontally.
 dl_youtube_vid_and_hflip() {
     local format="$1"
-    local url="$2"
-    shift 2
+    local make_folder="$2"
+    local url="$3"
+    shift 3
     local opts="$@"
 
     if [[ $url == "" ]]; then
-        error "Format: $0 <url> <optional args>\n"
+        error "Format: $0 <make folder?> <url> <optional args>\n"
         return
     fi
 
     opts+=" --write-sub --sub-lang en --embed-subs"
 
-    make_vid_dir_and_cd_into $url
-    if [[ $? -ne 0 ]]; then
-        return
+    if [[ $make_folder == "1" ]]; then
+        make_vid_dir_and_cd_into $url ""
+        if [[ $? -ne 0 ]]; then
+            return
+        fi
     fi
 
     local filename=$(youtube-dl.exe --get-filename -o "%(upload_date)s-%(title)s-youtube-%(id)s.%(ext)s" $url)
@@ -223,7 +232,9 @@ dl_youtube_vid_and_hflip() {
     ffmpeg -i "$filename" -vf hflip -c:a copy "copy_${filename}"
     mv "copy_${filename}" "$filename"
 
-    cd ..
+    if [[ $make_folder == "1" ]]; then
+        cd ..
+    fi
 }
 
 dl_youtube_playlist() {
@@ -259,6 +270,21 @@ dl_youtube_playlist() {
     cd ..
 }
 
+# Download Twitch chat transcript
+actually_dl_twitch_chat() {
+    local url="$1"
+    local filename="$2"
+
+    rechat.exe -d $url "$filename.json"
+    if [[ -f "$filename.json" ]]; then
+        rechat.exe -p "$filename.json" "$filename.txt" -b -o
+        mv "$filename.txt" "${filename:0:4}-${filename:4:2}-${filename:6}.txt"
+        rm "$filename.json"
+    else
+        error "Video doesn't have a chat transcript."
+    fi
+}
+
 dl_twitch_chat() {
     local url="$1"
     shift 1
@@ -274,44 +300,42 @@ dl_twitch_chat() {
         return
     fi
 
-    # Download Twitch chat transcript
-    local name_format="%(upload_date)s-%(title)s-twitch-%(id)s"
-    local chat_file=$(youtube-dl.exe --get-filename -o "$name_format" $opts $url)
-    rechat.exe -d $url "$chat_file.json"
-    rechat.exe -p "$chat_file.json" "$chat_file.txt" -b -o
-    mv "$chat_file.txt" "${chat_file:0:4}-${chat_file:4:2}-${chat_file:6}.txt"
-    rm "$chat_file.json"
+    actually_dl_twitch_chat $url "$(youtube-dl.exe --get-filename -o "%(upload_date)s-%(title)s-twitch-%(id)s" $opts $url)"
 
     cd ..
 }
 
 # Download Twitch videos.
-# If you want to download a sub-only vid then extract your twitch cookies to a file (can use cookies.txt addon)
-# and then pass it as an option, using the full path to the cookies file, e.g.
+# If you want to download subcriber-only vids then first extract your twitch
+# cookies to a file (can use cookies.txt addon from Lennon Hill) and then pass it as an option,
+# using the full path to the cookies file, e.g.
 #   `tw-1080p60 <url> --cookies /c/<cookie_path>/twitch_cookies.txt`
 #
 dl_twitch_vid() {
     local format="$1"
     local shortname="$2"
-    local compression_level="$3"
-    local url="$4"
-    shift 4
+    local compress="$3"
+    local make_folder="$4"
+    local url="$5"
+    shift 5
     local opts="$@"
 
     if [[ $url == "" ]]; then
-        error "Format: $0 <url> <optional args>\n"
+        error "Format: $0 <make folder?> <url> <optional args>\n"
         return
     fi
 
-    if [[ $compression_level -eq 0 ]]; then
+    if [[ $compress -eq 0 ]]; then
         printf "${BOLD}Downloading Twitch vid with no compression.${NORMAL}\n"
     else
-        printf "${BOLD}Downloading Twitch vid with compression level ${YELLOW}$compression_level${NORMAL}.\n"
+        printf "${BOLD}Downloading Twitch vid with compression.${NORMAL}.\n"
     fi
 
-    make_vid_dir_and_cd_into $url "" $opts
-    if [[ $? -ne 0 ]]; then
-        return
+    if [[ $make_folder == "1" ]]; then
+        make_vid_dir_and_cd_into $url "" $opts
+        if [[ $? -ne 0 ]]; then
+            return
+        fi
     fi
 
     if [[ $shortname -eq 0 ]]; then
@@ -321,11 +345,7 @@ dl_twitch_vid() {
     fi
 
     # Download Twitch chat transcript
-    local chat_file=$(youtube-dl.exe --get-filename -o "$name_format" $opts $url)
-    rechat.exe -d $url "$chat_file.json"
-    rechat.exe -p "$chat_file.json" "$chat_file.txt" -b -o
-    mv "$chat_file.txt" "${chat_file:0:4}-${chat_file:4:2}-${chat_file:6}.txt"
-    rm "$chat_file.json"
+    actually_dl_twitch_chat $url "$(youtube-dl.exe --get-filename -o "$name_format" $opts $url)"
 
     # Download the video.
     local filename=$(youtube-dl.exe --get-filename -o "$name_format.%(ext)s" $opts $url)
@@ -335,18 +355,82 @@ dl_twitch_vid() {
 
     error=$?
     if [[ $error -eq 0 ]]; then
-        if [[ $compression_level -ne 0 ]]; then
-            compress-video "$filename" $compression_level "temp"
+        if [[ $compress -eq 1 ]]; then
+            local temp_name="temp_${RANDOM}"
+            # 1 arg = use GPU
+            compress-video 1 "$filename" "$temp_name"
             extension="${filename##*.}"
-            mv "$filename" uncompressed_original.$extension
-            mv temp.$extension "$filename"
+            mv "$filename" "orig_$filename.$extension"
+            mv $temp_name.$extension "$filename"
             printf "${BOLD}Make sure to delete the original video file${NORMAL}\n"
         fi
     else
         error "Error: Failed to download '$url'\n"
     fi
 
-    cd ..
+    if [[ $make_folder == "1" ]]; then
+        cd ..
+    fi
+}
+
+# Download Vimeo videos.
+dl_vimeo_vid() {
+    local format="$1"
+    local shortname="$2"
+    local compress="$3"
+    local make_folder="$4"
+    local url="$5"
+    shift 5
+    local opts="$@"
+
+    if [[ $url == "" ]]; then
+        error "Format: $0 <make folder?> <url> <optional args>\n"
+        return
+    fi
+
+    if [[ $compress -eq 0 ]]; then
+        printf "${BOLD}Downloading Vimeo vid with no compression.${NORMAL}\n"
+    else
+        printf "${BOLD}Downloading Vimeo vid with compression.${NORMAL}.\n"
+    fi
+
+    if [[ $make_folder == "1" ]]; then
+        make_vid_dir_and_cd_into $url "" $opts
+        if [[ $? -ne 0 ]]; then
+            return
+        fi
+    fi
+
+    if [[ $shortname -eq 0 ]]; then
+        local name_format="%(upload_date)s-%(title)s-vimeo-%(id)s"
+    else
+        local name_format="%(upload_date)s-shortname-vimeo-%(id)s"
+    fi
+
+    # Download the video.
+    local filename=$(youtube-dl.exe --get-filename -o "$name_format.%(ext)s" $opts $url)
+    filename="${filename:0:4}-${filename:4:2}-${filename:6}"
+
+    youtube-dl.exe -f "$format" -o "$filename" $opts $url
+
+    error=$?
+    if [[ $error -eq 0 ]]; then
+        if [[ $compress -eq 1 ]]; then
+            local temp_name="temp_${RANDOM}"
+            # 1 arg = use GPU
+            compress-video 1 "$filename" "$temp_name"
+            extension="${filename##*.}"
+            mv "$filename" "orig_$filename.$extension"
+            mv $temp_name.$extension "$filename"
+            printf "${BOLD}Make sure to delete the original video file${NORMAL}\n"
+        fi
+    else
+        error "Error: Failed to download '$url'\n"
+    fi
+
+    if [[ $make_folder == "1" ]]; then
+        cd ..
+    fi
 }
 
 # Download MP4 video.
@@ -642,12 +726,22 @@ alias vu='vagrant up'
 alias vimrc='vim ~/.vimrc'
 alias weather='curl wttr.in/toronto -A "curl"'
 
-alias yt='dl_youtube_vid "" 0'
-alias yt-shortname='dl_youtube_vid "" 1'
-alias yt-1080='dl_youtube_vid "137+140" 0'
-alias yt-1080-shortname='dl_youtube_vid "137+140" 1'
-alias yt-720='dl_youtube_vid "136+140" 0'
-alias yt-720-shortname='dl_youtube_vid "136+140" 1'
+#
+# Downloading
+#
+
+COMPRESSION_ON=1
+COMPRESSION_OFF=0
+SHORTNAME_ON=1
+SHORTNAME_OFF=0
+
+# YouTube Vid DL
+alias yt='dl_youtube_vid "" $SHORTNAME_OFF'
+alias yt-shortname='dl_youtube_vid "" $SHORTNAME_ON'
+alias yt-1080='dl_youtube_vid "137+140" $SHORTNAME_OFF'
+alias yt-1080-shortname='dl_youtube_vid "137+140" $SHORTNAME_ON'
+alias yt-720='dl_youtube_vid "136+140" $SHORTNAME_OFF'
+alias yt-720-shortname='dl_youtube_vid "136+140" $SHORTNAME_ON'
 
 alias yt-playlist='dl_youtube_playlist ""'
 alias yt-playlist-1080='dl_youtube_playlist "137+140"'
@@ -657,46 +751,67 @@ alias yt-audio='youtube-dl.exe -f "140"'
 alias yt-and-hflip='dl_youtube_vid_and_hflip "137+140"' # 1080p
 alias ig-download-and-hflip='dl_instagram_vid_and_hflip '
 
-compression_quality=27 # 27 for gpu; 25 for cpu
+# Twitch Vid DL
+alias tw-src='dl_twitch_vid "Source" $SHORTNAME_OFF $COMPRESSION_OFF'
 
-alias tw-src='dl_twitch_vid "Source" 0 0'
-
-alias tw='dl_twitch_vid "1080p" 0 0'
-alias tw-compressed='dl_twitch_vid "1080p" 0 $compression_quality'
-alias tw-shortname='dl_twitch_vid "1080p" 1 0'
-alias tw-shortname-compressed='dl_twitch_vid "1080p" 1 $compression_quality'
+alias tw='dl_twitch_vid "1080p" $SHORTNAME_OFF $COMPRESSION_OFF'
+alias tw-compressed='dl_twitch_vid "1080p" $SHORTNAME_OFF $COMPRESSION_ON'
+alias tw-shortname='dl_twitch_vid "1080p" $SHORTNAME_ON $COMPRESSION_OFF'
+alias tw-shortname-compressed='dl_twitch_vid "1080p" $SHORTNAME_ON $COMPRESSION_ON'
 alias tw-custom='dl_twitch_vid '
 alias tw-chat='dl_twitch_chat'
 
-alias tw-1080='dl_twitch_vid "1080" 0 0'
-alias tw-1080-compressed='dl_twitch_vid "1080" 0 $compression_quality'
-alias tw-1080-shortname='dl_twitch_vid "1080" 1 0'
-alias tw-1080-shortname-compressed='dl_twitch_vid "1080" 1 $compression_quality'
+alias tw-1080='dl_twitch_vid "1080" $SHORTNAME_OFF $COMPRESSION_OFF'
+alias tw-1080-compressed='dl_twitch_vid "1080" $SHORTNAME_OFF $COMPRESSION_ON'
+alias tw-1080-shortname='dl_twitch_vid "1080" $SHORTNAME_ON $COMPRESSION_OFF'
+alias tw-1080-shortname-compressed='dl_twitch_vid "1080" $SHORTNAME_ON $COMPRESSION_ON'
 
-alias tw-1080p60='dl_twitch_vid "1080p60" 0 0'
-alias tw-1080p50='dl_twitch_vid "1080p50" 0 0'
-alias tw-1080p60-compressed='dl_twitch_vid "1080p60" 0 $compression_quality'
-alias tw-1080p50-compressed='dl_twitch_vid "1080p50" 0 $compression_quality'
-alias tw-1080p60-shortname='dl_twitch_vid "1080p60" 1 0'
-alias tw-1080p50-shortname='dl_twitch_vid "1080p50" 1 0'
-alias tw-1080p60-shortname-compressed='dl_twitch_vid "1080p60" 1 $compression_quality'
-alias tw-1080p50-shortname-compressed='dl_twitch_vid "1080p50" 1 $compression_quality'
+alias tw-1080p60='dl_twitch_vid "1080p60" $SHORTNAME_OFF $COMPRESSION_OFF'
+alias tw-1080p50='dl_twitch_vid "1080p50" $SHORTNAME_OFF $COMPRESSION_OFF'
+alias tw-1080p60-compressed='dl_twitch_vid "1080p60" $SHORTNAME_OFF $COMPRESSION_ON'
+alias tw-1080p50-compressed='dl_twitch_vid "1080p50" $SHORTNAME_OFF $COMPRESSION_ON'
+alias tw-1080p60-shortname='dl_twitch_vid "1080p60" $SHORTNAME_ON $COMPRESSION_OFF'
+alias tw-1080p50-shortname='dl_twitch_vid "1080p50" $SHORTNAME_ON $COMPRESSION_OFF'
+alias tw-1080p60-shortname-compressed='dl_twitch_vid "1080p60" $SHORTNAME_ON $COMPRESSION_ON'
+alias tw-1080p50-shortname-compressed='dl_twitch_vid "1080p50" $SHORTNAME_ON $COMPRESSION_ON'
 
-alias tw-720='dl_twitch_vid "720p" 0 0'
-alias tw-720-compressed='dl_twitch_vid "720p-1" 0 $compression_quality'
-alias tw-720-shortname='dl_twitch_vid "720p-1" 1 0'
-alias tw-720-60='dl_twitch_vid "720p60" 0 0'
-alias tw-720-60-shortname='dl_twitch_vid "720p60" 1 0'
+alias tw-720='dl_twitch_vid "720p" $SHORTNAME_OFF $COMPRESSION_OFF'
+alias tw-720-compressed='dl_twitch_vid "720p-1" $SHORTNAME_OFF $COMPRESSION_ON'
+alias tw-720-shortname='dl_twitch_vid "720p-1" $SHORTNAME_ON $COMPRESSION_OFF'
+alias tw-720-60='dl_twitch_vid "720p60" $SHORTNAME_OFF $COMPRESSION_OFF'
+alias tw-720-60-shortname='dl_twitch_vid "720p60" $SHORTNAME_ON $COMPRESSION_OFF'
 
-alias tw-4k='dl_twitch_vid "2160p" 0 0'
-alias tw-4k-compressed='dl_twitch_vid "2160p" 0 $compression_quality'
-alias tw-4k-shortname='dl_twitch_vid "2160p" 1 0'
-alias tw-4k-shortname-compressed='dl_twitch_vid "2160p" 1 $compression_quality'
+alias tw-4k='dl_twitch_vid "2160p" $SHORTNAME_OFF $COMPRESSION_OFF'
+alias tw-4k-compressed='dl_twitch_vid "2160p" $SHORTNAME_OFF $COMPRESSION_ON'
+alias tw-4k-shortname='dl_twitch_vid "2160p" $SHORTNAME_ON $COMPRESSION_OFF'
+alias tw-4k-shortname-compressed='dl_twitch_vid "2160p" $SHORTNAME_ON $COMPRESSION_ON'
 
-alias tw-source='dl_twitch_vid "Source" 0 0'
+alias tw-source='dl_twitch_vid "Source" $SHORTNAME_OFF $COMPRESSION_OFF'
 
+# Vimeo Vid DL
+alias vimeo='dl_vimeo_vid "Original" $SHORTNAME_OFF $COMPRESSION_OFF'
+alias vimeo-compressed='dl_vimeo_vid "Original" $SHORTNAME_OFF $COMPRESSION_ON'
+
+# Misc
 alias download-mp4='dl_mp4'
 alias download-from-m3u8='dl_from_m3u8'
+
+# Video Compression
+
+function _compress_video_hard() {
+    local crf=35
+    local name="$1"
+    local out="$2"
+    if [[ name == "" || out == "" ]]; then
+        error "Format: cmd <source> <dest>\n"
+        return
+    fi
+    # 1 arg = use GPU
+    compress-video-with-crf 1 $crf "$name" "$out"
+}
+
+alias compress-video-hard='_compress_video_hard'
+
 
 ####################################################################################################
 # Git
