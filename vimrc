@@ -81,14 +81,25 @@ let s:rainbow_theme = s:default_bg
 " @note The following globals can be used to customize various functions in
 " this file. The easiest way to set them is in an .lvimrc file in the root
 " folder that you want it applied to.
-"
-" Set this to 0 if you want to stop the removal of trailing whitespaces.
+
+" When set to 1, all files will be stripped of trailing whitespace when the
+" file is saved. Set to 0 to disable. You can customize which files are
+" ignored or always stripped; see below.
 let g:campo_strip_trailing_whitespace = 1
 
-" If g:campo_strip_trailing_whitespace is 1 then you can stop this from
-" happening in specific files by setting this to a list of filenames.
+" If g:campo_strip_trailing_whitespace is 1 then you can stop stripping
+" in specific files by setting this to a list of filenames. This has no
+" effect when g:campo_strip_trailing_whitespace is 0.
+"
 " e.g. let g:campo_files_to_ignore_when_stripping_trailing_whitespace = ['app.h', 'config.h']
 let g:campo_files_to_ignore_when_stripping_trailing_whitespace = []
+
+" If g:campo_strip_trailing_whitespace is 0 then you can force whitespace
+" stripping in specific files by setting this to a list of filenames. This
+" has no effect when g:campo_strip_trailing_whitespace is 1.
+
+" e.g. let g:campo_files_to_force_stripping_trailing_whitespace = ['app.h', 'config.h']
+let g:campo_files_to_force_stripping_trailing_whitespace = []
 
 " This is included in the ripgrep args. You can use this to do things like
 " ignore folders in your project or limit the search to specific file types.
@@ -492,16 +503,28 @@ augroup campoCmds
 
     " Remove trailing whitespace when saving any file.
     function! s:StripTrailingWhitespaces()
-        if g:campo_strip_trailing_whitespace != 1
-            return
-        endif
-        if len(g:campo_files_to_ignore_when_stripping_trailing_whitespace)
-            let filename = expand('%:t')
-            for ignore in g:campo_files_to_ignore_when_stripping_trailing_whitespace
-                if filename == ignore
+        let l:filename = expand('%:t')
+        if g:campo_strip_trailing_whitespace == 1
+            if len(g:campo_files_to_ignore_when_stripping_trailing_whitespace)
+                for ignore in g:campo_files_to_ignore_when_stripping_trailing_whitespace
+                    if ignore == l:filename
+                        return
+                    endif
+                endfor
+            endif
+        else
+            if len(g:campo_files_to_force_stripping_trailing_whitespace)
+                let l:found_match = 0
+                for name in g:campo_files_to_force_stripping_trailing_whitespace
+                    if name == l:filename
+                        let l:found_match = 1
+                        break
+                    endif
+                endfor
+                if l:found_match == 0
                     return
                 endif
-            endfor
+            endif
         endif
 
         let l = line(".")
